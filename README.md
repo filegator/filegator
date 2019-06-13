@@ -1,4 +1,4 @@
-<p align="center"><img src="https://www.file-gator.com/gator/m/include/views/img/logo.gif"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/filegator/static/master/logo.gif"></p>
 
 ## FileGator - Powerful Multi-User File Manager
 Copy, move, rename, create, edit or delete online files and folders.
