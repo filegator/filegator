@@ -3,8 +3,8 @@ CREATE TABLE `users` (
     `username` varchar(255) NOT NULL,
     `name` varchar(255) NOT NULL,
     `role` varchar(20) NOT NULL,
-    `permissions` varchar(100) NOT NULL,
-    `homedir` varchar(1000) NOT NULL,
+    `permissions` varchar(200) NOT NULL,
+    `homedir` varchar(2000) NOT NULL,
     `password` varchar(255) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `username` (`username`)
