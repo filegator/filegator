@@ -27,7 +27,7 @@ Create users with different access permissions and home directories for each use
 
 
 ## Requirements
-- PHP 7.1.3
+- PHP 7.1.3+
 
 
 ## Download precompiled build
