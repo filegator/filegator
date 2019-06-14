@@ -17,14 +17,15 @@ Zip and unzip files and folders.
 Create users with different access permissions and home directories for each user.
 
 ## Features & Goals
-- Multiple storage adapters (using [Flysystem](https://github.com/thephpleague/flysystem))
-- Multiple auth adapters with roles and permissions
-- Multiple session adapters (file, database)
-- Single page front-end (built with [Vuejs](https://github.com/vuejs/vue))
+- Multiple storage adapters (Local, FTP, S3, Dropbox and many others via [Flysystem](https://github.com/thephpleague/flysystem))
+- Multiple auth adapters with roles and permissions (Store users in json file or database)
+- Multiple session adapters (Native File, Pdo, MongoDB, Memcached and others via [Symfony](https://github.com/symfony/symfony/tree/master/src/Symfony/Component/HttpFoundation/Session/Storage/Handler))
+- Single page front-end (built with [Vuejs](https://github.com/vuejs/vue) and [Buefy](https://github.com/buefy/buefy))
 - Chunked uploads (via [Resumable.js](https://github.com/23/resumable.js))
 - Zip and bulk download support
 - Highly extensible, decoupled and tested code
-- Framework free
+- No database required
+- Framework free [™](https://www.youtube.com/watch?v=L5jI9I03q8E)
 
 
 ## Requirements
@@ -58,7 +59,7 @@ npm run build
 ```
 npm run serve
 ```
-Visit http://localhost:8080
+Once everything is ready visit: ```http://localhost:8080```
 
 
 ### Run tests
