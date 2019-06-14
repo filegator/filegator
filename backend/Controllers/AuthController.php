@@ -67,10 +67,6 @@ class AuthController
             return $response->json($errors->firstOfAll(), 422);
         }
 
-        if ($auth->user() === null) {
-            return $response->json(['oldpassword' => 'Wrong password'], 422);
-        }
-
         if (! $auth->authenticate($auth->user()->getUsername(), $request->input('oldpassword'))) {
             return $response->json(['oldpassword' => 'Wrong password'], 422);
         }

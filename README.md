@@ -65,7 +65,7 @@ Once everything is ready visit: ```http://localhost:8080```
 ### Run tests & static analysis
 ```
 vendor/bin/phpunit
-composer phpstan
+vendor/bin/phpstan analyse ./backend --level=x
 ```
 
 ### Deployment

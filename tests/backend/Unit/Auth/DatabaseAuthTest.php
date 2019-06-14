@@ -10,9 +10,7 @@
 
 namespace Tests\Unit\Auth;
 
-use Filegator\Kernel\Request;
 use Filegator\Services\Auth\Adapters\Database;
-use Filegator\Services\Session\Adapters\SessionStorage;
 
 /**
  * @internal
@@ -23,17 +21,7 @@ class DatabaseAuthTest extends AuthTest
 
     public function setAuth()
     {
-        $session = new SessionStorage(new Request());
-        $session->init([
-            'session_handler' => 'mockfilesession',
-            'available' => [
-                'mockfilesession' => function () {
-                    return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
-                },
-            ],
-        ]);
-
-        $this->auth = new Database($session);
+        $this->auth = new Database($this->session);
         $this->auth->init([
             'driver' => 'pdo',
             'dsn' => 'sqlite::memory:',

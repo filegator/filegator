@@ -10,9 +10,7 @@
 
 namespace Tests\Unit\Auth;
 
-use Filegator\Kernel\Request;
 use Filegator\Services\Auth\Adapters\JsonFile;
-use Filegator\Services\Session\Adapters\SessionStorage;
 
 /**
  * @internal
@@ -32,17 +30,7 @@ class JsonFileTest extends AuthTest
         @unlink($this->mock_file);
         @touch($this->mock_file.'.blank');
 
-        $session = new SessionStorage(new Request());
-        $session->init([
-            'session_handler' => 'mockfilesession',
-            'available' => [
-                'mockfilesession' => function () {
-                    return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
-                },
-            ],
-        ]);
-
-        $this->auth = new JsonFile($session);
+        $this->auth = new JsonFile($this->session);
         $this->auth->init([
             'file' => $this->mock_file,
         ]);

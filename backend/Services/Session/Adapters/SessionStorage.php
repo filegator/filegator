@@ -40,25 +40,21 @@ class SessionStorage implements Service, SessionStorageInterface
 
     public function save()
     {
-        return $this->getSession() !== null ? $this->getSession()->save() : false;
+        $this->getSession()->save();
     }
 
     public function set(string $key, $data)
     {
-        return $this->getSession() !== null ? $this->getSession()->set($key, $data) : false;
+        return $this->getSession()->set($key, $data);
     }
 
     public function get(string $key, $default = null)
     {
-        return $this->getSession() !== null ? $this->getSession()->get($key, $default) : $default;
+        return $this->getSession() ? $this->getSession()->get($key, $default) : $default;
     }
 
     public function invalidate()
     {
-        if ($this->getSession() === null) {
-            return;
-        }
-
         if (! $this->getSession()->isStarted()) {
             $this->getSession()->start();
         }

@@ -10,15 +10,29 @@
 
 namespace Tests\Unit\Auth;
 
+use Filegator\Kernel\Request;
 use Filegator\Services\Auth\User;
+use Filegator\Services\Session\Adapters\SessionStorage;
 use Tests\TestCase;
 
 abstract class AuthTest extends TestCase
 {
     public $auth;
 
+    protected $session;
+
     public function setUp(): void
     {
+        $this->session = new SessionStorage(new Request());
+        $this->session->init([
+            'session_handler' => 'mockfilesession',
+            'available' => [
+                'mockfilesession' => function () {
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
+                },
+            ],
+        ]);
+
         $this->setAuth();
 
         parent::setUp();
