@@ -12,5 +12,5 @@ namespace Filegator\Services\Logger;
 
 interface LoggerInterface
 {
-    public function log(string $message, string $level);
+    public function log(string $message, int $level);
 }

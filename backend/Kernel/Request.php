@@ -21,7 +21,7 @@ class Request extends SymfonyRequest
 
         // then look into JSON content, fallback to default
         if ($value === null) {
-            $content = json_decode($this->getContent());
+            $content = json_decode((string) $this->getContent());
             $value = isset($content->{$key}) ? $content->{$key} : $default;
         }
 
@@ -33,7 +33,7 @@ class Request extends SymfonyRequest
         $params = [];
 
         // first look into JSON content
-        $content = json_decode($this->getContent());
+        $content = json_decode((string) $this->getContent());
         if (! empty($content)) {
             foreach ($content as $key => $param) {
                 $params[$key] = $param;

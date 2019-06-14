@@ -189,7 +189,7 @@ class JsonFile implements Service, AuthInterface
 
     protected function getUsers(): array
     {
-        $users = json_decode(file_get_contents($this->file), true);
+        $users = json_decode((string) file_get_contents($this->file), true);
 
         return is_array($users) ? $users : [];
     }

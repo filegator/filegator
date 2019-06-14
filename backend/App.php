@@ -33,7 +33,7 @@ class App
             $container->get($key)->init(isset($service['config']) ? $service['config'] : []);
         }
 
-        $response->send($request);
+        $response->send();
 
         $this->container = $container;
     }

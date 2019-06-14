@@ -54,7 +54,7 @@ class Tmpfs implements Service, TmpfsInterface
     {
         $filename = $this->sanitizeFilename($filename);
 
-        return file_get_contents($this->getPath().$filename);
+        return (string) file_get_contents($this->getPath().$filename);
     }
 
     public function readStream(string $filename): array
@@ -79,14 +79,16 @@ class Tmpfs implements Service, TmpfsInterface
     public function findAll($pattern): array
     {
         $files = [];
-
-        foreach (glob($this->getPath().$pattern) as $filename) {
-            if (is_file($filename)) {
-                $files[] = [
-                    'name' => basename($filename),
-                    'size' => filesize($filename),
-                    'time' => filemtime($filename),
-                ];
+        $matches = glob($this->getPath().$pattern);
+        if (! empty($matches)) {
+            foreach ($matches as $filename) {
+                if (is_file($filename)) {
+                    $files[] = [
+                        'name' => basename($filename),
+                        'size' => filesize($filename),
+                        'time' => filemtime($filename),
+                    ];
+                }
             }
         }
 
@@ -117,7 +119,7 @@ class Tmpfs implements Service, TmpfsInterface
 
     private function sanitizeFilename($filename)
     {
-        $filename = preg_replace(
+        $filename = (string) preg_replace(
             '~
             [<>:"/\\|?*]|    # file system reserved https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
             [\x00-\x1F]|     # control characters http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
@@ -125,12 +127,19 @@ class Tmpfs implements Service, TmpfsInterface
             [;\\\{}^\~`]     # other non-safe
             ~x',
             '-',
-            $filename
+            (string) $filename
         );
 
         // maximize filename length to 255 bytes http://serverfault.com/a/9548/44086
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
 
-        return mb_strcut(pathinfo($filename, PATHINFO_FILENAME), 0, 255 - ($ext ? strlen($ext) + 1 : 0), mb_detect_encoding($filename)).($ext ? '.'.$ext : '');
+        return mb_strcut(
+            pathinfo($filename, PATHINFO_FILENAME),
+            0,
+            255 - ($ext ? strlen($ext) + 1 : 0),
+            (string) mb_detect_encoding($filename)
+        ).(
+            $ext ? '.'.$ext : ''
+        );
     }
 }

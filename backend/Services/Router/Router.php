@@ -33,6 +33,8 @@ class Router implements Service
 
     protected $container;
 
+    protected $user;
+
     public function __construct(Request $request, AuthInterface $auth, Container $container)
     {
         $this->request = $request;

@@ -29,6 +29,8 @@ class Database implements Service, AuthInterface
 
     protected $session;
 
+    protected $conn;
+
     public function __construct(Session $session)
     {
         $this->session = $session;
@@ -174,11 +176,11 @@ class Database implements Service, AuthInterface
     {
         $new = new User();
 
-        $new->setRole($user->role);
-        $new->setHomedir($user->homedir);
-        $new->setPermissions($user->permissions, true);
-        $new->setUsername($user->username);
-        $new->setName($user->name);
+        $new->setRole(isset($user->role) ? $user->role : 'guest');
+        $new->setHomedir(isset($user->homedir) ? $user->homedir : '/');
+        $new->setPermissions(isset($user->permissions) ? $user->permissions : '', true);
+        $new->setUsername(isset($user->username) ? $user->username : '');
+        $new->setName(isset($user->name) ? $user->name : 'Guest');
 
         return $new;
     }

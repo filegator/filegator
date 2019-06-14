@@ -46,7 +46,7 @@ class DownloadController
     public function download($path_encoded, Request $request, Response $response, StreamedResponse $streamedResponse)
     {
         try {
-            $file = $this->storage->readStream(base64_decode($path_encoded));
+            $file = $this->storage->readStream((string) base64_decode($path_encoded));
         } catch (\Exception $e) {
             return $response->redirect('/');
         }
@@ -101,7 +101,7 @@ class DownloadController
 
     public function batchDownloadStart(Request $request, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
     {
-        $uniqid = preg_replace('/[^0-9a-zA-Z_]/', '', $request->input('uniqid'));
+        $uniqid = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('uniqid'));
 
         $streamedResponse->setCallback(function () use ($tmpfs, $uniqid) {
             // @codeCoverageIgnoreStart

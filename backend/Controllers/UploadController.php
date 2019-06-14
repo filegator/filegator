@@ -42,7 +42,7 @@ class UploadController
     public function chunkCheck(Request $request, Response $response)
     {
         $file_name = $request->input('resumableFilename', 'file');
-        $identifier = preg_replace('/[^0-9a-zA-Z_]/', '', $request->input('resumableIdentifier'));
+        $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
         $chunk_number = (int) $request->input('resumableChunkNumber');
 
         $chunk_file = 'multipart_'.$identifier.$file_name.'.part'.$chunk_number;
@@ -61,7 +61,7 @@ class UploadController
         $chunk_number = (int) $request->input('resumableChunkNumber');
         $total_chunks = (int) $request->input('resumableTotalChunks');
         $total_size = (int) $request->input('resumableTotalSize');
-        $identifier = preg_replace('/[^0-9a-zA-Z_]/', '', $request->input('resumableIdentifier'));
+        $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
 
         $file = $request->files->get('file');
 
