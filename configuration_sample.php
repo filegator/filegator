@@ -43,7 +43,7 @@ return [
                     },
                     'database' => function () {
                         $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-                            'mysql://root:milos@localhost:3360/filegator'
+                            'mysql://root:password@localhost:3360/filegator'
                         );
 
                         return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
@@ -134,7 +134,7 @@ return [
             //    'driver' => 'mysqli',
             //    'host' => 'localhost',
             //    'username' => 'root',
-            //    'password' => 'milos',
+            //    'password' => 'password',
             //    'database' => 'filegator',
             //],
         ],
