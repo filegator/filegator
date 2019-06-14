@@ -61,7 +61,7 @@ class AppTest extends TestCase
         // another request with previous session
         $request2 = Request::create(
             '?r=/',
-            'GET',
+            'GET'
             );
         $request2->setSession($prev_session);
 
