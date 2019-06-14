@@ -100,7 +100,7 @@ class RequestTest extends TestCase
         $request = Request::create(
             '/test?priority=10&something=else',
             'POST',
-            ['param' => 'param1', 'priority' => 5],
+            ['param' => 'param1', 'priority' => 5]
             );
 
         $this->assertEquals($request->all(), [

@@ -1,9 +1,9 @@
 language: php
 
 php:
-  - 7.1.30
-  - 7.2.19
-  - 7.3.6
+  - 7.1.3
+  - 7.2
+  - 7.3
 
 before_script:
   - cp configuration_sample.php configuration.php
