@@ -20,8 +20,8 @@ Create users with different access permissions and home directories for each use
 - Multiple storage adapters (Local, FTP, S3, Dropbox and many others via [Flysystem](https://github.com/thephpleague/flysystem))
 - Multiple auth adapters with roles and permissions (Store users in json file or database)
 - Multiple session adapters (Native File, Pdo, MongoDB, Memcached and others via [Symfony](https://github.com/symfony/symfony/tree/master/src/Symfony/Component/HttpFoundation/Session/Storage/Handler))
-- Single page front-end (built with [Vuejs](https://github.com/vuejs/vue) and [Buefy](https://github.com/buefy/buefy))
-- Chunked uploads (via [Resumable.js](https://github.com/23/resumable.js))
+- Single page front-end (built with [Vuejs](https://github.com/vuejs/vue), [Bulma](https://github.com/jgthms/bulma) and [Buefy](https://github.com/buefy/buefy))
+- Chunked uploads (built with [Resumable.js](https://github.com/23/resumable.js))
 - Zip and bulk download support
 - Highly extensible, decoupled and tested code
 - No database required
@@ -65,11 +65,11 @@ Once everything is ready visit: ```http://localhost:8080```
 ### Run tests & static analysis
 ```
 vendor/bin/phpunit
-vendor/bin/phpstan analyse ./backend --level=x
+vendor/bin/phpstan analyse ./backend
 ```
 
 ### Deployment
-Set the website document root to /dist directory
+Set the website document root to ```/dist``` directory.
 
 ## Security
 If you discover any security related issues, please email alcalbg@gmail.com instead of using the issue tracker.
