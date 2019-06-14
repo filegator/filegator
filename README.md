@@ -3,6 +3,8 @@
 </p>
 
 [![Build Status](https://travis-ci.org/filegator/filegator.svg?branch=master)](https://travis-ci.org/filegator/filegator)
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+
 
 ## FileGator - Powerful Multi-User File Manager
 Copy, move, rename, create, edit or delete online files and folders.
