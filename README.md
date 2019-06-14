@@ -2,8 +2,10 @@
 <img src="https://raw.githubusercontent.com/filegator/static/master/logo.gif">
 </p>
 
-[![Build Status](https://travis-ci.org/filegator/filegator.svg?branch=master)](https://travis-ci.org/filegator/filegator)
-![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+<p align="center">
+<a href="https://travis-ci.org/filegator/filegator"><img src="https://travis-ci.org/filegator/filegator.svg?branch=master" alt="Build Status"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
+  </p>
 
 
 ## FileGator - Powerful Multi-User File Manager
@@ -29,8 +31,7 @@ Create users with different access permissions and home directories for each use
 
 
 ## Download precompiled build
-[v7.0.0-RC1](https://github.com/filegator/static/raw/master/builds/filegator_v7.0.0-RC1.zip)
-
+- Latest: [v7.0.0-RC1](https://github.com/filegator/static/raw/master/builds/filegator_v7.0.0-RC1.zip)
 - Unzip files and upload them to your PHP server
 - Make sure you webserver can read and write to /storage and /private folders
 - Set the website document root to /dist directory
