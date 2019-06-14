@@ -109,7 +109,7 @@ class AuthTest extends TestCase
     {
         $request = Request::create(
             '?r=/notfound',
-            'GET',
+            'GET'
             );
 
         $app = $this->bootFreshApp(null, $request);
