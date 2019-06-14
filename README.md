@@ -62,9 +62,10 @@ npm run serve
 Once everything is ready visit: ```http://localhost:8080```
 
 
-### Run tests
+### Run tests & static analysis
 ```
 vendor/bin/phpunit
+composer phpstan
 ```
 
 ### Deployment

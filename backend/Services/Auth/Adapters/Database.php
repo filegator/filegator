@@ -101,7 +101,7 @@ class Database implements Service, AuthInterface
             ], 'WHERE username = ?', $username);
         }
 
-        return $this->find($user->getUsername());
+        return $this->find($user->getUsername()) ?: $user;
     }
 
     public function add(User $user, $password): User
@@ -119,7 +119,7 @@ class Database implements Service, AuthInterface
             'password' => $this->hashPassword($password),
         ]);
 
-        return $this->find($user->getUsername());
+        return $this->find($user->getUsername()) ?: $user;
     }
 
     public function delete(User $user)

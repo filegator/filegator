@@ -96,7 +96,7 @@ class JsonFile implements Service, AuthInterface
 
                 $this->saveUsers($all_users);
 
-                return $this->find($user->getUsername());
+                return $this->find($user->getUsername()) ?: $user;
             }
         }
 
@@ -122,7 +122,7 @@ class JsonFile implements Service, AuthInterface
 
         $this->saveUsers($all_users);
 
-        return $this->find($user->getUsername());
+        return $this->find($user->getUsername()) ?: $user;
     }
 
     public function delete(User $user)

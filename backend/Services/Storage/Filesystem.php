@@ -282,6 +282,6 @@ class Filesystem implements Service
 
         $tmp = explode($this->separator, trim($path, $this->separator));
 
-        return  array_pop($tmp);
+        return  (string) array_pop($tmp);
     }
 }

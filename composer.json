@@ -36,5 +36,8 @@
         "symfony/var-dumper": "^4.2",
         "league/flysystem-memory": "^1.0",
         "phpstan/phpstan": "^0.11.8"
+    },
+    "scripts": {
+        "phpstan": "phpstan analyse ./backend --level=7"
     }
 }

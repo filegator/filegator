@@ -55,7 +55,11 @@ class SessionStorage implements Service, SessionStorageInterface
 
     public function invalidate()
     {
-        if ($this->getSession() !== null || ! $this->getSession()->isStarted()) {
+        if ($this->getSession() === null) {
+            return;
+        }
+
+        if (! $this->getSession()->isStarted()) {
             $this->getSession()->start();
         }
 
