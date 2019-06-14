@@ -8,9 +8,9 @@ return [
         'app_name' => 'FileGator',
         'app_version' => APP_VERSION,
         'language' => 'english',
-        'logo' => 'https://raw.githubusercontent.com/filegator/static/master/logo.png',
-        'upload_max_size' => 1000000 * 1024 * 1024,
-        'upload_chunk_size' => 1 * 1024 * 1024,
+        'logo' => 'https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.png',
+        'upload_max_size' => 100 * 1024 * 1024, // 100MB
+        'upload_chunk_size' => 1 * 1024 * 1024, // 1MB
         'upload_simultaneous' => 3,
         'default_archive_name' => 'archive.zip',
     ],
