@@ -1,7 +1,8 @@
 <p align="center">
 <img src="https://raw.githubusercontent.com/filegator/static/master/logo.gif">
-[![Build Status](https://travis-ci.org/filegator/filegator.svg?branch=master)](https://travis-ci.org/filegator/filegator)
 </p>
+
+[![Build Status](https://travis-ci.org/filegator/filegator.svg?branch=master)](https://travis-ci.org/filegator/filegator)
 
 ## FileGator - Powerful Multi-User File Manager
 Copy, move, rename, create, edit or delete online files and folders.
