@@ -15,3 +15,8 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+  # Installs Sensiolabs security checker to check against unsecure libraries
+  - php -r "readfile('http://get.sensiolabs.org/security-checker.phar');" > security-checker
+  - chmod +x security-checker
+  - ./security-checker security:check
