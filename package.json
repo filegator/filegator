@@ -7,8 +7,7 @@
     "build": "vue-cli-service build --no-clean",
     "lint": "vue-cli-service lint",
     "test:e2e": "vue-cli-service test:e2e",
-    "test:unit": "vue-cli-service test:unit",
-    "insight": "./vendor/bin/phpinsights -v -n > phpinsights.txt"
+    "test:unit": "vue-cli-service test:unit"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.9.0",

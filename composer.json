@@ -33,7 +33,6 @@
     "require-dev": {
         "phpunit/phpunit": "^8.0",
         "symfony/var-dumper": "^4.2",
-        "nunomaduro/phpinsights": "^1.0",
         "league/flysystem-memory": "^1.0"
     }
 }
