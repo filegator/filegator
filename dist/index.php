@@ -19,11 +19,6 @@ if (! is_writable(__DIR__.'/../private/logs/')) {
     die;
 }
 
-if (! is_writable(__DIR__.'/../private/tmp/')) {
-    echo 'Folder not writable: /private/tmp/'."\n";
-    die;
-}
-
 if (! is_writable(__DIR__.'/../repository/')) {
     echo 'Folder not writable: /repository/'."\n";
     die;
