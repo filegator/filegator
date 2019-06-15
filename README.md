@@ -16,6 +16,11 @@ Download multiple files or directories at once.
 Zip and unzip files and folders.
 Create users with different access permissions and home directories for each user.
 
+
+## Demo
+[https://demo.filegator.io](https://demo.filegator.io) (Readonly demo)
+
+
 ## Features & Goals
 - Multiple storage adapters (Local, FTP, S3, Dropbox and many others via [Flysystem](https://github.com/thephpleague/flysystem))
 - Multiple auth adapters with roles and permissions (Store users in json file or database)
