@@ -107,12 +107,14 @@ class DownloadController
             // @codeCoverageIgnoreStart
             set_time_limit(0);
             $file = $tmpfs->readStream($uniqid);
-            while ($file && ! feof($file['stream'])) {
-                echo fread($file['stream'], 1024 * 8);
-                ob_flush();
-                flush();
+            if ($file['stream']) {
+                while (! feof($file['stream'])) {
+                    echo fread($file['stream'], 1024 * 8);
+                    ob_flush();
+                    flush();
+                }
+                fclose($file['stream']);
             }
-            fclose($file['stream']);
             $tmpfs->remove($uniqid);
             // @codeCoverageIgnoreEnd
         });
