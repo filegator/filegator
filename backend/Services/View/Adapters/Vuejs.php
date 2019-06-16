@@ -25,6 +25,8 @@ class Vuejs implements Service, ViewInterface
 
     public function init(array $config = [])
     {
+        $this->add_to_head = isset($config['add_to_head']) ? $config['add_to_head'] : '';
+        $this->add_to_body = isset($config['add_to_body']) ? $config['add_to_body'] : '';
     }
 
     public function getIndexPage()
@@ -41,6 +43,7 @@ class Vuejs implements Service, ViewInterface
     <meta name=viewport content="width=device-width,initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <title>'.$title.'</title>
+    '.$this->add_to_head.'
     <link rel=stylesheet href=https://use.fontawesome.com/releases/v5.2.0/css/all.css>
     <link rel=stylesheet href=//cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css>
     <link href="'.$public_path.'css/app.css?'.@filemtime($public_dir.'/css/app.css').'" rel=stylesheet>
@@ -50,6 +53,8 @@ class Vuejs implements Service, ViewInterface
     <div id=app></div>
     <script src="'.$public_path.'js/app.js?'.@filemtime($public_dir.'/js/app.js').'"></script>
     <script src="'.$public_path.'js/chunk-vendors.js?'.@filemtime($public_dir.'/js/chunk-vendors.js').'"></script>
+
+    '.$this->add_to_body.'
   </body>
 </html>
 ';

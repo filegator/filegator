@@ -75,6 +75,10 @@ return [
         ],
         'Filegator\Services\View\ViewInterface' => [
             'handler' => '\Filegator\Services\View\Adapters\Vuejs',
+            'config' => [
+                'add_to_head' => '',
+                'add_to_body' => '',
+            ],
         ],
         'Filegator\Services\Storage\Filesystem' => [
             'handler' => '\Filegator\Services\Storage\Filesystem',
