@@ -106,13 +106,13 @@ class DownloadController
         $streamedResponse->setCallback(function () use ($tmpfs, $uniqid) {
             // @codeCoverageIgnoreStart
             set_time_limit(0);
-            $tmp_file = $tmpfs->readStream($uniqid);
-            while (! feof($tmp_file['stream'])) {
-                echo fread($tmp_file['stream'], 1024 * 8);
+            $file = $tmpfs->readStream($uniqid);
+            while ($file && ! feof($file['stream'])) {
+                echo fread($file['stream'], 1024 * 8);
                 ob_flush();
                 flush();
             }
-            fclose($tmp_file['stream']);
+            fclose($file['stream']);
             $tmpfs->remove($uniqid);
             // @codeCoverageIgnoreEnd
         });
