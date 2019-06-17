@@ -44,9 +44,8 @@ class Vuejs implements Service, ViewInterface
     <meta name="robots" content="noindex,nofollow">
     <title>'.$title.'</title>
     '.$this->add_to_head.'
-    <link rel=stylesheet href=https://use.fontawesome.com/releases/v5.2.0/css/all.css>
-    <link rel=stylesheet href=//cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css>
     <link href="'.$public_path.'css/app.css?'.@filemtime($public_dir.'/css/app.css').'" rel=stylesheet>
+    <link href="'.$public_path.'css/chunk-vendors.css?'.@filemtime($public_dir.'/css/chunk-vendors.css').'" rel=stylesheet>
   </head>
   <body>
     <noscript><strong>Please enable JavaScript to continue.</strong></noscript>
