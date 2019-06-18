@@ -21,4 +21,4 @@ Default logger handler will use ```/private/logs/app.log``` file to store applic
         ],
 ```
 
-There are many different handlers you can use. Some of them are listed [here](https://github.com/Seldaek/monolog/blob/master/doc/02-handlers-formatters-processors.md#handlers).
+There are many different handlers you can use. Some of them are listed [here](https://github.com/Seldaek/monolog#documentation).
