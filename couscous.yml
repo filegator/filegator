@@ -5,13 +5,14 @@ cname: docs.filegator.io
 
 branch: gh-pages
 
-title: FileGator
+title: FileGator - Documentation
+titleShort: FileGator
 subTitle: Documentation
 
 baseUrl: https://docs.filegator.io
 
 template:
-    url: https://github.com/CouscousPHP/Template-Dark
+    directory: docs/template/
 
 github:
     user: filegator
