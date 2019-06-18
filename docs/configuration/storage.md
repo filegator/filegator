@@ -1,7 +1,7 @@
 ## Adapters
-Different storage adapters are supported via awesome [Flysystem](https://github.com/thephpleague/flysystem) library.
+Different storage adapters are provided through the awesome [Flysystem](https://github.com/thephpleague/flysystem) library.
 
-You can use local filesystem (default), FTP, S3, Dropbox and many others. Please check Flysystem for exact setup for each adapter.
+You can use local filesystem (default), FTP, S3, Dropbox and many others. Please check Flysystem for the exact setup required for each adapter.
 
 ## Default Local Disk Adapter
 With default adapter you just need to configure where is you ```repository``` folder which will serve as root for everything else.

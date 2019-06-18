@@ -1,9 +1,9 @@
 
 ## Configuring Logging service
 
-Logging is provided via powerful [Monolog](https://github.com/Seldaek/monolog) library. Please check their docs for more info.
+Logging is provided trough the powerful [Monolog](https://github.com/Seldaek/monolog) library. Please check their docs for more info.
 
-Default logger handler will use ```/private/logs/app.log``` file to store application logs:
+Default handler will use simple ```/private/logs/app.log``` file to store application logs and errors.
 
 ```
         'Filegator\Services\Logger\LoggerInterface' => [
