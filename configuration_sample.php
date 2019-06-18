@@ -41,13 +41,6 @@ return [
 
                         return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
                     },
-                    'database' => function () {
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-                            'mysql://root:password@localhost:3360/filegator'
-                        );
-
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
-                    },
                 ],
             ],
         ],
@@ -92,35 +85,6 @@ return [
                             __DIR__.'/repository'
                         );
                     },
-                    'ftp' => function () {
-                        // see: https://flysystem.thephpleague.com/docs/adapter/ftp/
-                        return new \League\Flysystem\Adapter\Ftp([
-                            'host' => 'example.com',
-                            'username' => 'demo',
-                            'password' => 'password',
-                            'port' => 21,
-                            'timeout' => 10,
-                        ]);
-                    },
-                    'sftp' => function () {
-                        // composer require league/flysystem-sftp
-                        // see: https://flysystem.thephpleague.com/docs/adapter/sftp/
-                        return new \League\Flysystem\Sftp\SftpAdapter([
-                            'host' => 'example.com',
-                            'port' => 22,
-                            'username' => 'demo',
-                            'password' => 'password',
-                            'timeout' => 10,
-                        ]);
-                    },
-                    'dropbox' => function () {
-                        // composer require spatie/flysystem-dropbox
-                        // see: https://flysystem.thephpleague.com/docs/adapter/dropbox/
-                        $authorizationToken = '1234';
-                        $client = new \Spatie\Dropbox\Client($authorizationToken);
-
-                        return new \Spatie\FlysystemDropbox\DropboxAdapter($client);
-                    },
                 ],
             ],
         ],
@@ -133,14 +97,6 @@ return [
             'config' => [
                 'file' => __DIR__.'/private/users.json',
             ],
-            //'handler' => '\Filegator\Services\Auth\Adapters\Database',
-            //'config' => [
-            //    'driver' => 'mysqli',
-            //    'host' => 'localhost',
-            //    'username' => 'root',
-            //    'password' => 'password',
-            //    'database' => 'filegator',
-            //],
         ],
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',

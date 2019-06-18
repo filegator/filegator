@@ -1,5 +1,5 @@
 
-### Configuring Session service to use database
+## Configuring Session service to use database
 
 First, create a table ```sessions``` with this sql:
 ```
@@ -35,9 +35,9 @@ Then, open ```configuration.php``` and update Auth handler under section ```serv
 Don't forget to enter correct mysql username, password, and database.
 
 
-### Tweaking session options
+## Tweaking session options
 
-The Underying Symfony session [component](https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php) constructor accepts an array options.
+The Underying Symfony session [component](https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php) constructor accepts an array of options.
 For example you can pass ```cookie_lifetime``` parameter and extend session lifetime like this:
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [

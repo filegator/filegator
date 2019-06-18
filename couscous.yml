@@ -28,21 +28,24 @@ menu:
                 install:
                     text: Installation
                     relativeUrl: install.html
+                development:
+                    text: Development
+                    relativeUrl: development.html
                 demo:
                     text: Demo
-                    absoluteUrl: demo.html
-                license:
-                    text: License
-                    absoluteUrl: license.html
+                    relativeUrl: demo.html
         config:
             name: Configuration
             items:
                 basic:
-                    text: Options
-                    relativeUrl: configuration/default.html
+                    text: Basic
+                    relativeUrl: configuration/basic.html
                 auth:
                     text: Auth
                     relativeUrl: configuration/auth.html
                 sessions:
                     text: Session
                     relativeUrl: configuration/session.html
+                storate:
+                    text: Storage
+                    relativeUrl: configuration/storage.html

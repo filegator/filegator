@@ -1,5 +1,4 @@
-
-### Configuring Auth service to use database
+## Configuring Auth service to use database
 You can store your users inside mysql database (default is json file).
 
 First, create a table ```users``` with this sql:
