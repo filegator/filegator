@@ -86,10 +86,36 @@
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="demo">Demo</h2>
-<p><a href="https://demo.filegator.io"><a href="https://demo.filegator.io">https://demo.filegator.io</a></a></p>
-<p>This is read-only demo with guest account enabled.
-You can also log in with john/john to see John's private files.</p>
+                    <h3 id="configuring-auth-service-to-use-database">Configuring Auth service to use database</h3>
+<p>You can store your users inside mysql database (default is json file).</p>
+<p>First, create a table <code>users</code> with this sql:</p>
+<pre><code>CREATE TABLE `users` (
+    `id` int(10) NOT NULL AUTO_INCREMENT,
+    `username` varchar(255) NOT NULL,
+    `name` varchar(255) NOT NULL,
+    `role` varchar(20) NOT NULL,
+    `permissions` varchar(200) NOT NULL,
+    `homedir` varchar(2000) NOT NULL,
+    `password` varchar(255) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `username` (`username`)
+) CHARSET=utf8 COLLATE=utf8_bin;</code></pre>
+<p>Then, import default users with this query:</p>
+<pre><code>INSERT INTO `users` (`username`, `name`, `role`, `permissions`, `homedir`, `password`)
+VALUES
+('guest', 'Guest', 'guest', '', '/', ''),
+('admin', 'Admin', 'admin', 'read|write|upload|download|batchdownload|zip', '/', '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq');</code></pre>
+<p>Ath the end, open <code>configuration.php</code> and update Auth handler under section <code>services</code> to something like this:</p>
+<pre><code>        'Filegator\Services\Auth\AuthInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Auth\Adapters\Database',
+            'config' =&gt; [
+                'driver' =&gt; 'mysqli',
+                'host' =&gt; 'localhost',
+                'username' =&gt; 'root',
+                'password' =&gt; 'password',
+                'database' =&gt; 'filegator',
+            ],
+        ],</code></pre>
                 </section>
 
             </div>

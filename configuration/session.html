@@ -86,10 +86,54 @@
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="demo">Demo</h2>
-<p><a href="https://demo.filegator.io"><a href="https://demo.filegator.io">https://demo.filegator.io</a></a></p>
-<p>This is read-only demo with guest account enabled.
-You can also log in with john/john to see John's private files.</p>
+                    <h3 id="configuring-session-service-to-use-database">Configuring Session service to use database</h3>
+<p>First, create a table <code>sessions</code> with this sql:</p>
+<pre><code>CREATE TABLE `sessions` (
+      `sess_id` varbinary(128) NOT NULL,
+      `sess_data` blob NOT NULL,
+      `sess_lifetime` mediumint(9) NOT NULL,
+      `sess_time` int(10) unsigned NOT NULL,
+      PRIMARY KEY (`sess_id`)
+) CHARSET=utf8 COLLATE=utf8_bin;</code></pre>
+<p>Then, open <code>configuration.php</code> and update Auth handler under section <code>services</code> to something like this:</p>
+<pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' =&gt; [
+                'session_handler' =&gt; 'database',
+                'available' =&gt; [
+                    'database' =&gt; function () {
+                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                            'mysql://root:password@localhost:3360/filegator'
+                        );
+
+                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                    },
+                ],
+            ],
+        ],
+</code></pre>
+<p>Don't forget to enter correct mysql username, password, and database.</p>
+<h3 id="tweaking-session-options">Tweaking session options</h3>
+<p>The Underying Symfony session <a href="https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php">component</a> constructor accepts an array options.
+For example you can pass <code>cookie_lifetime</code> parameter and extend session lifetime like this:</p>
+<pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' =&gt; [
+                'session_handler' =&gt; 'database',
+                'available' =&gt; [
+                    'database' =&gt; function () {
+                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                            'mysql://root:password@localhost:3360/filegator'
+                        );
+
+                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
+                            'cookie_lifetime' =&gt; 365 * 24 * 60 * 60, // one year
+                        ], $handler);
+                    },
+                ],
+            ],
+        ],
+</code></pre>
                 </section>
 
             </div>
