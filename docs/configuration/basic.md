@@ -2,8 +2,23 @@
 ## Basic
 Edit ```configuration.php``` file to change basic things like logo, title, language and upload restrictions.
 
+
+NOTE: if you've made a mistake in configuration file, forgot to close a quote, the script will throw an error. Please use provided default ```configuration_sample.php``` to verify this.
+
+## Additional HTML
+You can add additional html to the head and body like this:
+```
+        'Filegator\Services\View\ViewInterface' => [
+            'handler' => '\Filegator\Services\View\Adapters\Vuejs',
+            'config' => [
+                'add_to_head' => '<meta name="author" content="something">',
+                'add_to_body' => '<script src="http://example.com/analytics.js"></script>',
+            ],
+        ],
+```
+
 ## Frontend tweaks
-You can change default color scheme and other options in ```/frontend/App.vue``` and recompile.
+To change default color scheme and other options, edit ```/frontend/App.vue``` and recompile with npm.
 
 ```
 // Primary color
