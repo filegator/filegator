@@ -11,26 +11,38 @@ subTitle: Documentation
 baseUrl: https://docs.filegator.io
 
 template:
-    url: https://github.com/CouscousPHP/Template-Light
+    url: https://github.com/CouscousPHP/Template-Dark
 
 github:
     user: filegator
     repo: filegator
 
 menu:
-    items:
-        home:
-            text: What is FileGator
-            relativeUrl: index.html
-        install:
-            text: Installation
-            relativeUrl: install.html
+    sections:
+        main:
+            name: Getting Started
+            items:
+                home:
+                    text: What is FileGator
+                    relativeUrl: index.html
+                install:
+                    text: Installation
+                    relativeUrl: install.html
+                demo:
+                    text: Demo
+                    absoluteUrl: demo.html
+                license:
+                    text: License
+                    absoluteUrl: license.html
         config:
-            text: Configuration
-            relativeUrl: configuration.html
-        demo:
-            text: Demo
-            absoluteUrl: demo.html
-        license:
-            text: License
-            absoluteUrl: license.html
+            name: Configuration
+            items:
+                basic:
+                    text: Options
+                    relativeUrl: configuration/default.html
+                auth:
+                    text: Auth
+                    relativeUrl: configuration/auth.html
+                sessions:
+                    text: Session
+                    relativeUrl: configuration/session.html
