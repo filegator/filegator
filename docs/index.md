@@ -13,6 +13,7 @@ If allowed, users can download multiple files or folders at once.
 File upload supports drag&drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server configuration.
 
 
+
 ## Features & Goals
 - Multiple storage adapters (Local, FTP, S3, Dropbox and many others via [Flysystem](https://github.com/thephpleague/flysystem))
 - Multiple auth adapters with roles and permissions (Store users in json file or database)
