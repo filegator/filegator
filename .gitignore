@@ -18,7 +18,7 @@ yarn-error.log*
 
 # Cache files
 .*.cache
-.couscous
+.couscous/
 
 # Editor directories and files
 .DS_Store

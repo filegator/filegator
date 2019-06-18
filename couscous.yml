@@ -1,0 +1,49 @@
+include:
+    - docs
+
+exclude:
+    - private
+    - backend
+    - database
+    - dist
+    - tests
+    - frontend
+    - repository
+    - tests
+    # This special entry will ask Couscous to read the excluded directories from your ".gitignore" file
+    - %gitignore%
+
+cname: docs.filegator.io
+
+branch: gh-pages
+
+title: FileGator
+subTitle: Documentation
+
+baseUrl: http://docs.filegator.io/filegator
+
+template:
+    url: https://github.com/CouscousPHP/Template-Light
+
+github:
+    user: filegator
+    repo: filegator
+
+# The left menu bar
+menu:
+    items:
+        home:
+            text: What is FileGator
+            relativeUrl: index.html
+        install:
+            text: Installation
+            relativeUrl: install.html
+        config:
+            text: Configuration
+            relativeUrl: configuration.html
+        demo:
+            text: Demo
+            absoluteUrl: demo.html
+        license:
+            text: License
+            absoluteUrl: license.html
