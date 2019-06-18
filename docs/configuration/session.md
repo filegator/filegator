@@ -37,8 +37,8 @@ Don't forget to enter correct mysql username, password, and database.
 
 ## Tweaking session options
 
-The Underying Symfony session [component](https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php) constructor accepts an array of options.
-For example you can pass ```cookie_lifetime``` parameter and extend session lifetime like this:
+The underying Symfony's session [component](https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php) accepts array of options.
+For example you can pass ```cookie_lifetime``` parameter to extend default session lifetime:
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [
             'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
