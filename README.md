@@ -10,11 +10,18 @@
 
 
 ## FileGator - Powerful Multi-User File Manager
-Copy, move, rename, create, edit or delete online files and folders.
-Upload with drag&drop, progress bar, pause and resume.
-Download multiple files or directories at once.
-Zip and unzip files and folders.
-Create users with different access permissions and home directories for each user.
+
+FileGator is a free, open-source PHP script for managing files and folders.
+
+You can manage files inside your local repository folder (on your server's hard drive) or connect to other storage adaptes (see below).
+
+FileGator has multi-user support so you can have admins and other users managing files with different access permissions, roles and home folders.
+
+All basic file operations are supported: copy, move, rename, create, delete, zip, unzip, download, upload.
+
+If allowed, users can download multiple files or folders at once.
+
+File upload supports drag&drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server configuration.
 
 
 ## Demo

@@ -10,7 +10,6 @@ All basic file operations are supported: copy, move, rename, create, delete, zip
 
 If allowed, users can download multiple files or folders at once.
 
-
 File upload supports drag&drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server configuration.
 
 
