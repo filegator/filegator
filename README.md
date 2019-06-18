@@ -31,6 +31,10 @@ This is read-only demo with guest account enabled.
 You can also log in with john/john to see John's private files.
 
 
+## Documentation
+[Check out the documentation](https://docs.filegator.io/)
+
+
 ## Features & Goals
 - Multiple storage adapters (Local, FTP, S3, Dropbox and many others via [Flysystem](https://github.com/thephpleague/flysystem))
 - Multiple auth adapters with roles and permissions (Store users in json file or database)
@@ -55,8 +59,6 @@ You can also log in with john/john to see John's private files.
 - Login with default credentials admin/admin123
 - Change default admin's password
 
-## Documentation
-[Check out the documentation](https://docs.filegator.io/)
 
 ## Security
 If you discover any security related issues, please email alcalbg@gmail.com instead of using the issue tracker.
