@@ -24,7 +24,7 @@ VALUES
 ('admin', 'Admin', 'admin', 'read|write|upload|download|batchdownload|zip', '/', '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq');
 ```
 
-Ath the end, open ```configuration.php``` and update Auth handler under section ```services``` to something like this:
+At the end, open ```configuration.php``` and update Auth handler under section ```services``` to something like this:
 
 ```
         'Filegator\Services\Auth\AuthInterface' => [

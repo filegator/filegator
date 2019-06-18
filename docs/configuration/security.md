@@ -7,7 +7,6 @@ Simple security service is included in the script by default. This service provi
 - IP whitelisting
 - IP blacklisting
 
-
 ```
         'Filegator\Services\Security\Security' => [
             'handler' => '\Filegator\Services\Security\Security',
@@ -21,3 +20,5 @@ Simple security service is included in the script by default. This service provi
             ],
         ],
 ```
+
+If you set ```ip_whitelist``` then only users coming from listed IP addresses will be able to use the script.
