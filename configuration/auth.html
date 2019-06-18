@@ -101,8 +101,18 @@
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="configuring-auth-service-to-use-database">Configuring Auth service to use database</h2>
-<p>You can store your users inside mysql database (default is json file).</p>
+                    <h2 id="default-auth-service">Default Auth service</h2>
+<p>By default, users are stored in json file. For some use-cases, this is more than enough. It also makes this app lightweight since no database is required.</p>
+<p>Default handler accepts only file name parameter. This file should be writable by the server.</p>
+<pre><code>        'Filegator\Services\Auth\AuthInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Auth\Adapters\JsonFile',
+            'config' =&gt; [
+                'file' =&gt; __DIR__.'/private/users.json',
+            ],
+        ],
+</code></pre>
+<h2 id="configuring-auth-service-to-use-database">Configuring Auth service to use database</h2>
+<p>You can use mysql database to store your users.</p>
 <p>First, create a table <code>users</code> with this sql:</p>
 <pre><code>CREATE TABLE `users` (
     `id` int(10) NOT NULL AUTO_INCREMENT,
@@ -131,6 +141,7 @@ VALUES
                 'database' =&gt; 'filegator',
             ],
         ],</code></pre>
+<p>Don't forget to enter correct mysql username, password, and database.</p>
                 </section>
 
             </div>
