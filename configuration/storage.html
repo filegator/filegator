@@ -50,13 +50,13 @@
                                         </a>
                                     </li>
                                                                     <li class="">
-                                        <a href="demo.html">
-                                            Demo
+                                        <a href="https://docs.filegator.io/development.html">
+                                            Development
                                         </a>
                                     </li>
                                                                     <li class="">
-                                        <a href="license.html">
-                                            License
+                                        <a href="https://docs.filegator.io/demo.html">
+                                            Demo
                                         </a>
                                     </li>
                                                             </ul>
@@ -66,8 +66,8 @@
 
                             <ul class="nav nav-pills nav-stacked">
                                                                     <li class="">
-                                        <a href="https://docs.filegator.io/configuration/default.html">
-                                            Options
+                                        <a href="https://docs.filegator.io/configuration/basic.html">
+                                            Basic
                                         </a>
                                     </li>
                                                                     <li class="">
@@ -80,96 +80,23 @@
                                             Session
                                         </a>
                                     </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/storage.html">
+                                            Storage
+                                        </a>
+                                    </li>
                                                             </ul>
                         
                     </nav>
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h3 id="configuring-filegator">Configuring FileGator</h3>
-<p>All configuration options are stored inside <code>configuration.php</code> file.
-In this file you can configure all the options, services and their handlers.</p>
-<h3 id="default-configuration-options">Default Configuration options</h3>
-<pre><code>    'public_path' =&gt; APP_PUBLIC_PATH,
-    'public_dir' =&gt; APP_PUBLIC_DIR,
-
-    'frontend_config' =&gt; [
-        'app_name' =&gt; 'FileGator',
-        'app_version' =&gt; APP_VERSION,
-        'language' =&gt; 'english',
-        'logo' =&gt; 'https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.png',
-        'upload_max_size' =&gt; 100 * 1024 * 1024, // 100MB
-        'upload_chunk_size' =&gt; 1 * 1024 * 1024, // 1MB
-        'upload_simultaneous' =&gt; 3,
-        'default_archive_name' =&gt; 'archive.zip',
-    ],
-
-    'services' =&gt; [
-        'Filegator\Services\Logger\LoggerInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Logger\Adapters\MonoLogger',
-            'config' =&gt; [
-                'monolog_handlers' =&gt; [
-                    function () {
-                        return new \Monolog\Handler\StreamHandler(
-                            __DIR__.'/private/logs/app.log',
-                            \Monolog\Logger::DEBUG
-                        );
-                    },
-                ],
-            ],
-        ],
-        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
-            'config' =&gt; [
-                'session_handler' =&gt; 'filesession',
-                'available' =&gt; [
-                    'filesession' =&gt; function () {
-                        $save_path = null; // use default system path
-                        //$save_path = __DIR__.'/private/sessions';
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
-
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
-                    },
-                    'database' =&gt; function () {
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-                            'mysql://root:password@localhost:3360/filegator'
-                        );
-
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
-                    },
-                ],
-            ],
-        ],
-        'Filegator\Services\Cors\Cors' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Cors\Cors',
-            'config' =&gt; [
-                'enabled' =&gt; APP_ENV == 'production' ? false : true,
-            ],
-        ],
-        'Filegator\Services\Tmpfs\TmpfsInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Tmpfs\Adapters\Tmpfs',
-            'config' =&gt; [
-                'path' =&gt; __DIR__.'/private/tmp/',
-                'gc_probability_perc' =&gt; 10,
-                'gc_older_than' =&gt; 60 * 60 * 24 * 2, // 2 days
-            ],
-        ],
-        'Filegator\Services\Security\Security' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Security\Security',
-            'config' =&gt; [
-                'csrf_protection' =&gt; true,
-                'ip_whitelist' =&gt; [],
-                'ip_blacklist' =&gt; [],
-            ],
-        ],
-        'Filegator\Services\View\ViewInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\View\Adapters\Vuejs',
-            'config' =&gt; [
-                'add_to_head' =&gt; '',
-                'add_to_body' =&gt; '',
-            ],
-        ],
-        'Filegator\Services\Storage\Filesystem' =&gt; [
+                    <h2 id="adapters">Adapters</h2>
+<p>Different storage adapters are supported via awesome <a href="https://github.com/thephpleague/flysystem">Flysystem</a> library.</p>
+<p>You can use local filesystem (default), FTP, S3, Dropbox and many others. Please check Flysystem for exact setup for each adapter.</p>
+<h2 id="default-local-disk-adapter">Default Local Disk Adapter</h2>
+<p>With default adapter you just need to configure where is you <code>repository</code> folder which will serve as root for everything else.</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
                 'separator' =&gt; '/',
@@ -181,8 +108,20 @@ In this file you can configure all the options, services and their handlers.</p>
                             __DIR__.'/repository'
                         );
                     },
+                ],
+            ],
+        ],
+</code></pre>
+<h2 id="ftp-adapter">FTP Adapter</h2>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/ftp/">documentation</a></p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'filesystem_adapter' =&gt; 'ftp',
+                'adapters' =&gt; [
                     'ftp' =&gt; function () {
-                        // see: https://flysystem.thephpleague.com/docs/adapter/ftp/
                         return new \League\Flysystem\Adapter\Ftp([
                             'host' =&gt; 'example.com',
                             'username' =&gt; 'demo',
@@ -191,9 +130,21 @@ In this file you can configure all the options, services and their handlers.</p>
                             'timeout' =&gt; 10,
                         ]);
                     },
+                ],
+            ],
+        ],
+</code></pre>
+<h2 id="sftp-adapter">SFTP Adapter</h2>
+<p>You must require additional library <code>composer require league/flysystem-sftp</code>.
+See official <a href="https://flysystem.thephpleague.com/docs/adapter/sftp/">documentation</a>.</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'filesystem_adapter' =&gt; 'sftp',
+                'adapters' =&gt; [
                     'sftp' =&gt; function () {
-                        // composer require league/flysystem-sftp
-                        // see: https://flysystem.thephpleague.com/docs/adapter/sftp/
                         return new \League\Flysystem\Sftp\SftpAdapter([
                             'host' =&gt; 'example.com',
                             'port' =&gt; 22,
@@ -202,9 +153,21 @@ In this file you can configure all the options, services and their handlers.</p>
                             'timeout' =&gt; 10,
                         ]);
                     },
+                ],
+            ],
+        ],
+</code></pre>
+<h2 id="dropbox-adapter">Dropbox Adapter</h2>
+<p>You must require additional library <code>composer require spatie/flysystem-dropbox</code>.
+See official <a href="https://flysystem.thephpleague.com/docs/adapter/dropbox/">documentation</a></p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'filesystem_adapter' =&gt; 'dropbox',
+                'adapters' =&gt; [
                     'dropbox' =&gt; function () {
-                        // composer require spatie/flysystem-dropbox
-                        // see: https://flysystem.thephpleague.com/docs/adapter/dropbox/
                         $authorizationToken = '1234';
                         $client = new \Spatie\Dropbox\Client($authorizationToken);
 
@@ -213,32 +176,7 @@ In this file you can configure all the options, services and their handlers.</p>
                 ],
             ],
         ],
-        'Filegator\Services\Archiver\ArchiverInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Archiver\Adapters\ZipArchiver',
-            'config' =&gt; [],
-        ],
-        'Filegator\Services\Auth\AuthInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Auth\Adapters\JsonFile',
-            'config' =&gt; [
-                'file' =&gt; __DIR__.'/private/users.json',
-            ],
-            //'handler' =&gt; '\Filegator\Services\Auth\Adapters\Database',
-            //'config' =&gt; [
-            //    'driver' =&gt; 'mysqli',
-            //    'host' =&gt; 'localhost',
-            //    'username' =&gt; 'root',
-            //    'password' =&gt; 'password',
-            //    'database' =&gt; 'filegator',
-            //],
-        ],
-        'Filegator\Services\Router\Router' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Router\Router',
-            'config' =&gt; [
-                'query_param' =&gt; 'r',
-                'routes_file' =&gt; __DIR__.'/backend/Controllers/routes.php',
-            ],
-        ],
-    ],</code></pre>
+</code></pre>
                 </section>
 
             </div>

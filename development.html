@@ -50,13 +50,13 @@
                                         </a>
                                     </li>
                                                                     <li class="">
-                                        <a href="demo.html">
-                                            Demo
+                                        <a href="https://docs.filegator.io/development.html">
+                                            Development
                                         </a>
                                     </li>
                                                                     <li class="">
-                                        <a href="license.html">
-                                            License
+                                        <a href="https://docs.filegator.io/demo.html">
+                                            Demo
                                         </a>
                                     </li>
                                                             </ul>
@@ -66,8 +66,8 @@
 
                             <ul class="nav nav-pills nav-stacked">
                                                                     <li class="">
-                                        <a href="https://docs.filegator.io/configuration/default.html">
-                                            Options
+                                        <a href="https://docs.filegator.io/configuration/basic.html">
+                                            Basic
                                         </a>
                                     </li>
                                                                     <li class="">
@@ -80,28 +80,34 @@
                                             Session
                                         </a>
                                     </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/storage.html">
+                                            Storage
+                                        </a>
+                                    </li>
                                                             </ul>
                         
                     </nav>
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <p>Copyright (c) 2012-2019 Milos Stojanovic</p>
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the &quot;Software&quot;), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is furnished
-to do so, subject to the following conditions:</p>
-<p>The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.</p>
-<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.</p>
+                    <h2 id="project-setup-for-development">Project setup for development</h2>
+<pre><code>git clone git@github.com:filegator/filegator.git
+cd filegator
+cp configuration_sample.php configuration.php
+sudo chmod -R 777 private/
+sudo chmod -R 777 repository/
+composer install
+npm install
+npm run build</code></pre>
+<h2 id="compiles-and-hot-reloads-backend-and-frontend-on-ports-8081-and-8080">Compiles and hot-reloads (backend and frontend on ports 8081 and 8080)</h2>
+<pre><code>npm run serve</code></pre>
+<p>Once everything is ready visit: <code>http://localhost:8080</code></p>
+<h2 id="run-tests-amp-static-analysis">Run tests &amp; static analysis</h2>
+<pre><code>vendor/bin/phpunit
+vendor/bin/phpstan analyse ./backend</code></pre>
+<h2 id="deployment">Deployment</h2>
+<p>Set the website document root to <code>/dist</code> directory.</p>
                 </section>
 
             </div>

@@ -50,13 +50,13 @@
                                         </a>
                                     </li>
                                                                     <li class="">
-                                        <a href="demo.html">
-                                            Demo
+                                        <a href="https://docs.filegator.io/development.html">
+                                            Development
                                         </a>
                                     </li>
                                                                     <li class="">
-                                        <a href="license.html">
-                                            License
+                                        <a href="https://docs.filegator.io/demo.html">
+                                            Demo
                                         </a>
                                     </li>
                                                             </ul>
@@ -66,8 +66,8 @@
 
                             <ul class="nav nav-pills nav-stacked">
                                                                     <li class="">
-                                        <a href="https://docs.filegator.io/configuration/default.html">
-                                            Options
+                                        <a href="https://docs.filegator.io/configuration/basic.html">
+                                            Basic
                                         </a>
                                     </li>
                                                                     <li class="">
@@ -80,13 +80,18 @@
                                             Session
                                         </a>
                                     </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/storage.html">
+                                            Storage
+                                        </a>
+                                    </li>
                                                             </ul>
                         
                     </nav>
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h3 id="configuring-session-service-to-use-database">Configuring Session service to use database</h3>
+                    <h2 id="configuring-session-service-to-use-database">Configuring Session service to use database</h2>
 <p>First, create a table <code>sessions</code> with this sql:</p>
 <pre><code>CREATE TABLE `sessions` (
       `sess_id` varbinary(128) NOT NULL,
@@ -113,8 +118,8 @@
         ],
 </code></pre>
 <p>Don't forget to enter correct mysql username, password, and database.</p>
-<h3 id="tweaking-session-options">Tweaking session options</h3>
-<p>The Underying Symfony session <a href="https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php">component</a> constructor accepts an array options.
+<h2 id="tweaking-session-options">Tweaking session options</h2>
+<p>The Underying Symfony session <a href="https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php">component</a> constructor accepts an array of options.
 For example you can pass <code>cookie_lifetime</code> parameter and extend session lifetime like this:</p>
 <pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
             'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
