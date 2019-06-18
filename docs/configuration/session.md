@@ -12,7 +12,7 @@ CREATE TABLE `sessions` (
 ) CHARSET=utf8 COLLATE=utf8_bin;
 ```
 
-Then, open ```configuration.php``` and update Auth handler under section ```services``` to something like this:
+Then, open ```configuration.php``` and update Session handler to:
 
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [
@@ -32,12 +32,12 @@ Then, open ```configuration.php``` and update Auth handler under section ```serv
         ],
 
 ```
-Don't forget to enter correct mysql username, password, and database.
+Don't forget to enter correct database details.
 
 
 ## Tweaking session options
 
-The underying Symfony's session [component](https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php) accepts array of options.
+The underying [session component](https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php) accepts array of options.
 For example you can pass ```cookie_lifetime``` parameter to extend default session lifetime:
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [

@@ -1,6 +1,6 @@
 
 ## Basic
-Edit ```configuration.php``` file to change basic things like logo, title, language and upload restrictions.
+You can edit ```configuration.php``` to change the basic things like logo image, title, language and upload restrictions.
 
 
 NOTE: if you've made a mistake in configuration file, forgot to close a quote, the script will throw an error. Please use provided default ```configuration_sample.php``` to verify this.

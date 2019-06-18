@@ -1,7 +1,7 @@
 ## Default Auth service
-By default, users are stored in json file. For some use-cases, this is more than enough. It also makes this app lightweight since no database is required.
+By default, users are stored in json file. For some use-cases, this is enough. It also makes this app lightweight since no database is required.
 
-Default handler accepts only file name parameter. This file should be writable by the server.
+Default handler accepts only file name parameter. This file should be writable by the web server.
 
 ```
         'Filegator\Services\Auth\AuthInterface' => [
@@ -14,7 +14,7 @@ Default handler accepts only file name parameter. This file should be writable b
 ```
 
 ## Configuring Auth service to use database
-You can use mysql database to store your users.
+You can also mysql database to store your users.
 
 First, create a table ```users``` with this sql:
 ```
@@ -39,7 +39,7 @@ VALUES
 ('admin', 'Admin', 'admin', 'read|write|upload|download|batchdownload|zip', '/', '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq');
 ```
 
-At the end, open ```configuration.php``` and update Auth handler under section ```services``` to something like this:
+At the end, open ```configuration.php``` and update AuthInterface handler to:
 
 ```
         'Filegator\Services\Auth\AuthInterface' => [
@@ -54,4 +54,4 @@ At the end, open ```configuration.php``` and update Auth handler under section `
         ],
 ```
 
-Don't forget to enter correct mysql username, password, and database.
+Don't forget to enter correct database details.
