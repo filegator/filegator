@@ -1,0 +1,105 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    font-size: 19px;
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: 970px;
+    }
+}
+
+main {
+    margin-top: 90px;
+}
+
+section {
+    margin-bottom: 120px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background-color: #f5f5f5;
+    padding: 25px 0;
+    font-size: 15px;
+    text-align: center;
+    text-transform: uppercase;
+    opacity: 0.6;
+    transition: opacity .2s ease;
+}
+footer:hover {
+    opacity: 1.0;
+    transition: opacity .2s ease;
+}
+footer p {
+    margin: 0;
+}
+
+h3 {
+    font-size: 23px;
+}
+
+li {
+    margin-bottom: 3px;
+}
+
+#content img {
+    max-width: 100%;
+    padding: 4px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+header.navbar {
+    opacity: 0.9;
+}
+.navbar .navbar-brand {
+    font-size: 28px;
+    height: auto;
+    line-height: 40px;
+    margin-left: 20px;
+}
+.navbar .navbar-brand small {
+    font-size: 18px;
+    font-weight: 300;
+    margin-left: 10px;
+}
+
+@media (min-width: 768px) {
+    #sidebar {
+        position:fixed;
+        margin-top: 30px;
+    }
+}
+@media (max-width: 960px) {
+    body {
+        font-size: 17px;
+    }
+    pre {
+        font-size: 12px;
+    }
+}
+
+.page-header {
+    margin-top: 0;
+}
+
+#sidebar .text-muted {
+    color: #bbbbbb;
+}
+
+pre {
+    padding: 0;
+    border-radius: 4px;
+    margin: 15px;
+    font-size: 15px;
+}
+pre code {
+    border: none;
+}
