@@ -30,69 +30,7 @@
 
                 
                 <section id="content" class="col-sm-12">
-                    <p align="center">
-<img src="https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.gif"></p>
-<p align="center">
-<a href="https://travis-ci.org/filegator/filegator"><img src="https://travis-ci.org/filegator/filegator.svg?branch=master" alt="Build Status"></a>
-<a href="https://codecov.io/gh/filegator/filegator"><img src="https://codecov.io/gh/filegator/filegator/branch/master/graph/badge.svg" alt="Code Coverage"></a>
-<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  </p>
-<h2 id="filegator---powerful-multi-user-file-manager">FileGator - Powerful Multi-User File Manager</h2>
-<p>Copy, move, rename, create, edit or delete online files and folders.
-Upload with drag&amp;drop, progress bar, pause and resume.
-Download multiple files or directories at once.
-Zip and unzip files and folders.
-Create users with different access permissions and home directories for each user.</p>
-<h2 id="demo">Demo</h2>
-<p><a href="https://demo.filegator.io"><a href="https://demo.filegator.io">https://demo.filegator.io</a></a></p>
-<p>This is read-only demo with guest account enabled.
-You can also log in with john/john to see John's private files.</p>
-<h2 id="features-amp-goals">Features &amp; Goals</h2>
-<ul>
-<li>Multiple storage adapters (Local, FTP, S3, Dropbox and many others via <a href="https://github.com/thephpleague/flysystem">Flysystem</a>)</li>
-<li>Multiple auth adapters with roles and permissions (Store users in json file or database)</li>
-<li>Multiple session adapters (Native File, Pdo, MongoDB, Memcached and others via <a href="https://github.com/symfony/symfony/tree/master/src/Symfony/Component/HttpFoundation/Session/Storage/Handler">Symfony</a>)</li>
-<li>Single page front-end (built with <a href="https://github.com/vuejs/vue">Vuejs</a>, <a href="https://github.com/jgthms/bulma">Bulma</a> and <a href="https://github.com/buefy/buefy">Buefy</a>)</li>
-<li>Chunked uploads (built with <a href="https://github.com/23/resumable.js">Resumable.js</a>)</li>
-<li>Zip and bulk download support</li>
-<li>Highly extensible, decoupled and tested code</li>
-<li>No database required</li>
-<li>Framework free <a href="https://www.youtube.com/watch?v=L5jI9I03q8E">™</a></li>
-</ul>
-<h2 id="requirements">Requirements</h2>
-<ul>
-<li>PHP 7.1.3+</li>
-</ul>
-<h2 id="download-precompiled-build">Download precompiled build</h2>
-<ul>
-<li>Latest: <a href="https://github.com/filegator/static/raw/master/builds/filegator_v7.0.0-RC2.zip">v7.0.0-RC2</a></li>
-<li>Unzip files and upload them to your PHP server</li>
-<li>Make sure you webserver can read and write to /storage and /private folders</li>
-<li>Set the website document root to /dist directory</li>
-<li>Visit web page, if something goes wrong check /private/logs/app.log</li>
-<li>Login with default credentials admin/admin123</li>
-<li>Change default admin's password</li>
-<li>Adjust configuration.php</li>
-</ul>
-<h2 id="project-setup-for-development">Project setup for development</h2>
-<pre><code>git clone git@github.com:filegator/filegator.git
-cd filegator
-cp configuration_sample.php configuration.php
-sudo chmod -R 777 private/
-sudo chmod -R 777 repository/
-composer install
-npm install
-npm run build</code></pre>
-<h3 id="compiles-and-hot-reloads-backend-and-frontend-on-ports-8081-and-8080">Compiles and hot-reloads (backend and frontend on ports 8081 and 8080)</h3>
-<pre><code>npm run serve</code></pre>
-<p>Once everything is ready visit: <code>http://localhost:8080</code></p>
-<h3 id="run-tests-amp-static-analysis">Run tests &amp; static analysis</h3>
-<pre><code>vendor/bin/phpunit
-vendor/bin/phpstan analyse ./backend</code></pre>
-<h3 id="deployment">Deployment</h3>
-<p>Set the website document root to <code>/dist</code> directory.</p>
-<h2 id="security">Security</h2>
-<p>If you discover any security related issues, please email alcalbg@gmail.com instead of using the issue tracker.</p>
+                    <h2 id="filegator">FileGator</h2>
                 </section>
 
             </div>
