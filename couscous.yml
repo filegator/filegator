@@ -46,6 +46,13 @@ menu:
                 sessions:
                     text: Session
                     relativeUrl: configuration/session.html
-                storate:
+                storage:
                     text: Storage
                     relativeUrl: configuration/storage.html
+                logging:
+                    text: Logging
+                    relativeUrl: configuration/logging.html
+                security:
+                    text: Security
+                    relativeUrl: configuration/security.html
+
