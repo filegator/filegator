@@ -1,18 +1,6 @@
 include:
     - docs
 
-exclude:
-    - private
-    - backend
-    - database
-    - dist
-    - tests
-    - frontend
-    - repository
-    - tests
-    # This special entry will ask Couscous to read the excluded directories from your ".gitignore" file
-    - %gitignore%
-
 cname: docs.filegator.io
 
 branch: gh-pages
@@ -29,7 +17,6 @@ github:
     user: filegator
     repo: filegator
 
-# The left menu bar
 menu:
     items:
         home:
