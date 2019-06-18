@@ -101,21 +101,22 @@
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="requirements">Requirements</h2>
-<ul>
-<li>PHP 7.1.3+</li>
-</ul>
-<h2 id="download-precompiled-build">Download precompiled build</h2>
-<ul>
-<li>Latest: <a href="https://github.com/filegator/static/raw/master/builds/filegator_v7.0.0-RC2.zip">v7.0.0-RC2</a></li>
-<li>Unzip files and upload them to your PHP server</li>
-<li>Make sure you webserver can read and write to <code>/storage</code> and <code>/private</code> folders</li>
-<li>Set the website document root to <code>/dist</code> directory</li>
-<li>Visit web page, if something goes wrong check <code>/private/logs/app.log</code></li>
-<li>Login with default credentials <code>admin/admin123</code></li>
-<li>Change default admin's password</li>
-<li>Adjust <code>configuration.php</code> file</li>
-</ul>
+                    <h2 id="configuring-logging-service">Configuring Logging service</h2>
+<p>Logging is provided via powerful <a href="https://github.com/Seldaek/monolog">Monolog</a> library. Please check their docs for more info.</p>
+<p>Default logger handler will use <code>/private/logs/app.log</code> file to store application logs:</p>
+<pre><code>        'Filegator\Services\Logger\LoggerInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Logger\Adapters\MonoLogger',
+            'config' =&gt; [
+                'monolog_handlers' =&gt; [
+                    function () {
+                        return new \Monolog\Handler\StreamHandler(
+                            __DIR__.'/private/logs/app.log',
+                            \Monolog\Logger::DEBUG
+                        );
+                    },
+                ],
+            ],
+        ],</code></pre>
                 </section>
 
             </div>
