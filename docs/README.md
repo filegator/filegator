@@ -1,6 +1,6 @@
 ## FileGator
 
-FileGator is PHP script for managing online files and folders.
+FileGator is a free, open-source PHP script for managing files and folders.
 
 You can manage files inside your local repository folder (on your server's hard drive) or connect to other storage adaptes (see below).
 
