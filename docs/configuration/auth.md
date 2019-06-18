@@ -14,9 +14,9 @@ Default handler accepts only file name parameter. This file should be writable b
 ```
 
 ## Configuring Auth service to use database
-You can also mysql database to store your users.
+You can also use mysql database to store your users.
 
-First, create a table ```users``` with this sql:
+First, create a table ```users``` with this sql query:
 ```
 CREATE TABLE `users` (
     `id` int(10) NOT NULL AUTO_INCREMENT,
@@ -30,7 +30,7 @@ CREATE TABLE `users` (
     KEY `username` (`username`)
 ) CHARSET=utf8 COLLATE=utf8_bin;
 ```
-Then, import default users with this query:
+Then, import default users with sql query:
 
 ```
 INSERT INTO `users` (`username`, `name`, `role`, `permissions`, `homedir`, `password`)
@@ -39,7 +39,7 @@ VALUES
 ('admin', 'Admin', 'admin', 'read|write|upload|download|batchdownload|zip', '/', '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq');
 ```
 
-At the end, open ```configuration.php``` and update AuthInterface handler to:
+At the end, open ```configuration.php``` and update AuthInterface handler to reflect your database settings:
 
 ```
         'Filegator\Services\Auth\AuthInterface' => [
@@ -54,4 +54,3 @@ At the end, open ```configuration.php``` and update AuthInterface handler to:
         ],
 ```
 
-Don't forget to enter correct database details.
