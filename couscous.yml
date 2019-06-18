@@ -20,7 +20,7 @@ branch: gh-pages
 title: FileGator
 subTitle: Documentation
 
-baseUrl: http://docs.filegator.io/filegator
+baseUrl: https://docs.filegator.io
 
 template:
     url: https://github.com/CouscousPHP/Template-Light

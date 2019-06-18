@@ -50,6 +50,8 @@ You can also log in with john/john to see John's private files.
 - Change default admin's password
 - Adjust configuration.php
 
+## Documentation
+[Check out the documentation](https://docs.filegator.io/)
 
 ## Project setup for development
 ```
