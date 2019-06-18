@@ -18,7 +18,7 @@ You can add additional html to the head and body like this:
 ```
 
 ## Frontend tweaks
-To change default color scheme and other options, edit ```/frontend/App.vue``` and recompile with npm.
+To change default color scheme and other options, edit ```/frontend/App.vue```. When you're done, recompile with ```npm run build```.
 
 ```
 // Primary color

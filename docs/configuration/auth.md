@@ -1,5 +1,20 @@
+## Default Auth service
+By default, users are stored in json file. For some use-cases, this is more than enough. It also makes this app lightweight since no database is required.
+
+Default handler accepts only file name parameter. This file should be writable by the server.
+
+```
+        'Filegator\Services\Auth\AuthInterface' => [
+            'handler' => '\Filegator\Services\Auth\Adapters\JsonFile',
+            'config' => [
+                'file' => __DIR__.'/private/users.json',
+            ],
+        ],
+
+```
+
 ## Configuring Auth service to use database
-You can store your users inside mysql database (default is json file).
+You can use mysql database to store your users.
 
 First, create a table ```users``` with this sql:
 ```
@@ -39,3 +54,4 @@ At the end, open ```configuration.php``` and update Auth handler under section `
         ],
 ```
 
+Don't forget to enter correct mysql username, password, and database.
