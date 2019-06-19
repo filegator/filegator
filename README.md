@@ -51,6 +51,55 @@ You can also log in with john/john to see John's private files.
 - PHP 7.1.3+
 
 
+## Download precompiled build
+- Latest: [v7.0.0-RC3](https://github.com/filegator/static/raw/master/builds/filegator_v7.0.0-RC3.zip)
+- Unzip files and upload them to your PHP server
+- Make sure you webserver can read and write to ```/storage``` and ```/private``` folders
+- Set the website document root to ```/dist``` directory. This is also known as 'public' folder.
+- Visit web page, if something goes wrong check ```/private/logs/app.log```
+- Login with default credentials ```admin/admin123```
+- Change default admin's password
+
+
+## Project setup for development (Linux)
+
+You must have ```git```, ```php```, ```npm```, and ```composer``` installed.
+
+```
+git clone git@github.com:filegator/filegator.git
+cd filegator
+cp configuration_sample.php configuration.php
+sudo chmod -R 777 private/
+sudo chmod -R 777 repository/
+composer install
+npm install
+npm run build
+```
+
+
+## Compiles and hot-reloads
+
+The following command will launch backend and frontend on ports 8081 and 8080:
+
+```
+npm run serve
+```
+Once everything is ready visit: ```http://localhost:8080```
+
+
+## Run tests & static analysis
+
+```
+vendor/bin/phpunit
+vendor/bin/phpstan analyse ./backend
+```
+
+
+## Deployment
+
+Set the website document root to ```/dist``` directory. This is also known as 'public' folder.
+
+
 ## Security
 If you discover any security related issues, please email alcalbg@gmail.com instead of using the issue tracker.
 
