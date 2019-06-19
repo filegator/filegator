@@ -110,16 +110,13 @@
 <pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
             'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' =&gt; [
-                'session_handler' =&gt; 'database',
-                'available' =&gt; [
-                    'database' =&gt; function () {
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                'handler' =&gt; function () {
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
                             'mysql://root:password@localhost:3360/filegator'
-                        );
+                            );
 
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
-                    },
-                ],
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
             ],
         ],
 </code></pre>
@@ -130,18 +127,15 @@ For example you can pass <code>cookie_lifetime</code> parameter to extend defaul
 <pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
             'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' =&gt; [
-                'session_handler' =&gt; 'database',
-                'available' =&gt; [
-                    'database' =&gt; function () {
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                'handler' =&gt; function () {
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
                             'mysql://root:password@localhost:3360/filegator'
-                        );
+                            );
 
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
                             'cookie_lifetime' =&gt; 365 * 24 * 60 * 60, // one year
-                        ], $handler);
-                    },
-                ],
+                    ], $handler);
+                },
             ],
         ],
 </code></pre>

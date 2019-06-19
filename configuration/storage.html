@@ -108,14 +108,11 @@
             'config' =&gt; [
                 'separator' =&gt; '/',
                 'config' =&gt; [],
-                'filesystem_adapter' =&gt; 'localfilesystem',
-                'adapters' =&gt; [
-                    'localfilesystem' =&gt; function () {
-                        return new \League\Flysystem\Adapter\Local(
-                            __DIR__.'/repository'
-                        );
-                    },
-                ],
+                'adapter' =&gt; function () {
+                  return new \League\Flysystem\Adapter\Local(
+                      __DIR__.'/repository'
+                      );
+                },
             ],
         ],
 </code></pre>
@@ -126,18 +123,15 @@
             'config' =&gt; [
                 'separator' =&gt; '/',
                 'config' =&gt; [],
-                'filesystem_adapter' =&gt; 'ftp',
-                'adapters' =&gt; [
-                    'ftp' =&gt; function () {
-                        return new \League\Flysystem\Adapter\Ftp([
-                            'host' =&gt; 'example.com',
-                            'username' =&gt; 'demo',
-                            'password' =&gt; 'password',
-                            'port' =&gt; 21,
-                            'timeout' =&gt; 10,
-                        ]);
-                    },
-                ],
+                'adapter' =&gt; function () {
+                  return new \League\Flysystem\Adapter\Ftp([
+                      'host' =&gt; 'example.com',
+                      'username' =&gt; 'demo',
+                      'password' =&gt; 'password',
+                      'port' =&gt; 21,
+                      'timeout' =&gt; 10,
+                  ]);
+                },
             ],
         ],
 </code></pre>
@@ -149,18 +143,15 @@
             'config' =&gt; [
                 'separator' =&gt; '/',
                 'config' =&gt; [],
-                'filesystem_adapter' =&gt; 'sftp',
-                'adapters' =&gt; [
-                    'sftp' =&gt; function () {
-                        return new \League\Flysystem\Sftp\SftpAdapter([
-                            'host' =&gt; 'example.com',
-                            'port' =&gt; 22,
-                            'username' =&gt; 'demo',
-                            'password' =&gt; 'password',
-                            'timeout' =&gt; 10,
-                        ]);
-                    },
-                ],
+                'adapter' =&gt; function () {
+                  return new \League\Flysystem\Sftp\SftpAdapter([
+                      'host' =&gt; 'example.com',
+                      'port' =&gt; 22,
+                      'username' =&gt; 'demo',
+                      'password' =&gt; 'password',
+                      'timeout' =&gt; 10,
+                  ]);
+                },
             ],
         ],
 </code></pre>
@@ -171,16 +162,15 @@
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
                 'separator' =&gt; '/',
-                'config' =&gt; [],
-                'filesystem_adapter' =&gt; 'dropbox',
-                'adapters' =&gt; [
-                    'dropbox' =&gt; function () {
-                        $authorizationToken = '1234';
-                        $client = new \Spatie\Dropbox\Client($authorizationToken);
-
-                        return new \Spatie\FlysystemDropbox\DropboxAdapter($client);
-                    },
+                'config' =&gt; [
+                    'case_sensitive' =&gt; false,
                 ],
+                'adapter' =&gt; function () {
+                  $authorizationToken = '1234';
+                  $client = new \Spatie\Dropbox\Client($authorizationToken);
+
+                  return new \Spatie\FlysystemDropbox\DropboxAdapter($client);
+                },
             ],
         ],
 </code></pre>
