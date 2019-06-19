@@ -25,3 +25,18 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 - No database required
 - Framework free [™](https://www.youtube.com/watch?v=L5jI9I03q8E)
 
+
+## Why Open Source on GitHub?
+
+There are several reasons why we switched to open source model and GitHub.
+
+Basically, we wanted to increase:
+
+- Code quality by bringing more developers on board
+- Code auditability and visibility
+- Security
+- Project lifetime
+
+At the end, the more people who can see and test a set of code, the more likely any flaws will be caught and fixed quickly.
+
+

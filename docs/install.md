@@ -11,3 +11,11 @@
 - Visit web page, if something goes wrong check ```/private/logs/app.log```
 - Login with default credentials ```admin/admin123```
 - Change default admin's password
+
+## Upgrade
+
+Since version 7 is completely rewriten from scratch, there is no clear upgrade path from the older versions.
+
+If you have an older version of FileGator please backup everything and install the script again.
+
+
