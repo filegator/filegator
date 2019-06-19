@@ -14,7 +14,7 @@ Default handler accepts only file name parameter. This file should be writable b
 ```
 
 ## Configuring Auth service to use database
-You can also use mysql database to store your users.
+You can use mysql database to store your users.
 
 First, create a table ```users``` with this sql query:
 ```

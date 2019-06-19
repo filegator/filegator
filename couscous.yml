@@ -29,6 +29,9 @@ menu:
                 install:
                     text: Installation
                     relativeUrl: install.html
+                account:
+                    text: Users
+                    relativeUrl: accounts.html
                 development:
                     text: Development
                     relativeUrl: development.html
@@ -57,3 +60,9 @@ menu:
                     text: Security
                     relativeUrl: configuration/security.html
 
+        multilang:
+            name: Languages
+            items:
+                english:
+                    text: Translations
+                    relativeUrl: translations/default.html

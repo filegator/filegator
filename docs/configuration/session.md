@@ -1,4 +1,24 @@
 
+## Default Session handler
+
+Session handling is provided through the Symfony's [HttpFoundation](https://symfony.com/doc/current/components/http_foundation.html) component. Please check their docs for more info.
+
+Default session handler will user PHP's built in file storage. You can also specify your own ```$save_path``` to store session files.
+
+```
+        'Filegator\Services\Session\SessionStorageInterface' => [
+            'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' => [
+                'handler' => function () {
+                    $save_path = null; // use default system path
+                    //$save_path = __DIR__.'/private/sessions';
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
+
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
+            ],
+        ],
+```
 ## Configuring Session service to use database
 
 First, create a table ```sessions``` with this sql:
