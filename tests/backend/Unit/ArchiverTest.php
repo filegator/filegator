@@ -41,12 +41,9 @@ class ArchiverTest extends TestCase
         $storage = new Filesystem();
         $storage->init([
             'separator' => '/',
-            'filesystem_adapter' => 'nulladapter',
-            'adapters' => [
-                'nulladapter' => function () {
-                    return new \League\Flysystem\Adapter\NullAdapter();
-                },
-            ],
+            'adapter' => function () {
+                return new \League\Flysystem\Adapter\NullAdapter();
+            },
         ]);
 
         $uniqid = $this->archiver->createArchive($storage);
@@ -60,12 +57,9 @@ class ArchiverTest extends TestCase
         $storage = new Filesystem();
         $storage->init([
             'separator' => '/',
-            'filesystem_adapter' => 'memoryadapter',
-            'adapters' => [
-                'memoryadapter' => function () {
-                    return new \League\Flysystem\Memory\MemoryAdapter();
-                },
-            ],
+            'adapter' => function () {
+                return new \League\Flysystem\Memory\MemoryAdapter();
+            },
         ]);
 
         $storage->createDir('/', 'test');
@@ -85,12 +79,9 @@ class ArchiverTest extends TestCase
         $storage = new Filesystem();
         $storage->init([
             'separator' => '/',
-            'filesystem_adapter' => 'memoryadapter',
-            'adapters' => [
-                'memoryadapter' => function () {
-                    return new \League\Flysystem\Memory\MemoryAdapter();
-                },
-            ],
+            'adapter' => function () {
+                return new \League\Flysystem\Memory\MemoryAdapter();
+            },
         ]);
 
         $storage->createDir('/', 'test');
@@ -110,12 +101,9 @@ class ArchiverTest extends TestCase
         $storage = new Filesystem();
         $storage->init([
             'separator' => '/',
-            'filesystem_adapter' => 'memoryadapter',
-            'adapters' => [
-                'memoryadapter' => function () {
-                    return new \League\Flysystem\Memory\MemoryAdapter();
-                },
-            ],
+            'adapter' => function () {
+                return new \League\Flysystem\Memory\MemoryAdapter();
+            },
         ]);
 
         $stream = fopen(TEST_ARCHIVE, 'r');

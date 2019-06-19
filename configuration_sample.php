@@ -75,14 +75,11 @@ return [
             'config' => [
                 'separator' => '/',
                 'config' => [],
-                'filesystem_adapter' => 'localfilesystem',
-                'adapters' => [
-                    'localfilesystem' => function () {
-                        return new \League\Flysystem\Adapter\Local(
-                            __DIR__.'/repository'
-                        );
-                    },
-                ],
+                'adapter' => function () {
+                    return new \League\Flysystem\Adapter\Local(
+                        __DIR__.'/repository'
+                    );
+                },
             ],
         ],
         'Filegator\Services\Archiver\ArchiverInterface' => [

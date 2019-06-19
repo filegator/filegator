@@ -52,14 +52,11 @@ return [
             'handler' => '\Filegator\Services\Storage\Filesystem',
             'config' => [
                 'separator' => '/',
-                'filesystem_adapter' => 'localfilesystem',
-                'adapters' => [
-                    'localfilesystem' => function () {
-                        return new \League\Flysystem\Adapter\Local(
-                            TEST_REPOSITORY
-                        );
-                    },
-                ],
+                'adapter' => function () {
+                    return new \League\Flysystem\Adapter\Local(
+                        TEST_REPOSITORY
+                    );
+                },
             ],
         ],
         'Filegator\Services\Auth\AuthInterface' => [

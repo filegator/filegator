@@ -14,14 +14,11 @@ With default adapter you just need to configure where your ```repository``` fold
             'config' => [
                 'separator' => '/',
                 'config' => [],
-                'filesystem_adapter' => 'localfilesystem',
-                'adapters' => [
-                    'localfilesystem' => function () {
-                        return new \League\Flysystem\Adapter\Local(
-                            __DIR__.'/repository'
-                        );
-                    },
-                ],
+                'adapter' => function () {
+                  return new \League\Flysystem\Adapter\Local(
+                      __DIR__.'/repository'
+                      );
+                },
             ],
         ],
 
@@ -36,18 +33,15 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/ftp
             'config' => [
                 'separator' => '/',
                 'config' => [],
-                'filesystem_adapter' => 'ftp',
-                'adapters' => [
-                    'ftp' => function () {
-                        return new \League\Flysystem\Adapter\Ftp([
-                            'host' => 'example.com',
-                            'username' => 'demo',
-                            'password' => 'password',
-                            'port' => 21,
-                            'timeout' => 10,
-                        ]);
-                    },
-                ],
+                'adapter' => function () {
+                  return new \League\Flysystem\Adapter\Ftp([
+                      'host' => 'example.com',
+                      'username' => 'demo',
+                      'password' => 'password',
+                      'port' => 21,
+                      'timeout' => 10,
+                  ]);
+                },
             ],
         ],
 
@@ -64,18 +58,15 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/sft
             'config' => [
                 'separator' => '/',
                 'config' => [],
-                'filesystem_adapter' => 'sftp',
-                'adapters' => [
-                    'sftp' => function () {
-                        return new \League\Flysystem\Sftp\SftpAdapter([
-                            'host' => 'example.com',
-                            'port' => 22,
-                            'username' => 'demo',
-                            'password' => 'password',
-                            'timeout' => 10,
-                        ]);
-                    },
-                ],
+                'adapter' => function () {
+                  return new \League\Flysystem\Sftp\SftpAdapter([
+                      'host' => 'example.com',
+                      'port' => 22,
+                      'username' => 'demo',
+                      'password' => 'password',
+                      'timeout' => 10,
+                  ]);
+                },
             ],
         ],
 
@@ -90,16 +81,15 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/dro
             'handler' => '\Filegator\Services\Storage\Filesystem',
             'config' => [
                 'separator' => '/',
-                'config' => [],
-                'filesystem_adapter' => 'dropbox',
-                'adapters' => [
-                    'dropbox' => function () {
-                        $authorizationToken = '1234';
-                        $client = new \Spatie\Dropbox\Client($authorizationToken);
-
-                        return new \Spatie\FlysystemDropbox\DropboxAdapter($client);
-                    },
+                'config' => [
+                    'case_sensitive' => false,
                 ],
+                'adapter' => function () {
+                  $authorizationToken = '1234';
+                  $client = new \Spatie\Dropbox\Client($authorizationToken);
+
+                  return new \Spatie\FlysystemDropbox\DropboxAdapter($client);
+                },
             ],
         ],
 

@@ -26,7 +26,7 @@ class Filesystem implements Service
         $this->separator = $config['separator'];
         $this->path_prefix = $this->separator;
 
-        $adapter = $config['adapters'][$config['filesystem_adapter']];
+        $adapter = $config['adapter'];
         $config = isset($config['config']) ? $config['config'] : [];
 
         $this->storage = new Flysystem($adapter(), $config);

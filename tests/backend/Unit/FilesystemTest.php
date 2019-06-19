@@ -33,14 +33,11 @@ class FilesystemTest extends TestCase
         $this->storage = new Filesystem();
         $this->storage->init([
             'separator' => '/',
-            'filesystem_adapter' => 'localfilesystem',
-            'adapters' => [
-                'localfilesystem' => function () {
-                    return new \League\Flysystem\Adapter\Local(
-                        TEST_REPOSITORY
-                    );
-                },
-            ],
+            'adapter' => function () {
+                return new \League\Flysystem\Adapter\Local(
+                    TEST_REPOSITORY
+                );
+            },
         ]);
     }
 
