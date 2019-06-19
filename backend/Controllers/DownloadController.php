@@ -69,6 +69,14 @@ class DownloadController
             'Content-Disposition',
             HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $file['filename'])
         );
+        $streamedResponse->headers->set(
+            'Content-Type',
+            'application/octet-stream'
+        );
+        $streamedResponse->headers->set(
+            'Content-Transfer-Encoding',
+            'binary'
+        );
 
         // close session so we can continue streaming, note: dev is single-threaded
         $this->session->save();
@@ -125,6 +133,14 @@ class DownloadController
                 HeaderUtils::DISPOSITION_ATTACHMENT,
                 $this->config->get('frontend_config.default_archive_name')
             )
+        );
+        $streamedResponse->headers->set(
+            'Content-Type',
+            'application/octet-stream'
+        );
+        $streamedResponse->headers->set(
+            'Content-Transfer-Encoding',
+            'binary'
         );
 
         // close session so we can continue streaming, note: dev is single-threaded
