@@ -47,7 +47,8 @@ header.navbar {
 
 @media (min-width: 768px) {
     #sidebar {
-        position:fixed;
+        /*position:fixed;*/
+        position:absolute;
     }
 }
 @media (max-width: 960px) {

@@ -113,25 +113,27 @@
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="project-setup-for-development-linux">Project setup for development (Linux)</h2>
-<p>You must have <code>git</code>, <code>php</code>, <code>npm</code>, and <code>composer</code> installed.</p>
-<pre><code>git clone git@github.com:filegator/filegator.git
-cd filegator
-cp configuration_sample.php configuration.php
-sudo chmod -R 777 private/
-sudo chmod -R 777 repository/
-composer install
-npm install
-npm run build</code></pre>
-<h2 id="compiles-and-hot-reloads">Compiles and hot-reloads</h2>
-<p>The following command will launch backend and frontend on ports 8081 and 8080:</p>
-<pre><code>npm run serve</code></pre>
-<p>Once everything is ready visit: <code>http://localhost:8080</code></p>
-<h2 id="run-tests-amp-static-analysis">Run tests &amp; static analysis</h2>
-<pre><code>vendor/bin/phpunit
-vendor/bin/phpstan analyse ./backend</code></pre>
-<h2 id="deployment">Deployment</h2>
-<p>Set the website document root to <code>/dist</code> directory. This is also known as 'public' folder.</p>
+                    <h2 id="user-roles">User roles</h2>
+<p>There are 3 different user roles:</p>
+<ul>
+<li>Admin (for user management)</li>
+<li>User (regular, logged in user)</li>
+<li>Guest (anonymous, not logged in)</li>
+</ul>
+<h2 id="user-permissions">User permissions</h2>
+<p>There are 6 different user permissions you can assign to each user:</p>
+<ul>
+<li>Read (user can browse and list files and folders)</li>
+<li>Write (user can copy, move, rename, and delete files)</li>
+<li>Upload (user can upload files to the repository)</li>
+<li>Download (user can download files from the repository)</li>
+<li>Bach Download (user can download multiple files and folders at once)</li>
+<li>Zip (user can zip and unzip files)</li>
+</ul>
+<p>Some permissions require others. For example, Batch Download requires Read permissions (so than user can list files and select them) as well as basic Download permissions.</p>
+<h2 id="guest-account">Guest account</h2>
+<p>Guest account is predefined account and it is disabled by default since no permissions is assigned.</p>
+<p>Admin can enable Guest account which will allow everyone to interact with the repository based on the Guest account permissions.</p>
                 </section>
 
             </div>

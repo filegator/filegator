@@ -46,6 +46,11 @@
                                         </a>
                                     </li>
                                                                     <li class="">
+                                        <a href="https://docs.filegator.io/accounts.html">
+                                            Users
+                                        </a>
+                                    </li>
+                                                                    <li class="">
                                         <a href="https://docs.filegator.io/development.html">
                                             Development
                                         </a>
@@ -92,12 +97,38 @@
                                         </a>
                                     </li>
                                                             </ul>
+                                                    <p class="text-muted">
+                                Languages
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/translations/default.html">
+                                            Translations
+                                        </a>
+                                    </li>
+                                                            </ul>
                         
                     </nav>
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="configuring-session-service-to-use-database">Configuring Session service to use database</h2>
+                    <h2 id="default-session-handler">Default Session handler</h2>
+<p>Session handling is provided through the Symfony's <a href="https://symfony.com/doc/current/components/http_foundation.html">HttpFoundation</a> component. Please check their docs for more info.</p>
+<p>Default session handler will user PHP's built in file storage. You can also specify your own <code>$save_path</code> to store session files.</p>
+<pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' =&gt; [
+                'handler' =&gt; function () {
+                    $save_path = null; // use default system path
+                    //$save_path = __DIR__.'/private/sessions';
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
+
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
+            ],
+        ],</code></pre>
+<h2 id="configuring-session-service-to-use-database">Configuring Session service to use database</h2>
 <p>First, create a table <code>sessions</code> with this sql:</p>
 <pre><code>CREATE TABLE `sessions` (
       `sess_id` varbinary(128) NOT NULL,

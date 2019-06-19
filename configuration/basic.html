@@ -46,6 +46,11 @@
                                         </a>
                                     </li>
                                                                     <li class="">
+                                        <a href="https://docs.filegator.io/accounts.html">
+                                            Users
+                                        </a>
+                                    </li>
+                                                                    <li class="">
                                         <a href="https://docs.filegator.io/development.html">
                                             Development
                                         </a>
@@ -92,6 +97,17 @@
                                         </a>
                                     </li>
                                                             </ul>
+                                                    <p class="text-muted">
+                                Languages
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/translations/default.html">
+                                            Translations
+                                        </a>
+                                    </li>
+                                                            </ul>
                         
                     </nav>
 
@@ -100,6 +116,16 @@
                     <h2 id="basic">Basic</h2>
 <p>You can edit <code>configuration.php</code> to change the basic things like logo image, title, language and upload restrictions.</p>
 <p>NOTE: if you've made a mistake in configuration file, forgot to close a quote, the script will throw an error. Please use provided default <code>configuration_sample.php</code> to verify this.</p>
+<pre><code>    'frontend_config' =&gt; [
+        'app_name' =&gt; 'FileGator',
+        'app_version' =&gt; APP_VERSION,
+        'language' =&gt; 'english',
+        'logo' =&gt; 'https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.png',
+        'upload_max_size' =&gt; 100 * 1024 * 1024, // 100MB
+        'upload_chunk_size' =&gt; 1 * 1024 * 1024, // 1MB
+        'upload_simultaneous' =&gt; 3,
+        'default_archive_name' =&gt; 'archive.zip',
+    ],</code></pre>
 <h2 id="additional-html">Additional HTML</h2>
 <p>You can add additional html to the head and body like this:</p>
 <pre><code>        'Filegator\Services\View\ViewInterface' =&gt; [
