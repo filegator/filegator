@@ -25,12 +25,9 @@ abstract class AuthTest extends TestCase
     {
         $this->session = new SessionStorage(new Request());
         $this->session->init([
-            'session_handler' => 'mockfilesession',
-            'available' => [
-                'mockfilesession' => function () {
-                    return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
-                },
-            ],
+            'handler' => function () {
+                return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
+            },
         ]);
 
         $this->setAuth();

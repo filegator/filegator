@@ -18,16 +18,13 @@ Then, open ```configuration.php``` and update Session handler to:
         'Filegator\Services\Session\SessionStorageInterface' => [
             'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' => [
-                'session_handler' => 'database',
-                'available' => [
-                    'database' => function () {
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                'handler' => function () {
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
                             'mysql://root:password@localhost:3360/filegator'
-                        );
+                            );
 
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
-                    },
-                ],
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
             ],
         ],
 
@@ -43,18 +40,15 @@ For example you can pass ```cookie_lifetime``` parameter to extend default sessi
         'Filegator\Services\Session\SessionStorageInterface' => [
             'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' => [
-                'session_handler' => 'database',
-                'available' => [
-                    'database' => function () {
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                'handler' => function () {
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
                             'mysql://root:password@localhost:3360/filegator'
-                        );
+                            );
 
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
                             'cookie_lifetime' => 365 * 24 * 60 * 60, // one year
-                        ], $handler);
-                    },
-                ],
+                    ], $handler);
+                },
             ],
         ],
 

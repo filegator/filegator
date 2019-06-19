@@ -25,12 +25,9 @@ class SessionStorageTest extends TestCase
     {
         $this->session_service = new SessionStorage(new Request());
         $this->session_service->init([
-            'session_handler' => 'mockfilesession',
-            'available' => [
-                'mockfilesession' => function () {
-                    return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
-                },
-            ],
+            'handler' => function () {
+                return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
+            },
         ]);
 
         parent::setUp();

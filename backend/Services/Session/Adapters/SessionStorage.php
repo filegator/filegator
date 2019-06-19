@@ -30,7 +30,7 @@ class SessionStorage implements Service, SessionStorageInterface
     {
         // we don't have a previous session attached
         if (! $this->getSession()) {
-            $handler = $config['available'][$config['session_handler']];
+            $handler = $config['handler'];
             $session = new Session($handler());
             $session->setName('filegator');
 

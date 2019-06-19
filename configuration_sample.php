@@ -32,16 +32,13 @@ return [
         'Filegator\Services\Session\SessionStorageInterface' => [
             'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' => [
-                'session_handler' => 'filesession',
-                'available' => [
-                    'filesession' => function () {
-                        $save_path = null; // use default system path
-                        //$save_path = __DIR__.'/private/sessions';
-                        $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
+                'handler' => function () {
+                    $save_path = null; // use default system path
+                    //$save_path = __DIR__.'/private/sessions';
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
 
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
-                    },
-                ],
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
             ],
         ],
         'Filegator\Services\Cors\Cors' => [

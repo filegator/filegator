@@ -28,12 +28,9 @@ return [
         'Filegator\Services\Session\SessionStorageInterface' => [
             'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' => [
-                'session_handler' => 'mockfilesession',
-                'available' => [
-                    'mockfilesession' => function () {
-                        return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
-                    },
-                ],
+                'handler' => function () {
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
+                },
             ],
         ],
         'Filegator\Services\Tmpfs\TmpfsInterface' => [
