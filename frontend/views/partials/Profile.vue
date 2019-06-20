@@ -6,7 +6,7 @@
     <section class="modal-card-body">
       <form @submit="save">
         <b-field :label="lang('Old password')" :type="formErrors.oldpassword ? 'is-danger' : ''" :message="formErrors.oldpassword">
-          <b-input v-model="oldpassword" @keydown.native="formErrors.oldpassword = ''" required></b-input>
+          <b-input v-model="oldpassword" @keydown.native="formErrors.oldpassword = ''" password-reveal required></b-input>
         </b-field>
 
         <b-field :label="lang('New password')" :type="formErrors.newpassword ? 'is-danger' : ''" :message="formErrors.newpassword">
