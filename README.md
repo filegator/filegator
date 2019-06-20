@@ -104,5 +104,11 @@ Set the website document root to ```/dist``` directory. This is also known as 'p
 Please ⭐️ this repository if this project helped you!
 
 ## Security
+
 If you discover any security related issues, please email alcalbg@gmail.com instead of using the issue tracker.
 
+## License
+
+Copyright (c) 2019 [Milos Stojanovic](https://github.com/alcalbg).
+
+This project is MIT licensed.
