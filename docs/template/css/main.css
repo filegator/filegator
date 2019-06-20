@@ -1,5 +1,5 @@
 body {
-    font-size: 19px;
+    font-size: 20px;
 }
 
 main {
@@ -11,10 +11,14 @@ section {
 }
 
 h1, h2, h3, h4 {
-    color: #df691a;
+    color: #34b891;
 }
 h3 {
     font-size: 23px;
+}
+
+a, a:hover {
+    color: #34b891;
 }
 
 li {
@@ -33,10 +37,10 @@ header.navbar {
     height: auto;
     line-height: 50px;
     margin-left: 20px;
-    color: #df691a;
+    color: #34b891;
 }
 .navbar a.navbar-brand:hover {
-    color: #df691a;
+    color: #34b891;
 }
 .navbar .navbar-brand small {
     font-size: 18px;
@@ -47,7 +51,6 @@ header.navbar {
 
 @media (min-width: 768px) {
     #sidebar {
-        /*position:fixed;*/
         position:absolute;
     }
 }
