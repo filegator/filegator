@@ -116,12 +116,12 @@
                     <h2 id="user-roles">User roles</h2>
 <p>There are 3 different user roles:</p>
 <ul>
-<li>Admin (for user management)</li>
+<li>Admin (for user and file management)</li>
 <li>User (regular, logged in user)</li>
 <li>Guest (anonymous, not logged in)</li>
 </ul>
 <h2 id="user-permissions">User permissions</h2>
-<p>There are 6 different user permissions you can assign to each user:</p>
+<p>There are 6 different user permissions admin can assign to each user:</p>
 <ul>
 <li>Read (user can browse and list files and folders)</li>
 <li>Write (user can copy, move, rename, and delete files)</li>
@@ -134,6 +134,20 @@
 <h2 id="guest-account">Guest account</h2>
 <p>Guest account is predefined account and it is disabled by default since no permissions is assigned.</p>
 <p>Admin can enable Guest account which will allow everyone to interact with the repository based on the Guest account permissions.</p>
+<h2 id="resetting-admins-password">Resetting Admin's password</h2>
+<p>If you forgot your admin password you can follow these steps to reset it:</p>
+<ul>
+<li>Backup your current users file <code>/private/users.json</code> to a safe place</li>
+<li>Copy blank template <code>/private/users.json.blank</code> over <code>/private/users.json</code> or simply refresh your browser</li>
+<li>Login as admin with default credentials <code>admin/admin123</code></li>
+<li>Put your original users file back to <code>/private/users.json</code> replacing the template</li>
+<li>Since you are now logged in as admin, simply go to users page and change your password</li>
+<li>Log out and try to login with the new password</li>
+</ul>
+<p>Note: If you're using database Auth adapter then simply run this query to set default password back to <code>admin123</code>:</p>
+<pre><code>UPDATE `users`
+SET `password` = '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq'
+WHERE `username` = 'admin';</code></pre>
                 </section>
 
             </div>
