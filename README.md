@@ -99,6 +99,9 @@ vendor/bin/phpstan analyse ./backend
 
 Set the website document root to ```/dist``` directory. This is also known as 'public' folder.
 
+## Show your support
+
+Please ⭐️ this repository if this project helped you!
 
 ## Security
 If you discover any security related issues, please email alcalbg@gmail.com instead of using the issue tracker.
