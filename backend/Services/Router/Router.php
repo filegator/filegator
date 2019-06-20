@@ -16,15 +16,6 @@ use Filegator\Kernel\Request;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Service;
 
-/**
- * Uses unique query parameter to pass the route info
- * Does not require rewrite rules, .htaccess or similar.
- *
- * Example routes:
- *
- * http://example.com/?r=/some/route&param1=val1&param2=val2
- * http://example.com/?r=/user/{user_id}&param1=val1
- */
 class Router implements Service
 {
     protected $request;

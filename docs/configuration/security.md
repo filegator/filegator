@@ -2,7 +2,7 @@
 
 Simple security service is included in the script by default. This service provides:
 
-- Basic [CSRF](https://en.wikipedia.org/wiki/Cross-site_request_forgery) protection
+- Basic session-based [CSRF](https://en.wikipedia.org/wiki/Cross-site_request_forgery) protection
 - IP whitelisting
 - IP blacklisting
 

@@ -54,3 +54,11 @@ At the end, open ```configuration.php``` and update AuthInterface handler to ref
         ],
 ```
 
+
+## API authentication
+
+Front-end will use session based authentication to authenticate and consume the back-end.
+
+Note: The application will not correctly if cookies are disabled.
+
+

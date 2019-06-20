@@ -1,9 +1,12 @@
 
 ## Basic
-You can edit ```configuration.php``` to change the basic things like logo image, title, language and upload restrictions.
+All services are set with reasonable defaults. For regular users there is no need to change anything. The script should work out of the box.
 
 
-NOTE: if you've made a mistake in configuration file, forgot to close a quote, the script will throw an error. Please use provided default ```configuration_sample.php``` to verify this.
+You can edit ```/configuration.php``` file to change the basic things like logo image, title, language and upload restrictions.
+
+
+Note: if you've made a mistake in configuration file (forgot to close a quote?) the script will fail to load or throw an error. Please use provided default ```configuration_sample.php``` to put everything back to normal.
 
 ```
     'frontend_config' => [

@@ -59,6 +59,9 @@ menu:
                 security:
                     text: Security
                     relativeUrl: configuration/security.html
+                router:
+                    text: Router
+                    relativeUrl: configuration/router.html
 
         multilang:
             name: Languages
