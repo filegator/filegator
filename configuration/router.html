@@ -118,88 +118,41 @@
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="translations">Translations</h2>
-<p>Default language file is located under <code>/frontend/translations/english.js</code>. You can add more languages in the same folder and adjust <code>language</code> variable in your <code>configuration.php</code> file to use it.</p>
-<p>You should only translate value on the right, for example:</p>
-<pre><code>'Close': 'Schliessen',</code></pre>
-<p>Default language file is:</p>
-<pre><code>const data = {
-  'Selected': 'Selected: {0} of {1}',
-  'Uploading files': 'Uploading {0}% of {1}',
-  'File size error': '{0} is too large, please upload files less than {1}',
-  'Upload failed': '{0} failed to upload',
-  'Per page': '{0} Per Page',
-  'Folder': 'Folder',
-  'Login failed, please try again': 'Login failed, please try again',
-  'Already logged in': 'Already logged in.',
-  'Please enter username and password': 'Please enter username and password.',
-  'Not Found': 'Not Found',
-  'Not Allowed': 'Not Allowed',
-  'Please log in': 'Please log in',
-  'Unknown error': 'Unknown error',
-  'Add files': 'Add files',
-  'New': 'New',
-  'New name': 'New name',
-  'Username': 'Username',
-  'Password': 'Password',
-  'Login': 'Log in',
-  'Logout': 'Log out',
-  'Profile': 'Profile',
-  'No pagination': 'No pagination',
-  'Time': 'Time',
-  'Name': 'Name',
-  'Size': 'Size',
-  'Home': 'Home',
-  'Copy': 'Copy',
-  'Move': 'Move',
-  'Rename': 'Rename',
-  'Required': 'Please fill out this field',
-  'Zip': 'Zip',
-  'Batch Download': 'Batch Download',
-  'Unzip': 'Unzip',
-  'Delete': 'Delete',
-  'Download': 'Download',
-  'Copy link': 'Copy link',
-  'Done': 'Done',
-  'File': 'File',
-  'Drop files to upload': 'Drop files to upload',
-  'Close': 'Close',
-  'Select Folder': 'Select Folder',
-  'Users': 'Users',
-  'Files': 'Files',
-  'Role': 'Role',
-  'Cancel': 'Cancel',
-  'Paused': 'Paused',
-  'Confirm': 'Confirm',
-  'Create': 'Create',
-  'User': 'User',
-  'Admin': 'Admin',
-  'Save': 'Save',
-  'Read': 'Read',
-  'Name': 'Name',
-  'Write': 'Write',
-  'Upload': 'Upload',
-  'Permissions': 'Permissions',
-  'Homedir': 'Home Folder',
-  'Leave blank for no change': 'Leave blank for no change',
-  'Are you sure you want to do this?': 'Are you sure you want to do this?',
-  'Are you sure you want to allow access to everyone?': 'Are you sure you want to allow access to everyone?',
-  'Are you sure you want to stop all uploads?': 'Are you sure you want to stop all uploads?',
-  'Something went wrong': 'Something went wrong',
-  'Invalid directory': 'Invalid directory',
-  'This field is required': 'This field is required',
-  'Username already taken': 'Username already taken',
-  'User not found': 'User not found',
-  'Old password': 'Old password',
-  'New password': 'New password',
-  'Wrong password': 'Wrong password',
-  'Updated': 'Updated',
-  'Deleted': 'Deleted',
-  'Your file is ready': 'Your file is ready',
-}
+                    <h2 id="router-service">Router service</h2>
+<p>Router service is using well-known <a href="https://github.com/nikic/FastRoute">FastRoute</a> library. There is no need to change this service unless you're extending the script.</p>
+<p>The router uses unique query parameter <code>?r=</code> to pass the route info. Because of this feature, this (single-page) application does not require rewrite rules, .htaccess or similar tweaks.</p>
+<p>Example routes:</p>
+<ul>
+<li><code>http://example.com/?r=/some/route&amp;param1=val1&amp;param2=val2</code></li>
+<li><code>http://example.com/?r=/user/{user_id}&amp;param1=val1</code></li>
+</ul>
+<h2 id="routes-file">Routes file</h2>
+<p>Routes file is located here <code>/backend/Controllers/routes.php</code>. Each route in the routes array looks like this:</p>
+<pre><code>    [
+        'route' =&gt; [
+            'GET', '/download/{path_encoded}', '\Filegator\Controllers\DownloadController@download',
+        ],
+        'roles' =&gt; [
+            'guest', 'user', 'admin',
+        ],
+        'permissions' =&gt; [
+            'download',
+        ],
+    ],</code></pre>
+<p>As you can in the example, you can assign required user roles and permissions for each route.</p>
+<h2 id="controllers">Controllers</h2>
+<p>Since FileGator is using an awesome dependency injection <a href="https://github.com/PHP-DI/PHP-DI">container</a> you can type-hint dependencies directly in your controllers. </p>
+<p>You can also mix route parameters and dependencies in any order like in this example:</p>
+<pre><code>
+    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage)
+    {
+      // ...
+    }
 
-export default data
-</code></pre>
+    public function download($path_encoded, Request $request, Response $response, StreamedResponse $streamedResponse)
+    {
+      // ...
+    }</code></pre>
                 </section>
 
             </div>
