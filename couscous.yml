@@ -66,6 +66,6 @@ menu:
         multilang:
             name: Languages
             items:
-                english:
+                default:
                     text: Translations
                     relativeUrl: translations/default.html

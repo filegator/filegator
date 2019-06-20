@@ -1,3 +1,6 @@
+---
+currentMenu: logging
+---
 
 ## Configuring Logging service
 
@@ -21,4 +24,4 @@ Default handler will use simple ```/private/logs/app.log``` file to store applic
         ],
 ```
 
-There are many different handlers you can add ot top of the stack (monolog_handlers array). Some of them are listed [here](https://github.com/Seldaek/monolog#documentation).
+There are many different handlers you can add on top of the stack (monolog_handlers array). Some of them are listed [here](https://github.com/Seldaek/monolog#documentation).

@@ -1,3 +1,7 @@
+---
+currentMenu: auth
+---
+
 ## Default Auth service
 By default, users are stored in json file. For some use-cases, this is enough. It also makes this app lightweight since no database is required.
 

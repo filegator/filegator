@@ -1,3 +1,6 @@
+---
+currentMenu: sessions
+---
 
 ## Default Session handler
 

@@ -1,3 +1,7 @@
+---
+currentMenu: storage
+---
+
 ## Adapters
 Different storage adapters are provided through the awesome [Flysystem](https://github.com/thephpleague/flysystem) library.
 

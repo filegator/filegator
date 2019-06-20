@@ -1,3 +1,7 @@
+---
+currentMenu: default
+---
+
 ## Translations
 
 Default language file is located under ```/frontend/translations/english.js```. You can add more languages in the same folder and adjust ```language``` variable in your ```configuration.php``` file to use it.

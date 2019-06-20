@@ -1,3 +1,7 @@
+---
+currentMenu: security
+---
+
 ## Configuring Security service
 
 Simple security service is included in the script by default. This service provides:

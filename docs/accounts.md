@@ -1,3 +1,7 @@
+---
+currentMenu: account
+---
+
 ## User roles
 
 There are 3 different user roles:

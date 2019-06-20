@@ -1,3 +1,6 @@
+---
+currentMenu: router
+---
 
 ## Router service
 

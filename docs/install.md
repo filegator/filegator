@@ -1,3 +1,6 @@
+---
+currentMenu: install
+---
 
 ## Requirements
 - PHP 7.1.3+

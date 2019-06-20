@@ -1,3 +1,6 @@
+---
+currentMenu: development
+---
 
 ## Project setup for development (Linux)
 

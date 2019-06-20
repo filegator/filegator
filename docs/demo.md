@@ -1,3 +1,7 @@
+---
+currentMenu: demo
+---
+
 ## Demo
 [https://demo.filegator.io](https://demo.filegator.io)
 

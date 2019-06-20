@@ -1,3 +1,6 @@
+---
+currentMenu: basic
+---
 
 ## Basic
 All services are set with reasonable defaults. For regular users there is no need to change anything. The script should work out of the box.
