@@ -6,7 +6,7 @@ currentMenu: logging
 
 Logging is provided trough the powerful [Monolog](https://github.com/Seldaek/monolog) library. Please check their docs for more info.
 
-Default handler will use simple ```/private/logs/app.log``` file to store application logs and errors.
+Default handler will use simple `private/logs/app.log` file to store application logs and errors.
 
 ```
         'Filegator\Services\Logger\LoggerInterface' => [

@@ -4,7 +4,7 @@ currentMenu: development
 
 ## Project setup for development (Linux)
 
-You must have ```git```, ```php```, ```npm```, and ```composer``` installed.
+You must have `git`, `php`, `npm`, and `composer` installed.
 
 ```
 git clone git@github.com:filegator/filegator.git
@@ -24,7 +24,7 @@ The following command will launch backend and frontend on ports 8081 and 8080:
 ```
 npm run serve
 ```
-Once everything is ready visit: ```http://localhost:8080```
+Once everything is ready visit: `http://localhost:8080`
 
 ## Run tests & static analysis
 
@@ -35,5 +35,5 @@ vendor/bin/phpstan analyse ./backend
 
 ## Deployment
 
-Set the website document root to ```/dist``` directory. This is also known as 'public' folder.
+Set the website document root to `/dist` directory. This is also known as 'public' folder.
 

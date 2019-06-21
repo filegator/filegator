@@ -6,7 +6,7 @@ currentMenu: sessions
 
 Session handling is provided through the Symfony's [HttpFoundation](https://symfony.com/doc/current/components/http_foundation.html) component. Please check their docs for more info.
 
-Default session handler will user PHP's built in file storage. You can also specify your own ```$save_path``` to store session files.
+Default session handler will user PHP's built in file storage. You can also specify your own `$save_path` to store session files.
 
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [
@@ -24,7 +24,7 @@ Default session handler will user PHP's built in file storage. You can also spec
 ```
 ## Configuring Session service to use database
 
-First, create a table ```sessions``` with this sql:
+First, create a table `sessions` with this sql:
 ```
 CREATE TABLE `sessions` (
       `sess_id` varbinary(128) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `sessions` (
 ) CHARSET=utf8 COLLATE=utf8_bin;
 ```
 
-Then, open ```configuration.php``` and update Session handler to:
+Then, open `configuration.php` and update Session handler to:
 
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [
@@ -58,7 +58,7 @@ Don't forget to enter correct database details.
 ## Tweaking session options
 
 The underying [session component](https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php) accepts array of options.
-For example you can pass ```cookie_lifetime``` parameter to extend default session lifetime:
+For example you can pass `cookie_lifetime` parameter to extend default session lifetime:
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [
             'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',

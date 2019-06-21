@@ -34,14 +34,14 @@ Admin can enable Guest account which will allow everyone to interact with the re
 
 If you forgot your admin password you can follow these steps to reset it:
 
-- Backup your current users file ```/private/users.json``` to a safe place
-- Copy blank template ```/private/users.json.blank``` over ```/private/users.json``` or simply refresh your browser
-- Login as admin with default credentials ```admin/admin123```
-- Put your original users file back to ```/private/users.json``` replacing the template
+- Backup your current users file `private/users.json` to a safe place
+- Copy blank template `private/users.json.blank` over `private/users.json` or simply refresh your browser
+- Login as admin with default credentials `admin/admin123`
+- Put your original users file back to `private/users.json` replacing the template
 - Since you are now logged in as admin, simply go to users page and change your password
 - Log out and try to login with the new password
 
-Note: If you're using database Auth adapter then simply run this query to set default password back to ```admin123```:
+Note: If you're using database Auth adapter then simply run this query to set default password back to `admin123`
 
 
 ```

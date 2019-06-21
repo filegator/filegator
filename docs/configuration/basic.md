@@ -1,15 +1,15 @@
 ---
-currentMenu: basic
+currentMenu: auth
 ---
 
 ## Basic
 All services are set with reasonable defaults. For regular users there is no need to change anything. The script should work out of the box.
 
 
-You can edit ```/configuration.php``` file to change the basic things like logo image, title, language and upload restrictions.
+You can edit `configuration.php` file to change the basic things like logo image, title, language and upload restrictions.
 
 
-Note: if you've made a mistake in configuration file (forgot to close a quote?) the script will fail to load or throw an error. Please use provided default ```configuration_sample.php``` to put everything back to normal.
+Note: if you've made a mistake in configuration file (forgot to close a quote?) the script will fail to load or throw an error. Please use provided default `configuration_sample.php` to put everything back to normal.
 
 ```
     'frontend_config' => [
@@ -37,7 +37,7 @@ You can add additional html to the head and body like this:
 ```
 
 ## Frontend tweaks
-To change default color scheme and other options, edit ```/frontend/App.vue```. When you're done, recompile with ```npm run build```.
+To change default color scheme and other options, edit `frontend/App.vue` When you're done, recompile with `npm run build`
 
 ```
 // Primary color

@@ -6,17 +6,17 @@ currentMenu: router
 
 Router service is using well-known [FastRoute](https://github.com/nikic/FastRoute) library. There is no need to change this service unless you're extending the script.
 
-The router uses unique query parameter ```?r=``` to pass the route info. Because of this feature, this (single-page) application does not require rewrite rules, .htaccess or similar tweaks.
+The router uses unique query parameter `?r=` to pass the route info. Because of this feature, this (single-page) application does not require rewrite rules, .htaccess or similar tweaks.
 
 Example routes:
 
-- ```http://example.com/?r=/some/route&param1=val1&param2=val2```
-- ```http://example.com/?r=/user/{user_id}&param1=val1```
+- `http://example.com/?r=/some/route&param1=val1&param2=val2`
+- `http://example.com/?r=/user/{user_id}&param1=val1`
 
 
 ## Routes file
 
-Routes file is located here ```/backend/Controllers/routes.php```. Each route in the routes array looks like this:
+Routes file is located here `backend/Controllers/routes.php` Each route in the routes array looks like this:
 
 
 ```

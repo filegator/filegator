@@ -10,7 +10,7 @@ You can use local filesystem (default), FTP, S3, Dropbox and many others.
 Please check the Flysystem [docs](https://github.com/thephpleague/flysystem) for the exact setup required for each adapter.
 
 ## Default Local Disk Adapter
-With default adapter you just need to configure where your ```repository``` folder is. This folder will serve as a root for everything else.
+With default adapter you just need to configure where your `repository` folder is. This folder will serve as a root for everything else.
 
 ```
         'Filegator\Services\Storage\Filesystem' => [
@@ -52,7 +52,7 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/ftp
 ```
 
 ## SFTP Adapter
-You must require additional library ```composer require league/flysystem-sftp```.
+You must require additional library `composer require league/flysystem-sftp`
 
 See official [documentation](https://flysystem.thephpleague.com/docs/adapter/sftp/).
 
@@ -76,7 +76,7 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/sft
 
 ```
 ## Dropbox Adapter
-You must require additional library ```composer require spatie/flysystem-dropbox```.
+You must require additional library `composer require spatie/flysystem-dropbox`
 
 See official [documentation](https://flysystem.thephpleague.com/docs/adapter/dropbox/)
 

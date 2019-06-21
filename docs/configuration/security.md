@@ -24,4 +24,4 @@ Simple security service is included in the script by default. This service provi
         ],
 ```
 
-If you set ```ip_whitelist``` then only users coming from listed IP addresses will be able to use the script.
+If you set `ip_whitelist` then only users coming from listed IP addresses will be able to use the script.
