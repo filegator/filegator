@@ -7,4 +7,5 @@ currentMenu: demo
 
 This is read-only demo with guest account enabled.
 
-You can also log in with john/john to see John's private files.
+- you can log in as `john/john` to see John's private files
+- or `jane/jane` as readonly + download user.
