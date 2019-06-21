@@ -50,6 +50,7 @@ At the end, the more people who can see and test a set of code, the more likely 
 
 Please star this repository on [GitHub](https://github.com/filegator/filegator) if this project helped you!
 
+
 ## License
 
 Copyright (c) 2019 [Milos Stojanovic](https://github.com/alcalbg).
