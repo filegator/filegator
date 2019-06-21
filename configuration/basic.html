@@ -72,12 +72,12 @@
                             </p>
 
                             <ul class="nav nav-pills nav-stacked">
-                                                                    <li class="active">
+                                                                    <li class="">
                                         <a href="https://docs.filegator.io/configuration/basic.html">
                                             Basic
                                         </a>
                                     </li>
-                                                                    <li class="">
+                                                                    <li class="active">
                                         <a href="https://docs.filegator.io/configuration/auth.html">
                                             Auth
                                         </a>
@@ -126,7 +126,7 @@
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
                     <h2 id="basic">Basic</h2>
 <p>All services are set with reasonable defaults. For regular users there is no need to change anything. The script should work out of the box.</p>
-<p>You can edit <code>/configuration.php</code> file to change the basic things like logo image, title, language and upload restrictions.</p>
+<p>You can edit <code>configuration.php</code> file to change the basic things like logo image, title, language and upload restrictions.</p>
 <p>Note: if you've made a mistake in configuration file (forgot to close a quote?) the script will fail to load or throw an error. Please use provided default <code>configuration_sample.php</code> to put everything back to normal.</p>
 <pre><code>    'frontend_config' =&gt; [
         'app_name' =&gt; 'FileGator',
@@ -148,7 +148,7 @@
             ],
         ],</code></pre>
 <h2 id="frontend-tweaks">Frontend tweaks</h2>
-<p>To change default color scheme and other options, edit <code>/frontend/App.vue</code>. When you're done, recompile with <code>npm run build</code>.</p>
+<p>To change default color scheme and other options, edit <code>frontend/App.vue</code> When you're done, recompile with <code>npm run build</code></p>
 <pre><code>// Primary color
 $primary: #34B891;
 $primary-invert: findColorInvert($primary);
