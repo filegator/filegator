@@ -249,6 +249,27 @@
             ],
         ],
 </code></pre>
+<h2 id="microsoft-azure-blob-storage">Microsoft Azure Blob Storage</h2>
+<p>You must require additional library <code>composer require league/flysystem-azure-blob-storage</code></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/azure/">documentation</a></p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                    $accountName = 'your_storage_account_name';
+                    $accountKey = '123456';
+                    $containerName = 'my_container';
+
+                    $client = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService(
+                        "DefaultEndpointsProtocol=https;AccountName=${accountName};AccountKey=${accountKey};"
+                    );
+
+                    return new \League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter($client, $containerName);
+                },
+            ],
+        ],</code></pre>
 <h2 id="replicate-adapter">Replicate Adapter</h2>
 <p>You must require additional library <code>composer require league/flysystem-replicate-adapter</code></p>
 <p>The ReplicateAdapter facilitates smooth transitions between adapters, allowing an application to stay functional and migrate its files from one adapter to another. The adapter takes two other adapters, a source and a replica. Every change is delegated to both adapters, while all the read operations are passed onto the source only.</p>
