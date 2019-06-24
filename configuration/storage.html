@@ -201,6 +201,29 @@
             ],
         ],
 </code></pre>
+<h2 id="amazon-s3-adapter-v3">Amazon S3 Adapter (v3)</h2>
+<p>You must require additional library <code>composer require league/flysystem-aws-s3-v3</code></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/aws-s3/">documentation</a></p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                    $client = new \Aws\S3\S3Client([
+                        'credentials' =&gt; [
+                            'key' =&gt; '123456',
+                            'secret' =&gt; 'secret123456',
+                        ],
+                        'region' =&gt; 'us-east-1',
+                        'version' =&gt; 'latest',
+                    ]);
+
+                    return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
+                },
+            ],
+        ],
+</code></pre>
                 </section>
 
             </div>
