@@ -5,7 +5,7 @@ currentMenu: storage
 ## Adapters
 Different storage adapters are provided through the awesome [Flysystem](https://github.com/thephpleague/flysystem) library.
 
-You can use local filesystem (default), FTP, Amazon S3, DigitalOcean Spaces, Dropbox and many others.
+You can use local filesystem (default), FTP, SFTP, Amazon S3, DigitalOcean Spaces, Microsoft Azure Blob, Dropbox and many others.
 
 Please check the Flysystem [docs](https://github.com/thephpleague/flysystem) for the exact setup required for each adapter.
 
