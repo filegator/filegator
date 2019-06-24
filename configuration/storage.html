@@ -249,6 +249,29 @@
             ],
         ],
 </code></pre>
+<h2 id="replicate-adapter">Replicate Adapter</h2>
+<p>You must require additional library <code>composer require league/flysystem-replicate-adapter</code></p>
+<p>The ReplicateAdapter facilitates smooth transitions between adapters, allowing an application to stay functional and migrate its files from one adapter to another. The adapter takes two other adapters, a source and a replica. Every change is delegated to both adapters, while all the read operations are passed onto the source only.</p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/replicate/">documentation</a></p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [
+                    'case_sensitive' =&gt; false,
+                ],
+                'adapter' =&gt; function () {
+                    $authorizationToken = '1234';
+                    $client = new \Spatie\Dropbox\Client($authorizationToken);
+
+                    $source = new \Spatie\FlysystemDropbox\DropboxAdapter($client);
+                    $replica = new \League\Flysystem\Adapter\Local(__DIR__.'/repository');
+
+                    return new League\Flysystem\Replicate\ReplicateAdapter($source, $replica);
+                },
+            ],
+        ],
+</code></pre>
                 </section>
 
             </div>
