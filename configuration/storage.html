@@ -126,7 +126,7 @@
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
                     <h2 id="adapters">Adapters</h2>
 <p>Different storage adapters are provided through the awesome <a href="https://github.com/thephpleague/flysystem">Flysystem</a> library.</p>
-<p>You can use local filesystem (default), FTP, S3, Dropbox and many others.</p>
+<p>You can use local filesystem (default), FTP, Amazon S3, DigitalOcean Spaces, Dropbox and many others.</p>
 <p>Please check the Flysystem <a href="https://github.com/thephpleague/flysystem">docs</a> for the exact setup required for each adapter.</p>
 <h2 id="default-local-disk-adapter">Default Local Disk Adapter</h2>
 <p>With default adapter you just need to configure where your <code>repository</code> folder is. This folder will serve as a root for everything else.</p>
@@ -217,6 +217,31 @@
                         ],
                         'region' =&gt; 'us-east-1',
                         'version' =&gt; 'latest',
+                    ]);
+
+                    return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
+                },
+            ],
+        ],
+</code></pre>
+<h2 id="digitalocean-spaces">DigitalOcean Spaces</h2>
+<p>You must require additional library <code>composer require league/flysystem-aws-s3-v3</code></p>
+<p>The DigitalOcean Spaces API are compatible with those of S3.</p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/digitalocean-spaces/">documentation</a></p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                    $client = new \Aws\S3\S3Client([
+                        'credentials' =&gt; [
+                            'key' =&gt; '123456',
+                            'secret' =&gt; 'secret123456',
+                        ],
+                        'region' =&gt; 'us-east-1',
+                        'version' =&gt; 'latest',
+                        'endpoint' =&gt; 'https://nyc3.digitaloceanspaces.com',
                     ]);
 
                     return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
