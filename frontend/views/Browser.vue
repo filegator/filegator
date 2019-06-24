@@ -548,10 +548,10 @@ export default {
   font-weight: bold;
 }
 .actions {
-  margin-bottom: 20px;
+  min-height: 55px;
 }
 .actions a {
-  margin-right: 15px;
+  margin: 0 15px 15px 0;
 }
 .file-row a {
   color: #373737;
