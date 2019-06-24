@@ -157,6 +157,31 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/dig
         ],
 
 ```
+## Microsoft Azure Blob Storage
+You must require additional library `composer require league/flysystem-azure-blob-storage`
+
+See official [documentation](https://flysystem.thephpleague.com/docs/adapter/azure/)
+
+```
+        'Filegator\Services\Storage\Filesystem' => [
+            'handler' => '\Filegator\Services\Storage\Filesystem',
+            'config' => [
+                'separator' => '/',
+                'config' => [],
+                'adapter' => function () {
+                    $accountName = 'your_storage_account_name';
+                    $accountKey = '123456';
+                    $containerName = 'my_container';
+
+                    $client = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService(
+                        "DefaultEndpointsProtocol=https;AccountName=${accountName};AccountKey=${accountKey};"
+                    );
+
+                    return new \League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter($client, $containerName);
+                },
+            ],
+        ],
+```
 
 ## Replicate Adapter
 You must require additional library `composer require league/flysystem-replicate-adapter`
