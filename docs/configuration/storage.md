@@ -5,7 +5,7 @@ currentMenu: storage
 ## Adapters
 Different storage adapters are provided through the awesome [Flysystem](https://github.com/thephpleague/flysystem) library.
 
-You can use local filesystem (default), FTP, S3, Dropbox and many others.
+You can use local filesystem (default), FTP, Amazon S3, DigitalOcean Spaces, Dropbox and many others.
 
 Please check the Flysystem [docs](https://github.com/thephpleague/flysystem) for the exact setup required for each adapter.
 
@@ -118,6 +118,37 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/aws
                         ],
                         'region' => 'us-east-1',
                         'version' => 'latest',
+                    ]);
+
+                    return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
+                },
+            ],
+        ],
+
+```
+
+## DigitalOcean Spaces
+You must require additional library `composer require league/flysystem-aws-s3-v3`
+
+The DigitalOcean Spaces API are compatible with those of S3.
+
+See official [documentation](https://flysystem.thephpleague.com/docs/adapter/digitalocean-spaces/)
+
+```
+        'Filegator\Services\Storage\Filesystem' => [
+            'handler' => '\Filegator\Services\Storage\Filesystem',
+            'config' => [
+                'separator' => '/',
+                'config' => [],
+                'adapter' => function () {
+                    $client = new \Aws\S3\S3Client([
+                        'credentials' => [
+                            'key' => '123456',
+                            'secret' => 'secret123456',
+                        ],
+                        'region' => 'us-east-1',
+                        'version' => 'latest',
+                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
                     ]);
 
                     return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
