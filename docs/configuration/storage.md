@@ -98,3 +98,31 @@ See official [documentation](https://flysystem.thephpleague.com/docs/adapter/dro
         ],
 
 ```
+
+## Amazon S3 Adapter (v3)
+You must require additional library `composer require league/flysystem-aws-s3-v3`
+
+See official [documentation](https://flysystem.thephpleague.com/docs/adapter/aws-s3/)
+
+```
+        'Filegator\Services\Storage\Filesystem' => [
+            'handler' => '\Filegator\Services\Storage\Filesystem',
+            'config' => [
+                'separator' => '/',
+                'config' => [],
+                'adapter' => function () {
+                    $client = new \Aws\S3\S3Client([
+                        'credentials' => [
+                            'key' => '123456',
+                            'secret' => 'secret123456',
+                        ],
+                        'region' => 'us-east-1',
+                        'version' => 'latest',
+                    ]);
+
+                    return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
+                },
+            ],
+        ],
+
+```
