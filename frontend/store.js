@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from 'axios'
 import shared from './mixins/shared'
 import _ from 'lodash'
 
@@ -37,17 +36,17 @@ export default new Vuex.Store({
       this.commit('resetTree')
       this.commit('destroyUser')
     },
-    resetCwd(state, data) {
+    resetCwd(state) {
       state.cwd = {
-      location: '/',
-      content: [],
+        location: '/',
+        content: [],
       }
     },
-    resetTree(state, data) {
+    resetTree(state) {
       state.tree = {
-      path: '/',
-      name: shared.methods.lang('Home'),
-      children: [],
+        path: '/',
+        name: shared.methods.lang('Home'),
+        children: [],
       }
     },
     setConfig(state, data) {
@@ -86,12 +85,12 @@ export default new Vuex.Store({
               return
             }
             if (typeof object[property] === 'object') {
-              traverse(object[property]);
+              traverse(object[property])
             }
           }
         }
       }
-      traverse(state.tree);
+      traverse(state.tree)
     },
   },
   actions: {

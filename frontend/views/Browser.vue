@@ -21,7 +21,7 @@
         <div v-if="can('read')" class="is-flex is-justify-between">
           <div class="breadcrumb" aria-label="breadcrumbs">
             <ul>
-              <li v-for="(item, key) in breadcrumbs" v-if="item.name">
+              <li v-for="(item, index) in breadcrumbs" :key="index">
                 <a @click="goTo(item.path)">{{ item.name }}</a>
               </li>
             </ul>
@@ -39,7 +39,6 @@
               <b-upload @input="files = $event" multiple native>
                 <a v-if="! checked.length" class="is-inline-block">
                   <b-icon icon="upload" size="is-small"></b-icon> {{ lang('Add files') }}
-                </a>
                 </a>
               </b-upload>
             </b-field>
@@ -218,7 +217,7 @@ export default {
         })
       })
 
-      return breadcrumbs
+      return _.filter(breadcrumbs, o => o.name)
     },
     content() {
       return this.$store.state.cwd.content
@@ -246,7 +245,7 @@ export default {
       this.$router.push({ name: 'browser', query: { 'cd': path }})
     },
     getSelected() {
-      return _.reduce(this.checked, function(result, value, key) {
+      return _.reduce(this.checked, function(result, value) {
         result.push(value)
         return result
       }, [])

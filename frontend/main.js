@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -43,7 +45,7 @@ new Vue({
             this.$store.commit('setUser', user)
             this.$router.push('/')
           })
-          .catch(error => {
+          .catch(() => {
             this.$notification.open({
               message: this.lang('Something went wrong'),
               type: 'is-danger',

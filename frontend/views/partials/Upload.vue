@@ -30,7 +30,7 @@
           <hr>
         </div>
         <div v-if="progressVisible" class="progress-items">
-          <div v-for="file in resumable.files.slice().reverse()">
+          <div v-for="(file, index) in resumable.files.slice().reverse()" :key="index">
             <div>
               <div>{{ file.relativePath != '/' ? file.relativePath : '' }}/{{ file.fileName }}</div>
               <div class="is-flex is-justify-between">
@@ -55,6 +55,7 @@ import Resumable from 'resumablejs'
 import Vue from 'vue'
 import api from '../../api/api'
 import axios from 'axios'
+import _ from 'lodash'
 
 export default {
   name: 'Upload',
@@ -88,7 +89,7 @@ export default {
       simultaneousUploads: this.$store.state.config.upload_simultaneous,
       chunkSize: this.$store.state.config.upload_chunk_size,
       maxFileSize: this.$store.state.config.upload_max_size,
-      maxFileSizeErrorCallback: (file, errorCount) => {
+      maxFileSizeErrorCallback: (file) => {
         this.$notification.open({
           message: this.lang('File size error', file.name, this.formatBytes(this.$store.state.config.upload_max_size)),
           type: 'is-danger',
@@ -106,7 +107,7 @@ export default {
       return;
     }
 
-    this.resumable.on('fileAdded', (file) => {
+    this.resumable.on('fileAdded', () => {
       if (! this.paused) {
         this.resumable.upload()
       }

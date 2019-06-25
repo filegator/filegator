@@ -1,6 +1,5 @@
 import moment from 'moment'
 import store from '../store.js'
-import router from '../router.js'
 import api from '../api/api'
 
 import english from '../translations/english'

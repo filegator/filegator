@@ -59,6 +59,7 @@ import UserEdit from './partials/UserEdit'
 import Menu from './partials/Menu'
 import Pagination from './partials/Pagination'
 import api from '../api/api'
+import _ from 'lodash'
 
 export default {
   name: 'Users',
@@ -90,7 +91,7 @@ export default {
           api.deleteUser({
             username: user.username
           })
-            .then(res => {
+            .then(() => {
               this.users = _.reject(this.users, u => u.username == user.username)
               this.$toast.open({
                 message: this.lang('Deleted'),

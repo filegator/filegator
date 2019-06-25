@@ -6,13 +6,14 @@
       &nbsp; <a @click="$emit('selected', node)">{{ node.name }}</a>
 
     <ul v-if="node.children && node.children.length">
-      <TreeNode v-for="child in node.children" :node="child" @selected="$emit('selected', $event)"></TreeNode>
+      <TreeNode v-for="(child, index) in node.children" :node="child" :key="index" @selected="$emit('selected', $event)"></TreeNode>
     </ul>
   </li>
 </template>
 
 <script>
 import api from '../../api/api'
+import _ from 'lodash'
 
 export default {
   name: "TreeNode",

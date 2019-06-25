@@ -23,6 +23,7 @@
 
 <script>
 import api from '../../api/api'
+import _ from 'lodash'
 
 export default {
   name: 'Profile',
@@ -39,7 +40,7 @@ export default {
         oldpassword: this.oldpassword,
         newpassword: this.newpassword,
       })
-        .then(res => {
+        .then(() => {
           this.$toast.open({
             message: this.lang('Updated'),
             type: 'is-success',

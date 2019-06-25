@@ -41,7 +41,6 @@ import api from '../../api/api'
 
 export default {
   name: 'Menu',
-  components: { Profile },
   data() {
     return {
       navbarActive: false,

@@ -68,10 +68,10 @@
 <script>
 import Tree from './Tree'
 import api from '../../api/api'
+import _ from 'lodash'
 
 export default {
   name: 'UserEdit',
-  components: { Tree },
   props: [ 'user', 'action' ],
   computed: {
   },
