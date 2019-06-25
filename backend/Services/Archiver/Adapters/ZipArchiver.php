@@ -124,7 +124,9 @@ class ZipArchiver implements Service, ArchiverInterface
 
         $file = $this->tmpfs->readStream($this->uniqid);
         $this->storage->store($destination, $name, $file['stream']);
-        fclose($file['stream']);
+        if (is_resource($file['stream'])) {
+            fclose($file['stream']);
+        }
 
         $this->tmpfs->remove($this->uniqid);
     }
