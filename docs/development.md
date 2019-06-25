@@ -31,6 +31,7 @@ Once everything is ready visit: `http://localhost:8080`
 ```
 vendor/bin/phpunit
 vendor/bin/phpstan analyse ./backend
+npm run lint
 ```
 
 ## Deployment
