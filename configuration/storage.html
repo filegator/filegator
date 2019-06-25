@@ -127,7 +127,8 @@
                     <h2 id="adapters">Adapters</h2>
 <p>Different storage adapters are provided through the awesome <a href="https://github.com/thephpleague/flysystem">Flysystem</a> library.</p>
 <p>You can use local filesystem (default), FTP, SFTP, Amazon S3, DigitalOcean Spaces, Microsoft Azure Blob, Dropbox and many others.</p>
-<p>Please check the Flysystem <a href="https://github.com/thephpleague/flysystem">docs</a> for the exact setup required for each adapter.</p>
+<p>Please check the Flysystem <a href="https://flysystem.thephpleague.com/docs/">docs</a> for the exact setup required for each adapter.</p>
+<p>Note: Some adapters do not support folder operations or their support is limited.</p>
 <h2 id="default-local-disk-adapter">Default Local Disk Adapter</h2>
 <p>With default adapter you just need to configure where your <code>repository</code> folder is. This folder will serve as a root for everything else.</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
@@ -144,7 +145,8 @@
         ],
 </code></pre>
 <h2 id="ftp-adapter">FTP Adapter</h2>
-<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/ftp/">documentation</a></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/ftp/">documentation</a>.</p>
+<p>Sample configuration:</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
@@ -165,6 +167,7 @@
 <h2 id="sftp-adapter">SFTP Adapter</h2>
 <p>You must require additional library <code>composer require league/flysystem-sftp</code></p>
 <p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/sftp/">documentation</a>.</p>
+<p>Sample configuration:</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
@@ -184,7 +187,8 @@
 </code></pre>
 <h2 id="dropbox-adapter">Dropbox Adapter</h2>
 <p>You must require additional library <code>composer require spatie/flysystem-dropbox</code></p>
-<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/dropbox/">documentation</a></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/dropbox/">documentation</a>.</p>
+<p>Sample configuration:</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
@@ -203,7 +207,8 @@
 </code></pre>
 <h2 id="amazon-s3-adapter-v3">Amazon S3 Adapter (v3)</h2>
 <p>You must require additional library <code>composer require league/flysystem-aws-s3-v3</code></p>
-<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/aws-s3/">documentation</a></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/aws-s3/">documentation</a>.</p>
+<p>Sample configuration:</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
@@ -227,7 +232,8 @@
 <h2 id="digitalocean-spaces">DigitalOcean Spaces</h2>
 <p>You must require additional library <code>composer require league/flysystem-aws-s3-v3</code></p>
 <p>The DigitalOcean Spaces API are compatible with those of S3.</p>
-<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/digitalocean-spaces/">documentation</a></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/digitalocean-spaces/">documentation</a>.</p>
+<p>Sample configuration:</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
@@ -251,7 +257,8 @@
 </code></pre>
 <h2 id="microsoft-azure-blob-storage">Microsoft Azure Blob Storage</h2>
 <p>You must require additional library <code>composer require league/flysystem-azure-blob-storage</code></p>
-<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/azure/">documentation</a></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/azure/">documentation</a>.</p>
+<p>Sample configuration:</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
@@ -273,7 +280,8 @@
 <h2 id="replicate-adapter">Replicate Adapter</h2>
 <p>You must require additional library <code>composer require league/flysystem-replicate-adapter</code></p>
 <p>The ReplicateAdapter facilitates smooth transitions between adapters, allowing an application to stay functional and migrate its files from one adapter to another. The adapter takes two other adapters, a source and a replica. Every change is delegated to both adapters, while all the read operations are passed onto the source only.</p>
-<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/replicate/">documentation</a></p>
+<p>See official <a href="https://flysystem.thephpleague.com/docs/adapter/replicate/">documentation</a>.</p>
+<p>Sample configuration:</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
             'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
             'config' =&gt; [
