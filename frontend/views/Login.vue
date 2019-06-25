@@ -4,7 +4,6 @@
       <b-icon icon="times"></b-icon>
     </a>
 
-    </button>
     <div id="login" class="columns is-centered">
       <div class="column is-narrow">
         <form @submit.prevent="login">

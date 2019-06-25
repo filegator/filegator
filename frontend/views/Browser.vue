@@ -166,7 +166,7 @@ Vue.use(VueClipboard)
 
 export default {
   name: 'Browser',
-  components: { Menu, Tree, Pagination, Upload },
+  components: { Menu, Pagination, Upload },
   data() {
     return {
       dropZone: false,
