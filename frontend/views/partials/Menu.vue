@@ -5,33 +5,32 @@
         <img :src="this.$store.state.config.logo">
       </a>
 
-      <a @click="navbarActive = !navbarActive" role="button" :class="[navbarActive ? 'is-active' : '', 'navbar-burger burger']" aria-label="menu" aria-expanded="false">
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
+      <a role="button" :class="[navbarActive ? 'is-active' : '', 'navbar-burger burger']" aria-label="menu" aria-expanded="false" @click="navbarActive = !navbarActive">
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
       </a>
     </div>
 
     <div :class="[navbarActive ? 'is-active' : '', 'navbar-menu']">
       <div class="navbar-end">
-        <a @click="$router.push('/')" v-if="is('admin')" class="navbar-item">
+        <a v-if="is('admin')" class="navbar-item" @click="$router.push('/')">
           {{ lang('Files') }}
         </a>
-        <a @click="$router.push('/users')" v-if="is('admin')" class="navbar-item">
+        <a v-if="is('admin')" class="navbar-item" @click="$router.push('/users')">
           {{ lang('Users') }}
         </a>
-        <a @click="login" v-if="is('guest')" class="navbar-item">
+        <a v-if="is('guest')" class="navbar-item" @click="login">
           {{ lang('Login') }}
         </a>
-        <a @click="profile" v-if="!is('guest')" class="navbar-item">
+        <a v-if="!is('guest')" class="navbar-item" @click="profile">
           {{ lang('Profile') }}
         </a>
-        <a @click="logout" v-if="!is('guest')" class="navbar-item">
+        <a v-if="!is('guest')" class="navbar-item" @click="logout">
           {{ lang('Logout') }}
         </a>
       </div>
     </div>
-
   </nav>
 </template>
 

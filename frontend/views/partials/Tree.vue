@@ -1,17 +1,21 @@
 <template>
   <div class="modal-card">
     <header class="modal-card-head">
-      <p class="modal-card-title">{{ lang('Select Folder') }}</p>
+      <p class="modal-card-title">
+        {{ lang('Select Folder') }}
+      </p>
     </header>
     <section class="modal-card-body">
       <div class="tree">
         <ul class="tree-list">
-          <TreeNode @selected="$emit('selected', $event) && $parent.close()" :node="$store.state.tree"></TreeNode>
+          <TreeNode :node="$store.state.tree" @selected="$emit('selected', $event) && $parent.close()" />
         </ul>
       </div>
     </section>
     <footer class="modal-card-foot">
-      <button class="button" type="button" @click="$parent.close()">{{ lang('Close') }}</button>
+      <button class="button" type="button" @click="$parent.close()">
+        {{ lang('Close') }}
+      </button>
     </footer>
   </div>
 </template>

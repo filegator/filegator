@@ -1,7 +1,7 @@
 <template>
   <div>
-    <a v-if="can('read')" @click="$router.push('/')" id="back-arrow">
-      <b-icon icon="times"></b-icon>
+    <a v-if="can('read')" id="back-arrow" @click="$router.push('/')">
+      <b-icon icon="times" />
     </a>
 
     <div id="login" class="columns is-centered">
@@ -13,10 +13,10 @@
             </div>
             <br>
             <b-field :label="lang('Username')">
-              <b-input name="username" v-model="username" @input="error = ''" required></b-input>
+              <b-input v-model="username" name="username" required @input="error = ''" />
             </b-field>
             <b-field :label="lang('Password')">
-              <b-input type="password" name="password" v-model="password"  @input="error = ''" required></b-input>
+              <b-input v-model="password" type="password" name="password" required @input="error = ''" />
             </b-field>
 
             <div class="is-flex is-justify-end">
@@ -28,12 +28,10 @@
             <div v-if="error">
               <code>{{ error }}</code>
             </div>
-
           </div>
         </form>
       </div>
     </div>
-
   </div>
 </template>
 

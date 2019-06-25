@@ -1,56 +1,55 @@
 <template>
   <div class="container">
-    <Menu></Menu>
+    <Menu />
 
     <section class="actions is-flex is-justify-between">
       <div>
         <a @click="addUser">
-          <b-icon icon="plus" size="is-small"></b-icon> {{ lang('New') }}
+          <b-icon icon="plus" size="is-small" /> {{ lang('New') }}
         </a>
       </div>
       <div>
-        <Pagination :perpage="perPage" @selected="perPage = $event"></Pagination>
+        <Pagination :perpage="perPage" @selected="perPage = $event" />
       </div>
     </section>
 
-      <b-table
-         :data="users"
-         :default-sort="defaultSort"
-         :paginated="perPage > 0"
-         :per-page="perPage"
-         :current-page.sync="currentPage"
-         :hoverable="true"
-         :loading="isLoading">
-         <template slot-scope="props">
+    <b-table
+      :data="users"
+      :default-sort="defaultSort"
+      :paginated="perPage > 0"
+      :per-page="perPage"
+      :current-page.sync="currentPage"
+      :hoverable="true"
+      :loading="isLoading"
+    >
+      <template slot-scope="props">
+        <b-table-column field="name" :label="lang('Name')" sortable>
+          <a @click="editUser(props.row)">
+            {{ props.row.name }}
+          </a>
+        </b-table-column>
 
-           <b-table-column field="name" :label="lang('Name')" sortable>
-             <a @click="editUser(props.row)">
-               {{ props.row.name }}
-             </a>
-           </b-table-column>
+        <b-table-column field="username" :label="lang('Username')" sortable>
+          <a @click="editUser(props.row)">
+            {{ props.row.username }}
+          </a>
+        </b-table-column>
 
-           <b-table-column field="username" :label="lang('Username')" sortable>
-             <a @click="editUser(props.row)">
-               {{ props.row.username }}
-             </a>
-           </b-table-column>
+        <b-table-column field="role" :label="lang('Permissions')">
+          {{ permissions(props.row.permissions) }}
+        </b-table-column>
 
-           <b-table-column field="role" :label="lang('Permissions')">
-             {{ permissions(props.row.permissions) }}
-           </b-table-column>
+        <b-table-column field="role" :label="lang('Role')" sortable>
+          {{ props.row.role }}
+        </b-table-column>
 
-           <b-table-column field="role" :label="lang('Role')" sortable>
-             {{ props.row.role }}
-           </b-table-column>
-
-           <b-table-column>
-             <a v-if="props.row.role != 'guest'" @click="remove(props.row)">
-               <b-icon icon="trash-alt" size="is-small"></b-icon>
-             </a>
-           </b-table-column>
-
-         </template>
-      </b-table>
+        <b-table-column>
+          <a v-if="props.row.role != 'guest'" @click="remove(props.row)">
+            <b-icon icon="trash-alt" size="is-small" />
+          </a>
+        </b-table-column>
+      </template>
+    </b-table>
   </div>
 </template>
 

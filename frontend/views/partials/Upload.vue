@@ -6,7 +6,7 @@
           <div class="is-flex is-justify-between">
             <div class="is-flex">
               <a @click="toggleWindow">
-                <b-icon :icon="progressVisible ? 'angle-down' : 'angle-up'"></b-icon>
+                <b-icon :icon="progressVisible ? 'angle-down' : 'angle-up'" />
               </a>
               <span v-if="activeUploads">
                 {{ lang('Uploading files', Math.round(resumable.progress()*100), formatBytes(resumable.getSize())) }}
@@ -20,10 +20,10 @@
             </div>
             <div class="is-flex">
               <a v-if="activeUploads" @click="togglePause()">
-                <b-icon :icon="paused ? 'play-circle' : 'pause-circle'"></b-icon>
+                <b-icon :icon="paused ? 'play-circle' : 'pause-circle'" />
               </a>
-              <a @click="closeWindow()" class="progress-icon">
-                <b-icon icon="times"></b-icon>
+              <a class="progress-icon" @click="closeWindow()">
+                <b-icon icon="times" />
               </a>
             </div>
           </div>
@@ -34,12 +34,12 @@
             <div>
               <div>{{ file.relativePath != '/' ? file.relativePath : '' }}/{{ file.fileName }}</div>
               <div class="is-flex is-justify-between">
-                <progress :class="[file.file.uploadingError ? 'is-danger' : 'is-primary', 'progress is-large']" :value="file.progress()*100" max="100"></progress>
-                <a v-if="! file.isUploading() && file.file.uploadingError" @click="file.retry()" class="progress-icon">
-                  <b-icon icon="redo" type="is-danger"></b-icon>
+                <progress :class="[file.file.uploadingError ? 'is-danger' : 'is-primary', 'progress is-large']" :value="file.progress()*100" max="100" />
+                <a v-if="! file.isUploading() && file.file.uploadingError" class="progress-icon" @click="file.retry()">
+                  <b-icon icon="redo" type="is-danger" />
                 </a>
-                <a v-else @click="file.cancel()" class="progress-icon">
-                  <b-icon :icon="file.isComplete() ? 'check' : 'times'"></b-icon>
+                <a v-else class="progress-icon" @click="file.cancel()">
+                  <b-icon :icon="file.isComplete() ? 'check' : 'times'" />
                 </a>
               </div>
             </div>
@@ -68,6 +68,11 @@ export default {
       progressVisible: false,
       progress: 0,
     }
+  },
+  computed: {
+    activeUploads() {
+      return this.resumable.files.length && this.resumable.progress() < 1
+    },
   },
   watch: {
     'files' (files) {
@@ -131,11 +136,6 @@ export default {
     this.resumable.on('fileError', (file) => {
       file.file.uploadingError = true
     })
-  },
-  computed: {
-    activeUploads() {
-      return this.resumable.files.length && this.resumable.progress() < 1
-    },
   },
   methods: {
     closeWindow() {

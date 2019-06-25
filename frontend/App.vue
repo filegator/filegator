@@ -1,8 +1,8 @@
 <template>
-  <div id="wrapper" v-if="$store.state.initialized">
-    <Login v-if="is('guest') && ! can('write') && ! can('read') && ! can('upload')"/>
-    <div id="inner" v-else>
-      <router-view/>
+  <div v-if="$store.state.initialized" id="wrapper">
+    <Login v-if="is('guest') && ! can('write') && ! can('read') && ! can('upload')" />
+    <div v-else id="inner">
+      <router-view />
     </div>
   </div>
 </template>

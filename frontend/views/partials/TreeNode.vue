@@ -6,7 +6,7 @@
       &nbsp; <a @click="$emit('selected', node)">{{ node.name }}</a>
 
     <ul v-if="node.children && node.children.length">
-      <TreeNode v-for="(child, index) in node.children" :node="child" :key="index" @selected="$emit('selected', $event)"></TreeNode>
+      <TreeNode v-for="(child, index) in node.children" :key="index" :node="child" @selected="$emit('selected', $event)" />
     </ul>
   </li>
 </template>
@@ -26,12 +26,6 @@ export default {
       button_type: 'is-primary'
     }
   },
-  mounted() {
-    if (this.node.path == '/') {
-      this.$store.commit('resetTree')
-      this.toggleButton(this.node)
-    }
-  },
   computed: {
     icon() {
       return {
@@ -41,6 +35,12 @@ export default {
         'fa-minus': this.active,
       }
     },
+  },
+  mounted() {
+    if (this.node.path == '/') {
+      this.$store.commit('resetTree')
+      this.toggleButton(this.node)
+    }
   },
   methods: {
     toggleButton(node) {

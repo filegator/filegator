@@ -1,23 +1,21 @@
 <template>
   <div id="dropzone" class="container"
-                     @dragover="dropZone = can('upload') && ! isLoading ? true : false"
-                     @dragleave="dropZone = false"
-                     @drop="dropZone = false">
+       @dragover="dropZone = can('upload') && ! isLoading ? true : false"
+       @dragleave="dropZone = false"
+       @drop="dropZone = false"
+  >
+    <div v-if="isLoading" id="loading" />
 
-    <div id="loading" v-if="isLoading"></div>
+    <Upload v-if="can('upload')" v-show="dropZone == false" :files="files" :drop-zone="dropZone" />
 
-    <Upload v-if="can('upload')" v-show="dropZone == false" :files="files" :dropZone="dropZone"></Upload>
-
-    <b-upload v-if="dropZone && ! isLoading" @input="files = $event" multiple drag-drop>
+    <b-upload v-if="dropZone && ! isLoading" multiple drag-drop @input="files = $event">
       <b class="drop-info">{{ lang('Drop files to upload') }}</b>
     </b-upload>
 
-    <div class="container" v-if="!dropZone">
-
-      <Menu></Menu>
+    <div v-if="!dropZone" class="container">
+      <Menu />
 
       <div id="browser">
-
         <div v-if="can('read')" class="is-flex is-justify-between">
           <div class="breadcrumb" aria-label="breadcrumbs">
             <ul>
@@ -28,7 +26,7 @@
           </div>
           <div>
             <a class="is-paddingless" @click="selectDir">
-              <b-icon icon="sitemap" class="is-marginless" size="is-small"></b-icon>
+              <b-icon icon="sitemap" class="is-marginless" size="is-small" />
             </a>
           </div>
         </div>
@@ -36,45 +34,45 @@
         <section class="actions is-flex is-justify-between">
           <div>
             <b-field v-if="can('upload') && ! checked.length" class="file is-inline-block">
-              <b-upload @input="files = $event" multiple native>
+              <b-upload multiple native @input="files = $event">
                 <a v-if="! checked.length" class="is-inline-block">
-                  <b-icon icon="upload" size="is-small"></b-icon> {{ lang('Add files') }}
+                  <b-icon icon="upload" size="is-small" /> {{ lang('Add files') }}
                 </a>
               </b-upload>
             </b-field>
             <a v-if="can(['read', 'write']) && ! checked.length" class="is-inline-block">
               <b-dropdown aria-role="list" :disabled="checked.length > 0">
                 <span slot="trigger">
-                  <b-icon icon="plus" size="is-small"></b-icon> {{ lang('New') }}
+                  <b-icon icon="plus" size="is-small" /> {{ lang('New') }}
                 </span>
 
-                <b-dropdown-item @click="create('dir')" aria-role="listitem">
-                  <b-icon icon="folder" size="is-small"></b-icon> {{ lang('Folder') }}
+                <b-dropdown-item aria-role="listitem" @click="create('dir')">
+                  <b-icon icon="folder" size="is-small" /> {{ lang('Folder') }}
                 </b-dropdown-item>
-                <b-dropdown-item @click="create('file')" aria-role="listitem">
-                  <b-icon icon="file" size="is-small"></b-icon> {{ lang('File') }}
+                <b-dropdown-item aria-role="listitem" @click="create('file')">
+                  <b-icon icon="file" size="is-small" /> {{ lang('File') }}
                 </b-dropdown-item>
 
               </b-dropdown>
             </a>
-            <a v-if="can('batchdownload') && checked.length" @click="batchDownload" class="is-inline-block">
-              <b-icon icon="download" size="is-small"></b-icon> {{ lang('Download') }}
+            <a v-if="can('batchdownload') && checked.length" class="is-inline-block" @click="batchDownload">
+              <b-icon icon="download" size="is-small" /> {{ lang('Download') }}
             </a>
-            <a v-if="can('write') && checked.length" @click="copy" class="is-inline-block">
-              <b-icon icon="copy" size="is-small"></b-icon> {{ lang('Copy') }}
+            <a v-if="can('write') && checked.length" class="is-inline-block" @click="copy">
+              <b-icon icon="copy" size="is-small" /> {{ lang('Copy') }}
             </a>
-            <a v-if="can('write') && checked.length" @click="move" class="is-inline-block">
-              <b-icon icon="external-link-square-alt" size="is-small"></b-icon> {{ lang('Move') }}
+            <a v-if="can('write') && checked.length" class="is-inline-block" @click="move">
+              <b-icon icon="external-link-square-alt" size="is-small" /> {{ lang('Move') }}
             </a>
-            <a v-if="can(['write', 'zip']) && checked.length" @click="zip" class="is-inline-block">
-              <b-icon icon="file-archive" size="is-small"></b-icon> {{ lang('Zip') }}
+            <a v-if="can(['write', 'zip']) && checked.length" class="is-inline-block" @click="zip">
+              <b-icon icon="file-archive" size="is-small" /> {{ lang('Zip') }}
             </a>
-            <a v-if="can('write') && checked.length" @click="remove" class="is-inline-block">
-              <b-icon icon="trash-alt" size="is-small"></b-icon> {{ lang('Delete') }}
+            <a v-if="can('write') && checked.length" class="is-inline-block" @click="remove">
+              <b-icon icon="trash-alt" size="is-small" /> {{ lang('Delete') }}
             </a>
           </div>
           <div v-if="can('read')">
-            <Pagination :perpage="perPage" @selected="perPage = $event"></Pagination>
+            <Pagination :perpage="perPage" @selected="perPage = $event" />
           </div>
         </section>
 
@@ -89,65 +87,61 @@
                  :row-class="(row) => 'file-row type-'+row.type"
                  :checked-rows.sync="checked"
                  :loading="isLoading"
-                 checkable>
-                 <template slot-scope="props">
+                 checkable
+        >
+          <template slot-scope="props">
+            <b-table-column field="data.name" :label="lang('Name')" :custom-sort="sortByName" sortable>
+              <a class="is-block name" @click="itemClick(props.row)">
+                {{ props.row.name }}
+              </a>
+            </b-table-column>
 
-                   <b-table-column field="data.name" :label="lang('Name')" :custom-sort="sortByName" sortable>
-                     <a @click="itemClick(props.row)" class="is-block name">
-                       {{ props.row.name }}
-                     </a>
-                   </b-table-column>
+            <b-table-column field="data.size" :label="lang('Size')" :custom-sort="sortBySize" sortable numeric width="150">
+              {{ props.row.type == 'back' || props.row.type == 'dir' ? lang('Folder') : formatBytes(props.row.size) }}
+            </b-table-column>
 
-                   <b-table-column field="data.size" :label="lang('Size')" :custom-sort="sortBySize" sortable numeric width="150">
-                     {{ props.row.type == 'back' || props.row.type == 'dir' ? lang('Folder') : formatBytes(props.row.size) }}
-                   </b-table-column>
+            <b-table-column field="data.time" :label="lang('Time')" :custom-sort="sortByTime" sortable numeric width="200">
+              {{ props.row.time ? formatDate(props.row.time) : '' }}
+            </b-table-column>
 
-                   <b-table-column field="data.time" :label="lang('Time')" :custom-sort="sortByTime" sortable numeric width="200">
-                     {{ props.row.time ? formatDate(props.row.time) : '' }}
-                   </b-table-column>
+            <b-table-column class="action-padding" width="51">
+              <b-dropdown v-if="props.row.type != 'back'" aria-role="list" position="is-bottom-left" :disabled="checked.length > 0">
+                <button slot="trigger" class="button is-small">
+                  <b-icon icon="ellipsis-h" size="is-small" />
+                </button>
 
-                   <b-table-column class="action-padding" width="51">
-                     <b-dropdown v-if="props.row.type != 'back'" aria-role="list" position="is-bottom-left" :disabled="checked.length > 0">
-                       <button class="button is-small" slot="trigger">
-                         <b-icon icon="ellipsis-h" size="is-small"></b-icon>
-                       </button>
+                <b-dropdown-item v-if="props.row.type == 'file' && can('download')" aria-role="listitem" @click="download(props.row)">
+                  <b-icon icon="download" size="is-small" /> {{ lang('Download') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="copy($event, props.row)">
+                  <b-icon icon="copy" size="is-small" /> {{ lang('Copy') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="move($event, props.row)">
+                  <b-icon icon="external-link-square-alt" size="is-small" /> {{ lang('Move') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="rename($event, props.row)">
+                  <b-icon icon="file-signature" size="is-small" /> {{ lang('Rename') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="can(['write', 'zip']) && isArchive(props.row)" aria-role="listitem" @click="unzip($event, props.row)">
+                  <b-icon icon="file-archive" size="is-small" /> {{ lang('Unzip') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="can(['write', 'zip']) && ! isArchive(props.row)" aria-role="listitem" @click="zip($event, props.row)">
+                  <b-icon icon="file-archive" size="is-small" /> {{ lang('Zip') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="remove($event, props.row)">
+                  <b-icon icon="trash-alt" size="is-small" /> {{ lang('Delete') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="props.row.type == 'file' && can('download')" v-clipboard:copy="getDownloadLink(props.row)" aria-role="listitem">
+                  <b-icon icon="clipboard" size="is-small" /> {{ lang('Copy link') }}
+                </b-dropdown-item>
+              </b-dropdown>
+            </b-table-column>
+          </template>
 
-                       <b-dropdown-item v-if="props.row.type == 'file' && can('download')" @click="download(props.row)" aria-role="listitem">
-                         <b-icon icon="download" size="is-small"></b-icon> {{ lang('Download') }}
-                       </b-dropdown-item>
-                       <b-dropdown-item v-if="can('write')" @click="copy($event, props.row)" aria-role="listitem">
-                         <b-icon icon="copy" size="is-small"></b-icon> {{ lang('Copy') }}
-                       </b-dropdown-item>
-                       <b-dropdown-item v-if="can('write')" @click="move($event, props.row)" aria-role="listitem">
-                         <b-icon icon="external-link-square-alt" size="is-small"></b-icon> {{ lang('Move') }}
-                       </b-dropdown-item>
-                       <b-dropdown-item v-if="can('write')" @click="rename($event, props.row)" aria-role="listitem">
-                         <b-icon icon="file-signature" size="is-small"></b-icon> {{ lang('Rename') }}
-                       </b-dropdown-item>
-                       <b-dropdown-item v-if="can(['write', 'zip']) && isArchive(props.row)" @click="unzip($event, props.row)" aria-role="listitem">
-                         <b-icon icon="file-archive" size="is-small"></b-icon> {{ lang('Unzip') }}
-                       </b-dropdown-item>
-                       <b-dropdown-item v-if="can(['write', 'zip']) && ! isArchive(props.row)" @click="zip($event, props.row)" aria-role="listitem">
-                         <b-icon icon="file-archive" size="is-small"></b-icon> {{ lang('Zip') }}
-                       </b-dropdown-item>
-                       <b-dropdown-item v-if="can('write')" @click="remove($event, props.row)" aria-role="listitem">
-                         <b-icon icon="trash-alt" size="is-small"></b-icon> {{ lang('Delete') }}
-                       </b-dropdown-item>
-                       <b-dropdown-item v-if="props.row.type == 'file' && can('download')" v-clipboard:copy="getDownloadLink(props.row)" aria-role="listitem">
-                         <b-icon icon="clipboard" size="is-small"></b-icon> {{ lang('Copy link') }}
-                       </b-dropdown-item>
-
-                     </b-dropdown>
-                   </b-table-column>
-
-                 </template>
-
-                 <template slot="bottom-left">
-                   <span>{{ lang('Selected', checked.length, totalCount) }}</span>
-                 </template>
-
+          <template slot="bottom-left">
+            <span>{{ lang('Selected', checked.length, totalCount) }}</span>
+          </template>
         </b-table>
-
       </div>
     </div>
   </div>
@@ -161,6 +155,7 @@ import Pagination from './partials/Pagination'
 import Upload from './partials/Upload'
 import api from '../api/api'
 import VueClipboard from 'vue-clipboard2'
+import _ from 'lodash'
 
 Vue.use(VueClipboard)
 
@@ -177,32 +172,6 @@ export default {
       defaultSort: ['data.name', 'desc'],
       files: [],
     }
-  },
-  mounted() {
-    if (this.can('read')) {
-      this.loadFiles()
-    }
-  },
-  watch: {
-    '$route' (to, from) {
-      this.isLoading = true
-      this.checked = []
-      this.currentPage = 1
-      api.changeDir({
-        to: to.query.cd
-      })
-        .then(ret => {
-          this.$store.commit('setCwd', {
-            content: ret.files,
-            location: ret.location,
-          })
-          this.isLoading = false
-        })
-        .catch(error => {
-          this.isLoading = false
-          this.handleError(error)
-        })
-    },
   },
   computed: {
     breadcrumbs() {
@@ -227,6 +196,32 @@ export default {
         return o.type == 'file' || o.type == 'dir'
       }) || 0
     },
+  },
+  watch: {
+    '$route' (to) {
+      this.isLoading = true
+      this.checked = []
+      this.currentPage = 1
+      api.changeDir({
+        to: to.query.cd
+      })
+        .then(ret => {
+          this.$store.commit('setCwd', {
+            content: ret.files,
+            location: ret.location,
+          })
+          this.isLoading = false
+        })
+        .catch(error => {
+          this.isLoading = false
+          this.handleError(error)
+        })
+    },
+  },
+  mounted() {
+    if (this.can('read')) {
+      this.loadFiles()
+    }
   },
   methods: {
     loadFiles() {
@@ -281,7 +276,7 @@ export default {
               destination: dir.path,
               items: item ? [item] : this.getSelected(),
             })
-              .then(res => {
+              .then(() => {
                 this.isLoading = false
               })
               .catch(error => {
@@ -305,7 +300,7 @@ export default {
               destination: dir.path,
               items: item ? [item] : this.getSelected(),
             })
-              .then(res => {
+              .then(() => {
                 this.isLoading = false
               })
               .catch(error => {
@@ -366,7 +361,7 @@ export default {
             item: item.path,
             destination: this.$store.state.cwd.location,
           })
-            .then(res => {
+            .then(() => {
               this.isLoading = false
               this.loadFiles()
             })
@@ -399,7 +394,7 @@ export default {
             items: item ? [item] : this.getSelected(),
             destination: this.$store.state.cwd.location,
           })
-            .then(ret => {
+            .then(() => {
               this.isLoading = false
               this.loadFiles()
             })
@@ -428,7 +423,7 @@ export default {
             to: value,
             destination: this.$store.state.cwd.location,
           })
-            .then(res => {
+            .then(() => {
               this.isLoading = false
               this.loadFiles()
             })
@@ -457,7 +452,7 @@ export default {
             destination: this.$store.state.cwd.location,
           })
           // TODO: cors is triggering this too early?
-            .then(ret => {
+            .then(() => {
               this.isLoading = false
               this.loadFiles()
             })
@@ -480,7 +475,7 @@ export default {
           api.removeItems({
             items: item ? [item] : this.getSelected(),
           })
-            .then(ret => {
+            .then(() => {
               this.isLoading = false
               this.loadFiles()
             })

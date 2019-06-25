@@ -1,36 +1,39 @@
 <template>
   <div class="modal-card">
     <header class="modal-card-head">
-      <p class="modal-card-title">{{ user.name }}</p>
+      <p class="modal-card-title">
+        {{ user.name }}
+      </p>
     </header>
     <section class="modal-card-body">
       <form @submit.prevent="save">
-
         <div v-if="user.role == 'user' || user.role == 'admin'" class="field">
-
           <b-field :label="lang('Role')">
             <b-select v-model="formFields.role" :placeholder="lang('Role')" expanded required>
-              <option value="user" key="user">{{ lang('User') }}</option>
-              <option value="admin" key="admin">{{ lang('Admin') }}</option>
+              <option key="user" value="user">
+                {{ lang('User') }}
+              </option>
+              <option key="admin" value="admin">
+                {{ lang('Admin') }}
+              </option>
             </b-select>
           </b-field>
 
           <b-field :label="lang('Username')" :type="formErrors.username ? 'is-danger' : ''" :message="formErrors.username">
-            <b-input v-model="formFields.username" @keydown.native="formErrors.username = ''"></b-input>
+            <b-input v-model="formFields.username" @keydown.native="formErrors.username = ''" />
           </b-field>
 
           <b-field :label="lang('Name')" :type="formErrors.name ? 'is-danger' : ''" :message="formErrors.name">
-            <b-input v-model="formFields.name" @keydown.native="formErrors.name = ''"></b-input>
+            <b-input v-model="formFields.name" @keydown.native="formErrors.name = ''" />
           </b-field>
 
           <b-field :label="lang('Password')" :type="formErrors.password ? 'is-danger' : ''" :message="formErrors.password">
-            <b-input v-model="formFields.password" @keydown.native="formErrors.password = ''" :placeholder="action == 'edit' ? lang('Leave blank for no change') : ''" password-reveal></b-input>
+            <b-input v-model="formFields.password" :placeholder="action == 'edit' ? lang('Leave blank for no change') : ''" password-reveal @keydown.native="formErrors.password = ''" />
           </b-field>
-
         </div>
 
         <b-field :label="lang('Homedir')" :type="formErrors.homedir ? 'is-danger' : ''" :message="formErrors.homedir">
-          <b-input v-model="formFields.homedir" @focus="selectDir"></b-input>
+          <b-input v-model="formFields.homedir" @focus="selectDir" />
         </b-field>
 
         <b-field :label="lang('Permissions')">
@@ -55,12 +58,15 @@
             </b-checkbox>
           </div>
         </b-field>
-
       </form>
     </section>
     <footer class="modal-card-foot">
-      <button class="button" type="button" @click="$parent.close()">{{ lang('Close') }}</button>
-      <button class="button is-primary" type="button" @click="confirmSave">{{ lang('Save') }}</button>
+      <button class="button" type="button" @click="$parent.close()">
+        {{ lang('Close') }}
+      </button>
+      <button class="button is-primary" type="button" @click="confirmSave">
+        {{ lang('Save') }}
+      </button>
     </footer>
   </div>
 </template>
@@ -73,8 +79,6 @@ import _ from 'lodash'
 export default {
   name: 'UserEdit',
   props: [ 'user', 'action' ],
-  computed: {
-  },
   data() {
     return {
       formFields: {
@@ -94,6 +98,8 @@ export default {
         zip: _.find(this.user.permissions, p => p == 'zip') ? true : false,
       }
     }
+  },
+  computed: {
   },
   watch: {
     'permissions.read' (val) {
