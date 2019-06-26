@@ -5,18 +5,20 @@ php:
   - 7.2
   - 7.3
 
+env:
+  - NODE_RELEASE=6.x
+
 before_script:
   - composer self-update
-  - sudo rm -rf ~/.nvm - curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+  - sudo rm -rf ~/.nvm - curl -sL "https://deb.nodesource.com/setup_${NODE_RELEASE}" | sudo -E bash -
   - sudo apt-get install -y nodejs
-  - npm install
+  - cp configuration_sample.php configuration.php
 
 install:
   - composer install --no-interaction
   - npm install
 
 script:
-  - cp configuration_sample.php configuration.php
   - vendor/bin/phpunit --coverage-clover=coverage.xml
   - npm run lint
 
