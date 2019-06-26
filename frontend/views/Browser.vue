@@ -25,13 +25,13 @@
             </ul>
           </div>
           <div>
-            <a class="is-paddingless" @click="selectDir">
+            <a id="sitemap" class="is-paddingless" @click="selectDir">
               <b-icon icon="sitemap" class="is-marginless" size="is-small" />
             </a>
           </div>
         </div>
 
-        <section class="actions is-flex is-justify-between">
+        <section id="multi-actions" class="is-flex is-justify-between">
           <div>
             <b-field v-if="can('upload') && ! checked.length" class="file is-inline-block">
               <b-upload multiple native @input="files = $event">
@@ -104,7 +104,7 @@
               {{ props.row.time ? formatDate(props.row.time) : '' }}
             </b-table-column>
 
-            <b-table-column class="action-padding" width="51">
+            <b-table-column id="single-actions" width="51">
               <b-dropdown v-if="props.row.type != 'back'" :disabled="checked.length > 0" aria-role="list" position="is-bottom-left">
                 <button slot="trigger" class="button is-small">
                   <b-icon icon="ellipsis-h" size="is-small" />
@@ -541,10 +541,10 @@ export default {
 .breadcrumb a {
   font-weight: bold;
 }
-.actions {
+#multi-actions {
   min-height: 55px;
 }
-.actions a {
+#multi-actions a {
   margin: 0 15px 15px 0;
 }
 .file-row a {
@@ -553,7 +553,7 @@ export default {
 .file-row.type-dir a.name {
   font-weight: bold
 }
-.action-padding {
+#single-actions {
   padding: 6px 12px;
 }
 .drop-info {
