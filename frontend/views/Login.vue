@@ -9,7 +9,7 @@
         <form @submit.prevent="login">
           <div class="box">
             <div class="has-text-centered">
-              <img class="logo" :src="$store.state.config.logo">
+              <img :src="$store.state.config.logo" class="logo">
             </div>
             <br>
             <b-field :label="lang('Username')">

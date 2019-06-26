@@ -5,7 +5,7 @@
         <img :src="this.$store.state.config.logo">
       </a>
 
-      <a role="button" :class="[navbarActive ? 'is-active' : '', 'navbar-burger burger']" aria-label="menu" aria-expanded="false" @click="navbarActive = !navbarActive">
+      <a :class="[navbarActive ? 'is-active' : '', 'navbar-burger burger']" role="button" aria-label="menu" aria-expanded="false" @click="navbarActive = !navbarActive">
         <span aria-hidden="true" />
         <span aria-hidden="true" />
         <span aria-hidden="true" />

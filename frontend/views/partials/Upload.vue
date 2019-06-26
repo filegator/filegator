@@ -109,7 +109,7 @@ export default {
         type: 'is-danger',
         message: this.lang('Browser not supported.'),
       })
-      return;
+      return
     }
 
     this.resumable.on('fileAdded', () => {

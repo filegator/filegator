@@ -18,7 +18,7 @@ import api from '../../api/api'
 import _ from 'lodash'
 
 export default {
-  name: "TreeNode",
+  name: 'TreeNode',
   props: {
     node: {
       type: Object,
@@ -73,7 +73,7 @@ export default {
       }
     }
   }
-};
+}
 </script>
 
 <style scoped>

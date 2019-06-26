@@ -23,23 +23,23 @@
       :loading="isLoading"
     >
       <template slot-scope="props">
-        <b-table-column field="name" :label="lang('Name')" sortable>
+        <b-table-column :label="lang('Name')" field="name" sortable>
           <a @click="editUser(props.row)">
             {{ props.row.name }}
           </a>
         </b-table-column>
 
-        <b-table-column field="username" :label="lang('Username')" sortable>
+        <b-table-column :label="lang('Username')" field="username" sortable>
           <a @click="editUser(props.row)">
             {{ props.row.username }}
           </a>
         </b-table-column>
 
-        <b-table-column field="role" :label="lang('Permissions')">
+        <b-table-column :label="lang('Permissions')" field="role">
           {{ permissions(props.row.permissions) }}
         </b-table-column>
 
-        <b-table-column field="role" :label="lang('Role')" sortable>
+        <b-table-column :label="lang('Role')" field="role" sortable>
           {{ props.row.role }}
         </b-table-column>
 
@@ -65,7 +65,7 @@ export default {
   components: { Menu, Pagination },
   data() {
     return {
-      perPage: "",
+      perPage: '',
       currentPage: 1,
       isLoading: false,
       defaultSort: ['name', 'desc'],

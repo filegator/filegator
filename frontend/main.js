@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -14,10 +12,9 @@ import '@fortawesome/fontawesome-free/css/fontawesome.css'
 //TODO: import './registerServiceWorker'
 
 Vue.config.productionTip = false
-Vue.config.baseURL = 
-  process.env.VUE_APP_API_ENDPOINT
-  ? process.env.VUE_APP_API_ENDPOINT
-  : window.location.origin+window.location.pathname+'?r='
+
+/* eslint-disable-next-line */
+Vue.config.baseURL = process.env.VUE_APP_API_ENDPOINT ? process.env.VUE_APP_API_ENDPOINT : window.location.origin+window.location.pathname+'?r='
 
 axios.defaults.withCredentials = true
 axios.defaults.baseURL = Vue.config.baseURL
@@ -33,7 +30,6 @@ Vue.mixin(shared)
 new Vue({
   router,
   store,
-  render: h => h(App),
   created: function() {
 
     api.getConfig()
@@ -63,4 +59,5 @@ new Vue({
         })
       })
   },
+  render: h => h(App),
 }).$mount('#app')

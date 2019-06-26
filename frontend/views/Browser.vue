@@ -41,7 +41,7 @@
               </b-upload>
             </b-field>
             <a v-if="can(['read', 'write']) && ! checked.length" class="is-inline-block">
-              <b-dropdown aria-role="list" :disabled="checked.length > 0">
+              <b-dropdown :disabled="checked.length > 0" aria-role="list">
                 <span slot="trigger">
                   <b-icon icon="plus" size="is-small" /> {{ lang('New') }}
                 </span>
@@ -90,22 +90,22 @@
                  checkable
         >
           <template slot-scope="props">
-            <b-table-column field="data.name" :label="lang('Name')" :custom-sort="sortByName" sortable>
+            <b-table-column :label="lang('Name')" :custom-sort="sortByName" field="data.name" sortable>
               <a class="is-block name" @click="itemClick(props.row)">
                 {{ props.row.name }}
               </a>
             </b-table-column>
 
-            <b-table-column field="data.size" :label="lang('Size')" :custom-sort="sortBySize" sortable numeric width="150">
+            <b-table-column :label="lang('Size')" :custom-sort="sortBySize" field="data.size" sortable numeric width="150">
               {{ props.row.type == 'back' || props.row.type == 'dir' ? lang('Folder') : formatBytes(props.row.size) }}
             </b-table-column>
 
-            <b-table-column field="data.time" :label="lang('Time')" :custom-sort="sortByTime" sortable numeric width="200">
+            <b-table-column :label="lang('Time')" :custom-sort="sortByTime" field="data.time" sortable numeric width="200">
               {{ props.row.time ? formatDate(props.row.time) : '' }}
             </b-table-column>
 
             <b-table-column class="action-padding" width="51">
-              <b-dropdown v-if="props.row.type != 'back'" aria-role="list" position="is-bottom-left" :disabled="checked.length > 0">
+              <b-dropdown v-if="props.row.type != 'back'" :disabled="checked.length > 0" aria-role="list" position="is-bottom-left">
                 <button slot="trigger" class="button is-small">
                   <b-icon icon="ellipsis-h" size="is-small" />
                 </button>
@@ -165,7 +165,7 @@ export default {
   data() {
     return {
       dropZone: false,
-      perPage: "",
+      perPage: '',
       currentPage: 1,
       checked: [],
       isLoading: false,
@@ -335,7 +335,7 @@ export default {
         })
     },
     getDownloadLink(item) {
-      return Vue.config.baseURL+'/download/'+btoa(item.path);
+      return Vue.config.baseURL+'/download/'+btoa(item.path)
     },
     download(item) {
       window.open(this.getDownloadLink(item), '_blank')
@@ -386,7 +386,7 @@ export default {
         },
         onConfirm: (value) => {
           if (! value) {
-            return;
+            return
           }
           this.isLoading = true
           api.zipItems({
@@ -525,7 +525,7 @@ export default {
   z-index: 1000;
   top: 0;
   left: 0;
-  user-drag: none; 
+  user-drag: none;
   user-select: none;
   -moz-user-select: none;
   -webkit-user-drag: none;
