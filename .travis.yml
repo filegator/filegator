@@ -6,17 +6,20 @@ php:
   - 7.3
 
 before_script:
-  - cp configuration_sample.php configuration.php
   - composer self-update
+  - sudo rm -rf ~/.nvm - curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+  - sudo apt-get install -y nodejs
+  - npm install
+
+install:
   - composer install --no-interaction
+  - npm install
 
 script:
+  - cp configuration_sample.php configuration.php
   - vendor/bin/phpunit --coverage-clover=coverage.xml
+  - npm run lint
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
-  # Installs Sensiolabs security checker to check against unsecure libraries
-  - php -r "readfile('http://get.sensiolabs.org/security-checker.phar');" > security-checker
-  - chmod +x security-checker
-  - ./security-checker security:check
