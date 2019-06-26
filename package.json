@@ -6,7 +6,8 @@
     "serve": "concurrently \"php -S localhost:8081\" \"vue-cli-service serve\"",
     "build": "vue-cli-service build --no-clean",
     "lint": "vue-cli-service lint --no-fix frontend/",
-    "test:e2e": "vue-cli-service test:e2e",
+    "e2e": "vue-cli-service test:e2e",
+    "test:e2e": "vue-cli-service test:e2e --headless",
     "test:unit": "vue-cli-service test:unit"
   },
   "devDependencies": {

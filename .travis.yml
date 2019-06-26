@@ -8,6 +8,17 @@ php:
 env:
   - NODE_RELEASE=6.x
 
+addons:
+  apt:
+    packages:
+      # Cypress dependency
+      - libgconf-2-4
+
+cache:
+  directories:
+    # cache Cypress binary
+    - ~/.cache
+
 before_script:
   - composer self-update
   - sudo rm -rf ~/.nvm - curl -sL "https://deb.nodesource.com/setup_${NODE_RELEASE}" | sudo -E bash -
@@ -21,6 +32,7 @@ install:
 script:
   - vendor/bin/phpunit --coverage-clover=coverage.xml
   - npm run lint
+  - npm run test:e2e
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
