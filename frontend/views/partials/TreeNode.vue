@@ -1,9 +1,11 @@
 <template>
   <li class="node-tree">
-      <b-button :type="button_type" size="is-small" @click="toggleButton(node)">
-        <span class="icon"><i :class="icon"></i></span>
-      </b-button>
-      &nbsp; <a @click="$emit('selected', node)">{{ node.name }}</a>
+    <b-button :type="button_type" size="is-small" @click="toggleButton(node)">
+      <span class="icon"><i :class="icon" /></span>
+    </b-button>
+    &nbsp;
+    <!-- eslint-disable-next-line -->
+    <a @click="$emit('selected', node)">{{ node.name }}</a>
 
     <ul v-if="node.children && node.children.length">
       <TreeNode v-for="(child, index) in node.children" :key="index" :node="child" @selected="$emit('selected', $event)" />
@@ -18,7 +20,10 @@ import _ from 'lodash'
 export default {
   name: "TreeNode",
   props: {
-    node: Object
+    node: {
+      type: Object,
+      required: true
+    }
   },
   data() {
     return {
