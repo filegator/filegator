@@ -125,10 +125,18 @@
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
                     <h2 id="translations">Translations</h2>
-<p>Default language file is located under <code>frontend/translations/english.js</code> You can add more languages in the same folder and adjust <code>language</code> variable in your <code>configuration.php</code> file to use it.</p>
+<p>Language is configured by adjusting <code>language</code> variable in your <code>configuration.php</code> file.</p>
+<p>Available languages:</p>
+<ul>
+<li>english (default)</li>
+<li>spanish</li>
+</ul>
+<p>Please help us translating FileGator to your language by submitting a Pull Request on GitHub.</p>
+<h2 id="how-to-translate">How to translate</h2>
+<p>Default language file is located under <code>frontend/translations/english.js</code> You can add more languages in the same folder. Once your language file is in place, it needs to be added to <code>frontend/mixins/shared.js</code> and then you can use it by adjusting <code>language</code> variable in your <code>configuration.php</code> file.</p>
 <p>You should only translate value on the right, for example:</p>
 <pre><code>'Close': 'Schliessen',</code></pre>
-<p>Default language file is:</p>
+<p>Default language file:</p>
 <pre><code>const data = {
   'Selected': 'Selected: {0} of {1}',
   'Uploading files': 'Uploading {0}% of {1}',
