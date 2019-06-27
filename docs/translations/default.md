@@ -4,8 +4,19 @@ currentMenu: default
 
 ## Translations
 
-Default language file is located under `frontend/translations/english.js` You can add more languages in the same folder and adjust `language` variable in your `configuration.php` file to use it.
+Language is configured by adjusting `language` variable in your `configuration.php` file.
 
+Available languages:
+
+- english (default)
+- spanish
+
+Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
+
+
+## How to translate
+
+Default language file is located under `frontend/translations/english.js` You can add more languages in the same folder. Once your language file is in place, it needs to be added to `frontend/mixins/shared.js` and then you can use it by adjusting `language` variable in your `configuration.php` file.
 
 You should only translate value on the right, for example:
 
@@ -13,7 +24,7 @@ You should only translate value on the right, for example:
 'Close': 'Schliessen',
 ```
 
-Default language file is:
+Default language file:
 
 ```
 const data = {
