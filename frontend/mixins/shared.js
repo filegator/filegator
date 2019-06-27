@@ -3,6 +3,7 @@ import store from '../store.js'
 import api from '../api/api'
 
 import english from '../translations/english'
+import spanish from '../translations/spanish'
 
 const funcs = {
   methods: {
@@ -17,6 +18,7 @@ const funcs = {
 
       let available_languages = {
         'english': english,
+        'spanish': spanish,
       }
 
       let language = store.state.config.language

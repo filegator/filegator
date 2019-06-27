@@ -51,7 +51,6 @@ const data = {
   'Admin': 'Administrador',
   'Save': 'Guardar',
   'Read': 'Leer',
-  'Name': 'Nombre',
   'Write': 'Escribir',
   'Upload': 'Subir',
   'Permissions': 'Permisos',
