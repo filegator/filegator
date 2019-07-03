@@ -33,7 +33,7 @@ Routes file is located here `backend/Controllers/routes.php` Each route in the r
     ],
 ```
 
-As you can in the example, you can assign required user roles and permissions for each route.
+As you can see in the example, you can assign required user roles and permissions for each route.
 
 ## Controllers
 
