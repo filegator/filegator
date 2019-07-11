@@ -77,6 +77,8 @@ npm install
 npm run build
 ```
 
+We also have a sample docker image [here](https://github.com/filegator/demo)
+
 
 ## Compiles and hot-reloads
 
