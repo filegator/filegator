@@ -23,4 +23,4 @@ Tmp files are usually removed immediately after the use. For expired files, conf
         ],
 ```
 
-Note: if you want to use this script as a stateless app or in any kind of multi-node environment, you must must mount a single shared TMP folder for all the instances. You can solve this problem with [Amazon Elastic File System](https://aws.amazon.com/efs/) or similar approach.
+Note: if you want to use this script as a stateless app or in any kind of multi-node environment, you must mount a single shared TMP folder for all the instances. You can solve this problem with [Amazon Elastic File System](https://aws.amazon.com/efs/) or similar approach.
