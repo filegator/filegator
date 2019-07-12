@@ -77,7 +77,7 @@
                                             Basic
                                         </a>
                                     </li>
-                                                                    <li class="active">
+                                                                    <li class="">
                                         <a href="https://docs.filegator.io/configuration/auth.html">
                                             Auth
                                         </a>
@@ -107,7 +107,7 @@
                                             Router
                                         </a>
                                     </li>
-                                                                    <li class="">
+                                                                    <li class="active">
                                         <a href="https://docs.filegator.io/configuration/tmpfs.html">
                                             Tmpfs
                                         </a>
@@ -129,49 +129,23 @@
 
                 
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
-                    <h2 id="default-auth-service">Default Auth service</h2>
-<p>By default, users are stored in json file. For some use-cases, this is enough. It also makes this app lightweight since no database is required.</p>
-<p>Default handler accepts only file name parameter. This file should be writable by the web server.</p>
-<pre><code>        'Filegator\Services\Auth\AuthInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Auth\Adapters\JsonFile',
+                    <h2 id="temporary-file-system-service">Temporary file system service</h2>
+<p>This service is responsible for managing temporary files. TMP files are created:</p>
+<ul>
+<li>When uploading files, chunks are stored in the TMP folder before merging and moving to the final storage destination</li>
+<li>When creating and extracting archives (zip files)</li>
+<li>When downloading multiple files, they are copied into TMP folder before zipping</li>
+</ul>
+<p>Tmp files are usually removed immediately after the use. For expired files, configurable garbage collection is used:</p>
+<pre><code>        'Filegator\Services\Tmpfs\TmpfsInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Tmpfs\Adapters\Tmpfs',
             'config' =&gt; [
-                'file' =&gt; __DIR__.'/private/users.json',
-            ],
-        ],
-</code></pre>
-<h2 id="configuring-auth-service-to-use-database">Configuring Auth service to use database</h2>
-<p>You can use mysql database to store your users.</p>
-<p>First, create a table <code>users</code> with this sql query:</p>
-<pre><code>CREATE TABLE `users` (
-    `id` int(10) NOT NULL AUTO_INCREMENT,
-    `username` varchar(255) NOT NULL,
-    `name` varchar(255) NOT NULL,
-    `role` varchar(20) NOT NULL,
-    `permissions` varchar(200) NOT NULL,
-    `homedir` varchar(2000) NOT NULL,
-    `password` varchar(255) NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `username` (`username`)
-) CHARSET=utf8 COLLATE=utf8_bin;</code></pre>
-<p>Then, import default users with sql query:</p>
-<pre><code>INSERT INTO `users` (`username`, `name`, `role`, `permissions`, `homedir`, `password`)
-VALUES
-('guest', 'Guest', 'guest', '', '/', ''),
-('admin', 'Admin', 'admin', 'read|write|upload|download|batchdownload|zip', '/', '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq');</code></pre>
-<p>At the end, open <code>configuration.php</code> and update AuthInterface handler to reflect your database settings:</p>
-<pre><code>        'Filegator\Services\Auth\AuthInterface' =&gt; [
-            'handler' =&gt; '\Filegator\Services\Auth\Adapters\Database',
-            'config' =&gt; [
-                'driver' =&gt; 'mysqli',
-                'host' =&gt; 'localhost',
-                'username' =&gt; 'root',
-                'password' =&gt; 'password',
-                'database' =&gt; 'filegator',
+                'path' =&gt; __DIR__.'/private/tmp/',
+                'gc_probability_perc' =&gt; 10,
+                'gc_older_than' =&gt; 60 * 60 * 24 * 2, // 2 days
             ],
         ],</code></pre>
-<h2 id="api-authentication">API authentication</h2>
-<p>Front-end will use session based authentication to authenticate and consume the back-end.</p>
-<p>Note: The application will not work if you disable cookies.</p>
+<p>Note: if you want to use this script as a stateless app or in any kind of multi-node environment, you must must mount a single shared TMP folder for all the instances. You can solve this problem with <a href="https://aws.amazon.com/efs/">Amazon Elastic File System</a> or similar approach.</p>
                 </section>
 
             </div>
