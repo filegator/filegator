@@ -1,5 +1,5 @@
 ---
-currentMenu: auth
+currentMenu: basic
 ---
 
 ## Basic
