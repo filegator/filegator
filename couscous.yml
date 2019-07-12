@@ -62,6 +62,9 @@ menu:
                 router:
                     text: Router
                     relativeUrl: configuration/router.html
+                tmpfs:
+                    text: Tmpfs
+                    relativeUrl: configuration/tmpfs.html
 
         multilang:
             name: Languages

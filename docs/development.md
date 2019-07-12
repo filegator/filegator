@@ -17,6 +17,8 @@ npm install
 npm run build
 ```
 
+We also have a sample docker image [here](https://github.com/filegator/demo)
+
 ## Compiles and hot-reloads
 
 The following command will launch backend and frontend on ports 8081 and 8080:
