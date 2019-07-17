@@ -69,7 +69,7 @@ const data = {
   'Wrong password': 'Falsches Passwort',
   'Updated': 'Aktualisiert',
   'Deleted': 'Gelöscht',
-  'Your file is ready': 'Deine Datei ist Fertig',
+  'Your file is ready': 'Deine Datei ist fertig',
 }
 
 export default data
