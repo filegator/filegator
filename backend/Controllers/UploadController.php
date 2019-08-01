@@ -99,7 +99,7 @@ class UploadController
         if ($chunks_size >= $total_size) {
             for ($i = 1; $i <= $total_chunks; ++$i) {
                 $part = $this->tmpfs->readStream($prefix.$file_name.'.part'.$i);
-                $this->tmpfs->write($file_name, $part['stream']);
+                $this->tmpfs->write($file_name, $part['stream'], true);
             }
 
             $final = $this->tmpfs->readStream($file_name);

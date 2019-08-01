@@ -16,7 +16,7 @@ interface TmpfsInterface
 
     public function findAll($pattern): array;
 
-    public function write(string $filename, $data);
+    public function write(string $filename, $data, $append);
 
     public function read(string $filename): string;
 

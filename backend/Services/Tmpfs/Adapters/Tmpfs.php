@@ -30,11 +30,17 @@ class Tmpfs implements Service, TmpfsInterface
         }
     }
 
-    public function write(string $filename, $data)
+    public function write(string $filename, $data, $append = false)
     {
         $filename = $this->sanitizeFilename($filename);
 
-        file_put_contents($this->getPath().$filename, $data);
+        $flags = 0;
+
+        if ($append) {
+            $flags = FILE_APPEND;
+        }
+
+        file_put_contents($this->getPath().$filename, $data, $flags);
     }
 
     public function getFileLocation(string $filename): string

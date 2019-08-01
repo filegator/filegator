@@ -137,6 +137,23 @@ class UploadTest extends TestCase
 
         $this->sendRequest('POST', '/upload', $data, $files);
         $this->assertOk();
+
+        $this->sendRequest('POST', '/getdir', [
+            'dir' => '/',
+        ]);
+
+        $this->assertResponseJsonHas([
+            'data' => [
+                'files' => [
+                    0 => [
+                        'type' => 'file',
+                        'name' => 'sample.txt',
+                        'path' => '/sample.txt',
+                        'size' => 1572864,
+                    ],
+                ],
+            ],
+        ]);
     }
 
     public function testUploadFileBiggerThanAllowed()
