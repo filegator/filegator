@@ -5,7 +5,7 @@ import api from '../api/api'
 import english from '../translations/english'
 import spanish from '../translations/spanish'
 import german from '../translations/german'
-import indonesia from '../translations/indonesia'
+import indonesian from '../translations/indonesian'
 
 const funcs = {
   methods: {
@@ -22,7 +22,7 @@ const funcs = {
         'english': english,
         'spanish': spanish,
         'german': german,
-        'indonesia': indonesia,
+        'indonesian': indonesian,
       }
 
       let language = store.state.config.language
