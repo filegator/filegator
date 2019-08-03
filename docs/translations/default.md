@@ -11,6 +11,7 @@ Available languages:
 - english (default)
 - spanish
 - german
+- indonesian
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 
