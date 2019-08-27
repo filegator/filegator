@@ -30,6 +30,8 @@ Once everything is ready visit: `http://localhost:8080`
 
 ## Run tests & static analysis
 
+Testing requires xdebug and sqlite php extensions.
+
 ```
 vendor/bin/phpunit
 vendor/bin/phpstan analyse ./backend
