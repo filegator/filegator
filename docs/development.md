@@ -43,3 +43,5 @@ npm run e2e
 
 Set the website document root to `/dist` directory. This is also known as 'public' folder.
 
+NOTE: For security reasons `/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.
+
