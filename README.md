@@ -53,7 +53,7 @@ This is read-only demo with guest account enabled.
 
 
 ## Download precompiled build
-Precompiled build is created for non-developers. In this version, the frontend (html & javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
+Precompiled build is created for non-developers. In this version, the frontend (html, css and javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
 
 [Download & install instructinos](https://docs.filegator.io/install.html)
 
