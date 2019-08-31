@@ -7,7 +7,7 @@ currentMenu: install
 
 
 ## Download precompiled build
-Precompiled build is created for non-developers. In this version, the frontend (javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
+Precompiled build is created for non-developers. In this version, the frontend (html & javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
 
 - Latest: [v7.0.1](https://github.com/filegator/static/raw/master/builds/filegator_v7.0.1.zip)
 - Unzip files and upload them to your PHP server
