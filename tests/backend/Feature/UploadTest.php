@@ -361,7 +361,7 @@ class UploadTest extends TestCase
     {
         $this->signIn('john@example.com', 'john123');
 
-        $files = ['file' => new UploadedFile(TEST_FILE, 'ąčęėįšųū.txt', 'text/plain', null, true)];
+        $files = ['file' => new UploadedFile(TEST_FILE, '断及服务层流.txt', 'text/plain', null, true)];
 
         $data = [
             'resumableChunkNumber' => 1,
