@@ -317,4 +317,43 @@ class UploadTest extends TestCase
             ],
         ]);
     }
+
+    public function testFileUploadWithUTF8()
+    {
+        $this->signIn('john@example.com', 'john123');
+
+        $files = ['file' => new UploadedFile(TEST_FILE, 'ąčęėįšųū.txt', 'text/plain', null, true)];
+
+        $data = [
+            'resumableChunkNumber' => 1,
+            'resumableChunkSize' => 1048576,
+            'resumableCurrentChunkSize' => 0.5 * 1024 * 1024,
+            'resumableTotalChunks' => 1,
+            'resumableTotalSize' => 0.5 * 1024 * 1024,
+            'resumableType' => 'text/plain',
+            'resumableIdentifier' => 'CHUNKS-SIMPLE-TEST',
+            'resumableFilename' => "ąčęėįšųū.txt",
+            'resumableRelativePath' => '/',
+        ];
+
+        $this->sendRequest('POST', '/upload', $data, $files);
+
+        $this->assertOk();
+
+        $this->sendRequest('POST', '/getdir', [
+            'dir' => '/',
+        ]);
+
+        $this->assertResponseJsonHas([
+            'data' => [
+                'files' => [
+                    0 => [
+                        'type' => 'file',
+                        'path' => '/ąčęėįšųū.txt',
+                        'name' => 'ąčęėįšųū.txt',
+                    ],
+                ],
+            ],
+        ]);
+    }
 }

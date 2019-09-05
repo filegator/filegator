@@ -156,7 +156,21 @@ class FilesTest extends TestCase
         touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
 
         $path_encoded = base64_encode('john.txt');
-        $this->sendRequest('GET', '/download/'.$path_encoded);
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
+
+        $this->assertOk();
+    }
+
+    public function testDownloadUTF8File()
+    {
+        $username = 'john@example.com';
+        $this->signIn($username, 'john123');
+
+        mkdir(TEST_REPOSITORY.'/john');
+        touch(TEST_REPOSITORY.'/john/ąčęėįšųū.txt', $this->timestamp);
+
+        $path_encoded = base64_encode('/ąčęėįšųū.txt');
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
 
         $this->assertOk();
     }
@@ -166,7 +180,7 @@ class FilesTest extends TestCase
         touch(TEST_REPOSITORY.'/test.txt', $this->timestamp);
 
         $path_encoded = base64_encode('test.txt');
-        $this->sendRequest('GET', '/download/'.$path_encoded);
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
 
         $this->assertStatus(404);
     }
@@ -181,7 +195,7 @@ class FilesTest extends TestCase
         touch(TEST_REPOSITORY.'/jane/jane.txt', $this->timestamp);
 
         $path_encoded = base64_encode('jane.txt');
-        $this->sendRequest('GET', '/download/'.$path_encoded);
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
 
         $this->assertStatus(404);
     }
@@ -192,7 +206,7 @@ class FilesTest extends TestCase
         $this->signIn($username, 'john123');
 
         $path_encoded = base64_encode('missing.txt');
-        $this->sendRequest('GET', '/download/'.$path_encoded);
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
 
         $this->assertStatus(302);
     }

@@ -184,7 +184,7 @@ return [
     ],
     [
         'route' => [
-            'GET', '/download/{path_encoded}', '\Filegator\Controllers\DownloadController@download',
+            'GET', '/download', '\Filegator\Controllers\DownloadController@download',
         ],
         'roles' => [
             'guest', 'user', 'admin',

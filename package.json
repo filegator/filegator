@@ -35,5 +35,7 @@
     "vue-template-compiler": "^2.5.21",
     "vuex": "^3.1.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "js-base64": "^2.5.1"
+  }
 }

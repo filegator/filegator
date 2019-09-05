@@ -155,6 +155,7 @@ import Pagination from './partials/Pagination'
 import Upload from './partials/Upload'
 import api from '../api/api'
 import VueClipboard from 'vue-clipboard2'
+import { Base64 } from 'js-base64'
 import _ from 'lodash'
 
 Vue.use(VueClipboard)
@@ -335,7 +336,7 @@ export default {
         })
     },
     getDownloadLink(item) {
-      return Vue.config.baseURL+'/download/'+btoa(item.path)
+      return Vue.config.baseURL+'/download&path='+encodeURIComponent(Base64.encode(item.path))
     },
     download(item) {
       window.open(this.getDownloadLink(item), '_blank')

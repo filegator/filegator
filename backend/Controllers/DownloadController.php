@@ -43,10 +43,10 @@ class DownloadController
         $this->storage->setPathPrefix($user->getHomeDir());
     }
 
-    public function download($path_encoded, Request $request, Response $response, StreamedResponse $streamedResponse)
+    public function download(Request $request, Response $response, StreamedResponse $streamedResponse)
     {
         try {
-            $file = $this->storage->readStream((string) base64_decode($path_encoded));
+            $file = $this->storage->readStream((string) base64_decode($request->input('path')));
         } catch (\Exception $e) {
             return $response->redirect('/');
         }
@@ -67,7 +67,7 @@ class DownloadController
 
         $streamedResponse->headers->set(
             'Content-Disposition',
-            HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $file['filename'])
+            HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $file['filename'], 'file')
         );
         $streamedResponse->headers->set(
             'Content-Type',
@@ -131,7 +131,8 @@ class DownloadController
             'Content-Disposition',
             HeaderUtils::makeDisposition(
                 HeaderUtils::DISPOSITION_ATTACHMENT,
-                $this->config->get('frontend_config.default_archive_name')
+                $this->config->get('frontend_config.default_archive_name'),
+                'archive.zip'
             )
         );
         $streamedResponse->headers->set(
