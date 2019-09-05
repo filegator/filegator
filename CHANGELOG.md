@@ -1,5 +1,9 @@
 # Chanelog
 
+## 7.1.1 - 2019-09-05
+
+* Fix for multibyte filename uploads
+
 ## 7.1.0 - 2019-09-05
 
 * Fix for UTF8 filename issues (#12) - may brake existing download links generated with previous versions
