@@ -131,7 +131,7 @@ class Tmpfs implements Service, TmpfsInterface
             [\x00-\x1F]|     # control characters http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
             [\x7F\xA0\xAD]|  # non-printing characters DEL, NO-BREAK SPACE, SOFT HYPHEN
             [;\\\{}^\~`]     # other non-safe
-            ~x',
+            ~xu',
             '-',
             (string) $filename
         );
