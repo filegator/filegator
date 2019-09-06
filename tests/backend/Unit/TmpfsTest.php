@@ -143,4 +143,14 @@ class TmpfsTest extends TestCase
 
         $this->assertFileExists(TEST_TMP_PATH.'old.txt');
     }
+
+    public function testSanitizeFilename()
+    {
+        $this->assertEquals('test.txt', $this->invokeMethod($this->service, 'sanitizeFilename', ['test.txt']));
+        $this->assertEquals('断及服务层流.txt', $this->invokeMethod($this->service, 'sanitizeFilename', ['断及服务层流.txt']));
+        $this->assertEquals('ąčęėįšųū.txt', $this->invokeMethod($this->service, 'sanitizeFilename', ['ąčęėįšųū.txt']));
+
+        // remove invalid chars
+        $this->assertEquals('..--s-u---pe----rm---an-.t-xt..--', $this->invokeMethod($this->service, 'sanitizeFilename', ["../\\s\"u<:>pe////rm?*|an\\.t\txt../;"]));
+    }
 }
