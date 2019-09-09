@@ -137,15 +137,6 @@ class Tmpfs implements Service, TmpfsInterface
         );
 
         // maximize filename length to 255 bytes http://serverfault.com/a/9548/44086
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
-
-        return mb_strcut(
-            pathinfo($filename, PATHINFO_FILENAME),
-            0,
-            255 - ($ext ? strlen($ext) + 1 : 0),
-            (string) mb_detect_encoding($filename)
-        ).(
-            $ext ? '.'.$ext : ''
-        );
+        return mb_substr($filename, 0, 255);
     }
 }
