@@ -1,9 +1,5 @@
 # Chanelog
 
-## 7.1.2 - 2019-09-09
-
-* Fix for filename sanitize/cut during upload process
-
 ## 7.1.1 - 2019-09-05
 
 * Fix for multibyte filename uploads

@@ -35,7 +35,7 @@ if (! defined('APP_PUBLIC_PATH')) {
 }
 
 define('APP_PUBLIC_DIR', __DIR__);
-define('APP_VERSION', '7.1.2');
+define('APP_VERSION', '7.1.1');
 
 use Filegator\App;
 use Filegator\Config\Config;
