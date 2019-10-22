@@ -21,7 +21,7 @@ class AuthTest extends TestCase
 {
     public function testSuccessfulLogin()
     {
-        $ret = $this->sendRequest('POST', '/login', [
+        $this->sendRequest('POST', '/login', [
             'username' => 'john@example.com',
             'password' => 'john123',
         ]);

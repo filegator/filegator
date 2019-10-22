@@ -21,7 +21,7 @@ class SessionStorageTest extends TestCase
 {
     protected $session_service;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->session_service = new SessionStorage(new Request());
         $this->session_service->init([
@@ -53,7 +53,7 @@ class SessionStorageTest extends TestCase
         $this->session_service->set('test2', 999);
         $this->session_service->save();
 
-        $this->assertEquals($this->session_service->get('test2'), 999);
+        $this->assertEquals(999, $this->session_service->get('test2'));
         $this->assertNull($this->session_service->get('test1'));
     }
 }

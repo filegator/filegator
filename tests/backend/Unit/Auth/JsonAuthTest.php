@@ -19,7 +19,7 @@ class JsonFileTest extends AuthTest
 {
     private $mock_file = TEST_DIR.'/mockusers.json';
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         @unlink($this->mock_file);
         @unlink($this->mock_file.'.blank');

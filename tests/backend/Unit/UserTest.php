@@ -8,8 +8,11 @@
  * For the full copyright and license information, please view the LICENSE file
  */
 
+namespace Tests\Unit;
+
 use Filegator\Services\Auth\User;
 use Tests\TestCase;
+use Exception;
 
 /**
  * @internal
@@ -68,7 +71,7 @@ class UserTest extends TestCase
     {
         $user = new User();
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $user->setRole('nonexistent');
     }
@@ -77,7 +80,7 @@ class UserTest extends TestCase
     {
         $user = new User();
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $user->setPermissions(['read', 'write', 'nonexistent']);
     }

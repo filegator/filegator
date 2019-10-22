@@ -13,7 +13,9 @@ namespace Tests\Unit\Auth;
 use Filegator\Kernel\Request;
 use Filegator\Services\Auth\User;
 use Filegator\Services\Session\Adapters\SessionStorage;
+use Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage;
 use Tests\TestCase;
+use Exception;
 
 abstract class AuthTest extends TestCase
 {
@@ -21,12 +23,12 @@ abstract class AuthTest extends TestCase
 
     protected $session;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->session = new SessionStorage(new Request());
         $this->session->init([
             'handler' => function () {
-                return new \Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage();
+                return new MockFileSessionStorage();
             },
         ]);
 
@@ -72,7 +74,7 @@ abstract class AuthTest extends TestCase
 
     public function testWeCanFindAUser()
     {
-        $admin = $this->addAdmin();
+        $this->addAdmin();
 
         $user = $this->auth->find('admin@example.com');
 
@@ -84,7 +86,7 @@ abstract class AuthTest extends TestCase
         $mike = $this->addMike();
 
         $user = $this->auth->find('mike@example.com');
-        $this->assertEquals($user, $mike);
+        $this->assertEquals($mike, $user);
     }
 
     public function testWeCanUpdateExistingUser()
@@ -100,9 +102,9 @@ abstract class AuthTest extends TestCase
 
         $updated_user = $this->auth->update('admin@example.com', $user);
 
-        $this->assertEquals($updated_user->getName(), 'Jonny B');
-        $this->assertEquals($updated_user->getHomeDir(), '/jonnyshome');
-        $this->assertEquals($updated_user->getUsername(), 'jonny@example.com');
+        $this->assertEquals('Jonny B', $updated_user->getName());
+        $this->assertEquals('/jonnyshome', $updated_user->getHomeDir());
+        $this->assertEquals('jonny@example.com', $updated_user->getUsername());
         $this->assertTrue($updated_user->isUser());
     }
 
@@ -110,7 +112,7 @@ abstract class AuthTest extends TestCase
     {
         $admin = $this->addAdmin('test123');
 
-        $auth_attempt1 = $this->auth->authenticate('admin@example.com', 'test123');
+        $this->auth->authenticate('admin@example.com', 'test123');
         $auth_user = $this->auth->user();
         $this->assertEquals($auth_user->getUsername(), $admin->getUsername());
 
@@ -123,12 +125,12 @@ abstract class AuthTest extends TestCase
 
         $this->auth->authenticate('admin@example.com', 'test123');
         $auth_user = $this->auth->user();
-        $this->assertEquals($auth_user->getUsername(), $admin->getUsername());
+        $this->assertEquals($admin->getUsername(), $auth_user->getUsername());
 
         $this->auth->forget();
 
         $auth_user = $this->auth->user();
-        $this->assertEquals($auth_user, null);
+        $this->assertNull($auth_user);
     }
 
     public function testWeCanUpdateUsersPassword()
@@ -139,10 +141,10 @@ abstract class AuthTest extends TestCase
 
         $this->assertFalse($this->auth->authenticate('test123@example.com', 'test123'));
 
-        $auth_attempt1 = $this->auth->authenticate('admin@example.com', 'newpassword');
+        $this->auth->authenticate('admin@example.com', 'newpassword');
         $auth_user = $this->auth->user();
 
-        $this->assertEquals($auth_user->getUsername(), $admin->getUsername());
+        $this->assertEquals($admin->getUsername(), $auth_user->getUsername());
     }
 
     public function testWeCanDeleteUser()
@@ -158,7 +160,7 @@ abstract class AuthTest extends TestCase
 
     public function testWeCannotUpdateNonExistingUser()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $user = new User();
         $user->setRole('user');
@@ -177,7 +179,7 @@ abstract class AuthTest extends TestCase
         $user->setUsername('tim@example.com');
         $user->setName('Tim');
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->auth->delete($user);
     }
@@ -192,9 +194,9 @@ abstract class AuthTest extends TestCase
         $second_admin->setUsername('admin@example.com');
         $second_admin->setName('Admin2');
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
-        $updated_user = $this->auth->add($second_admin, 'pass444');
+        $this->auth->add($second_admin, 'pass444');
     }
 
     public function testWeCannotEditUserAndSetUsernameThatIsAlreadyTaken()
@@ -209,14 +211,14 @@ abstract class AuthTest extends TestCase
         $user->setUsername('admin@example.com');
         $user->setRole('user');
 
-        $this->expectException(\Exception::class);
-        $updated_user = $this->auth->update('mike@example.com', $user);
+        $this->expectException(Exception::class);
+        $this->auth->update('mike@example.com', $user);
     }
 
     public function testNoGuestException()
     {
-        $this->expectException(\Exception::class);
-        $guest = $this->auth->getGuest();
+        $this->expectException(Exception::class);
+        $this->auth->getGuest();
     }
 
     public function testGetGuest()
@@ -232,6 +234,6 @@ abstract class AuthTest extends TestCase
         $this->addAdmin();
         $this->addMike();
 
-        $this->assertEquals($this->auth->allUsers()->length(), 2);
+        $this->assertEquals(2, $this->auth->allUsers()->length());
     }
 }
