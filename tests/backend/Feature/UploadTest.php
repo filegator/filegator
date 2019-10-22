@@ -18,7 +18,7 @@ use Tests\TestCase;
  */
 class UploadTest extends TestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->resetTempDir();
 

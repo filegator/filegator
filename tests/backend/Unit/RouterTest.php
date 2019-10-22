@@ -24,7 +24,7 @@ class RouterTest extends TestCase
 {
     private $config_stub;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->config_stub = [
             'query_param' => 'r',
@@ -46,7 +46,7 @@ class RouterTest extends TestCase
             ->with(['\Filegator\Controllers\ViewController', 'index'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     public function testPostToLogin()
@@ -61,7 +61,7 @@ class RouterTest extends TestCase
             ->with(['\Filegator\Controllers\AuthController', 'login'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     public function testRouteNotFound()
@@ -76,7 +76,7 @@ class RouterTest extends TestCase
             ->with(['\Filegator\Controllers\ErrorController', 'notFound'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     public function testMethodNotAllowed()
@@ -91,7 +91,7 @@ class RouterTest extends TestCase
             ->with(['\Filegator\Controllers\ErrorController', 'methodNotAllowed'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     public function testRouteIsProtectedFromGuests()
@@ -106,7 +106,7 @@ class RouterTest extends TestCase
             ->with(['\Filegator\Controllers\ErrorController', 'notFound'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     public function testRouteIsAllowedForUser()
@@ -122,7 +122,7 @@ class RouterTest extends TestCase
             ->with(['ProtectedController', 'protectedMethod'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     public function testRouteIsProtectedFromUsers()
@@ -138,7 +138,7 @@ class RouterTest extends TestCase
             ->with(['\Filegator\Controllers\ErrorController', 'notFound'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     public function testRouteIsAllowedForAdmin()
@@ -154,7 +154,7 @@ class RouterTest extends TestCase
             ->with(['AdminController', 'adminOnlyMethod'], [])
         ;
 
-        $router = $this->getRouter($request, $user, $container);
+        $this->getRouter($request, $user, $container);
     }
 
     private function getRouter(Request $request, User $user, Container $container)

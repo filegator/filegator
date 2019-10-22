@@ -25,15 +25,15 @@ class RequestTest extends TestCase
             'GET'
         );
 
-        $this->assertEquals($request->all(), [
+        $this->assertEquals([
             'r' => '/test',
             'a' => '1',
             'b' => '2',
-        ]);
+        ], $request->all());
 
-        $this->assertEquals($request->input('r'), '/test');
-        $this->assertEquals($request->input('a'), '1');
-        $this->assertEquals($request->input('b'), '2');
+        $this->assertEquals('/test', $request->input('r'));
+        $this->assertEquals('1', $request->input('a'));
+        $this->assertEquals('2', $request->input('b'));
     }
 
     public function testPostRequest()
@@ -44,13 +44,13 @@ class RequestTest extends TestCase
             ['param1' => '1', 'param2' => '2']
             );
 
-        $this->assertEquals($request->all(), [
+        $this->assertEquals([
             'param1' => '1',
             'param2' => '2',
-        ]);
+        ], $request->all());
 
-        $this->assertEquals($request->input('param1'), '1');
-        $this->assertEquals($request->input('param2'), '2');
+        $this->assertEquals('1', $request->input('param1'));
+        $this->assertEquals('2', $request->input('param2'));
     }
 
     public function testJsonRequest()
@@ -65,11 +65,11 @@ class RequestTest extends TestCase
             json_encode(['sample' => 'content'])
         );
 
-        $this->assertEquals($request->all(), [
+        $this->assertEquals([
             'sample' => 'content',
-        ]);
+        ], $request->all());
 
-        $this->assertEquals($request->input('sample'), 'content');
+        $this->assertEquals('content', $request->input('sample'));
     }
 
     public function testGetAndJsonParametersTogether()
@@ -84,15 +84,15 @@ class RequestTest extends TestCase
             json_encode(['sample' => 'content', 'more' => '1'])
         );
 
-        $this->assertEquals($request->all(), [
+        $this->assertEquals([
             'priority' => '1',
             'sample' => 'content',
             'more' => '1',
-        ]);
+        ], $request->all());
 
-        $this->assertEquals($request->input('priority'), '1');
-        $this->assertEquals($request->input('sample'), 'content');
-        $this->assertEquals($request->input('more'), '1');
+        $this->assertEquals('1', $request->input('priority'));
+        $this->assertEquals('content', $request->input('sample'));
+        $this->assertEquals('1', $request->input('more'));
     }
 
     public function testGetPostParametersTogether()
@@ -103,15 +103,15 @@ class RequestTest extends TestCase
             ['param' => 'param1', 'priority' => 5]
             );
 
-        $this->assertEquals($request->all(), [
+        $this->assertEquals([
             'priority' => '10',
             'something' => 'else',
             'param' => 'param1',
-        ]);
+        ], $request->all());
 
-        $this->assertEquals($request->input('priority'), '10');
-        $this->assertEquals($request->input('something'), 'else');
-        $this->assertEquals($request->input('param'), 'param1');
+        $this->assertEquals('10', $request->input('priority'));
+        $this->assertEquals('else', $request->input('something'));
+        $this->assertEquals('param1', $request->input('param'));
     }
 
     public function testGetPostAndJsonParametersTogether()
@@ -126,16 +126,16 @@ class RequestTest extends TestCase
             json_encode(['sample' => 'content', 'priority' => '2'])
         );
 
-        $this->assertEquals($request->all(), [
+        $this->assertEquals([
             'priority' => '10',
             'something' => 'else',
             'param' => 'param1',
             'sample' => 'content',
-        ]);
+        ], $request->all());
 
-        $this->assertEquals($request->input('priority'), '10');
-        $this->assertEquals($request->input('something'), 'else');
-        $this->assertEquals($request->input('param'), 'param1');
-        $this->assertEquals($request->input('sample'), 'content');
+        $this->assertEquals('10', $request->input('priority'));
+        $this->assertEquals('else', $request->input('something'));
+        $this->assertEquals('param1', $request->input('param'));
+        $this->assertEquals('content', $request->input('sample'));
     }
 }

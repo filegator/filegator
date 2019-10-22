@@ -11,6 +11,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use Exception;
 
 /**
  * @internal
@@ -19,14 +20,14 @@ class FilesTest extends TestCase
 {
     protected $timestamp;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->resetTempDir();
 
         $this->timestamp = time();
     }
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         $this->resetTempDir();
     }
@@ -234,7 +235,7 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->sendRequest('POST', '/renameitem', [
             'from' => 'missing.txt',
@@ -256,7 +257,7 @@ class FilesTest extends TestCase
             ],
         ];
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->sendRequest('POST', '/deleteitems', [
             'items' => $items,
@@ -351,7 +352,7 @@ class FilesTest extends TestCase
             ],
         ];
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->sendRequest('POST', '/copyitems', [
             'items' => $items,

@@ -13,6 +13,8 @@ namespace Tests\Unit;
 use Filegator\Services\Archiver\Adapters\ZipArchiver;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\Adapters\Tmpfs;
+use League\Flysystem\Memory\MemoryAdapter;
+use League\Flysystem\Adapter\NullAdapter;
 use Tests\TestCase;
 
 /**
@@ -22,7 +24,7 @@ class ArchiverTest extends TestCase
 {
     protected $archiver;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $tmpfs = new Tmpfs();
         $tmpfs->init([
@@ -42,7 +44,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new \League\Flysystem\Adapter\NullAdapter();
+                return new NullAdapter();
             },
         ]);
 
@@ -58,7 +60,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new \League\Flysystem\Memory\MemoryAdapter();
+                return new MemoryAdapter();
             },
         ]);
 
@@ -80,7 +82,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new \League\Flysystem\Memory\MemoryAdapter();
+                return new MemoryAdapter();
             },
         ]);
 
@@ -102,7 +104,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new \League\Flysystem\Memory\MemoryAdapter();
+                return new MemoryAdapter();
             },
         ]);
 
@@ -114,7 +116,7 @@ class ArchiverTest extends TestCase
 
         $this->archiver->uncompress('/testarchive.zip', '/result', $storage);
 
-        $this->assertStringContainsString('testarchive', (json_encode($storage->getDirectoryCollection('/'))));
-        $this->assertStringContainsString('onetwo', (json_encode($storage->getDirectoryCollection('/result'))));
+        $this->assertStringContainsString('testarchive', json_encode($storage->getDirectoryCollection('/')));
+        $this->assertStringContainsString('onetwo', json_encode($storage->getDirectoryCollection('/result')));
     }
 }

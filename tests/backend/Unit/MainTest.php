@@ -34,8 +34,8 @@ class MainTest extends TestCase
 
         $app = new App($config, $request, $response, $sresponse, $container);
 
-        $this->assertEquals($app->resolve(Config::class), $config);
-        $this->assertEquals($app->resolve(Request::class), $request);
+        $this->assertEquals($config, $app->resolve(Config::class));
+        $this->assertEquals($request, $app->resolve(Request::class));
         $this->assertInstanceOf(Response::class, $app->resolve(Response::class));
     }
 }

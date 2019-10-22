@@ -13,7 +13,6 @@ namespace Tests\Unit;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
-use Filegator\Services\Session\Session;
 use Filegator\Services\Session\SessionStorageInterface;
 use Tests\TestCase;
 
@@ -55,7 +54,7 @@ class AppTest extends TestCase
 
         $config = $this->getMockConfig();
 
-        $app1 = $this->bootFreshApp($config, $request1, null, true);
+        $this->bootFreshApp($config, $request1, null, true);
         $prev_session = $request1->getSession();
 
         // another request with previous session

@@ -20,7 +20,7 @@ class TmpfsTest extends TestCase
 {
     protected $service;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->resetTempDir();
         rmdir(TEST_TMP_PATH);
@@ -56,7 +56,7 @@ class TmpfsTest extends TestCase
 
         $contents = $this->service->read('a.txt');
 
-        $this->assertEquals($contents, 'lorem');
+        $this->assertEquals('lorem', $contents);
     }
 
     public function testReadingTmpFileContentsUsingStream()
@@ -67,7 +67,7 @@ class TmpfsTest extends TestCase
         $this->assertEquals($ret['filename'], 'a.txt');
 
         $contents = stream_get_contents($ret['stream']);
-        $this->assertEquals($contents, 'lorem');
+        $this->assertEquals('lorem', $contents);
     }
 
     public function testRemovingTmpFile()

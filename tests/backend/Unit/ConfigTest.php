@@ -34,12 +34,12 @@ class ConfigTest extends TestCase
 
         $config = new Config($sample);
 
-        $this->assertEquals($config->get(), $sample);
-        $this->assertEquals($config->get('test'), 'something');
-        $this->assertEquals($config->get('test2.deep'), 123);
-        $this->assertEquals($config->get('test3.sub.subsub'), 2);
-        $this->assertEquals($config->get('not-found'), null);
-        $this->assertEquals($config->get('not-found', 'default'), 'default');
-        $this->assertEquals($config->get('not.found', 'default'), 'default');
+        $this->assertEquals($sample, $config->get());
+        $this->assertEquals('something', $config->get('test'));
+        $this->assertEquals(123, $config->get('test2.deep'));
+        $this->assertEquals(2, $config->get('test3.sub.subsub'));
+        $this->assertNull($config->get('not-found'));
+        $this->assertEquals('default', $config->get('not-found', 'default'));
+        $this->assertEquals('default', $config->get('not.found', 'default'));
     }
 }

@@ -41,6 +41,6 @@ class DatabaseAuthTest extends AuthTest
                 [password] VARCHAR(255) NOT NULL
 
             )');
-        $ret = $this->conn->fetch('SELECT * FROM users WHERE username = ?', 'admin');
+        $this->conn->fetch('SELECT * FROM users WHERE username = ?', 'admin');
     }
 }

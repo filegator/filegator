@@ -75,7 +75,7 @@ trait TestResponse
 
         $constraint = new ArraySubset($subset, $checkForObjectIdentity);
 
-        static::assertThat($array, $constraint, $message);
+        self::assertThat($array, $constraint, $message);
     }
 
     public function getStatusCode()

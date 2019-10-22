@@ -11,7 +11,9 @@
 namespace Tests\Unit;
 
 use Filegator\Services\Storage\Filesystem;
+use League\Flysystem\Adapter\Local;
 use Tests\TestCase;
+use Exception;
 
 /**
  * @internal
@@ -24,7 +26,7 @@ class FilesystemTest extends TestCase
 
     protected $separator = '/';
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->resetTempDir();
 
@@ -34,19 +36,19 @@ class FilesystemTest extends TestCase
         $this->storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new \League\Flysystem\Adapter\Local(
+                return new Local(
                     TEST_REPOSITORY
                 );
             },
         ]);
     }
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         $this->resetTempDir();
     }
 
-    public function testGetDirectyoryFileCount()
+    public function testGetDirectoryFileCount()
     {
         $this->storage->createFile('/', '1.txt');
         $this->storage->createFile('/', '2.txt');
@@ -114,7 +116,7 @@ class FilesystemTest extends TestCase
         $ret = $this->storage->getDirectoryCollection('/john/johnsub');
         $ret->resetTimestamps();
 
-        $this->assertJsonStringEqualsJsonString(json_encode($ret), json_encode([
+        $this->assertJsonStringEqualsJsonString(json_encode([
             'location' => '/john/johnsub',
             'files' => [
                 0 => [
@@ -132,7 +134,7 @@ class FilesystemTest extends TestCase
                     'time' => 0,
                 ],
             ],
-        ]));
+        ]), json_encode($ret));
     }
 
     public function testHomeDirContentsUsingPathPrefix()
@@ -144,7 +146,7 @@ class FilesystemTest extends TestCase
         $ret = $this->storage->getDirectoryCollection('/');
         $ret->resetTimestamps(-1);
 
-        $this->assertJsonStringEqualsJsonString(json_encode($ret), json_encode([
+        $this->assertJsonStringEqualsJsonString(json_encode([
             'location' => '/',
             'files' => [
                 0 => [
@@ -162,7 +164,7 @@ class FilesystemTest extends TestCase
                     'time' => -1,
                 ],
             ],
-        ]));
+        ]), json_encode($ret));
     }
 
     public function testSubDirContentsUsingPathPrefix()
@@ -175,7 +177,7 @@ class FilesystemTest extends TestCase
 
         $ret->resetTimestamps();
 
-        $this->assertJsonStringEqualsJsonString(json_encode($ret), json_encode([
+        $this->assertJsonStringEqualsJsonString(json_encode([
             'location' => '/johnsub',
             'files' => [
                 0 => [
@@ -193,7 +195,7 @@ class FilesystemTest extends TestCase
                     'time' => 0,
                 ],
             ],
-        ]));
+        ]), json_encode($ret));
     }
 
     public function testStoringFileToRoot()
@@ -256,11 +258,11 @@ class FilesystemTest extends TestCase
 
         // first file is not overwritten
         $ret = $this->storage->readStream('singletone.txt');
-        $this->assertEquals(stream_get_contents($ret['stream']), 'lorem ipsum');
+        $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
 
         // second file is also here but with upcounted name
         $ret = $this->storage->readStream('singletone (1).txt');
-        $this->assertEquals(stream_get_contents($ret['stream']), 'croissant');
+        $this->assertEquals('croissant', stream_get_contents($ret['stream']));
     }
 
     public function testCreatingFileWithTheSameNameUpcountsFilenameRecursively()
@@ -350,16 +352,16 @@ class FilesystemTest extends TestCase
     public function testGetPathPrefix()
     {
         $this->storage->setPathPrefix('/john/');
-        $this->assertEquals($this->storage->getPathPrefix(), '/john/');
+        $this->assertEquals('/john/', $this->storage->getPathPrefix());
 
         $this->storage->setPathPrefix('/john');
-        $this->assertEquals($this->storage->getPathPrefix(), '/john/');
+        $this->assertEquals('/john/', $this->storage->getPathPrefix());
 
         $this->storage->setPathPrefix('john/');
-        $this->assertEquals($this->storage->getPathPrefix(), '/john/');
+        $this->assertEquals('/john/', $this->storage->getPathPrefix());
 
         $this->storage->setPathPrefix('john');
-        $this->assertEquals($this->storage->getPathPrefix(), '/john/');
+        $this->assertEquals('/john/', $this->storage->getPathPrefix());
     }
 
     public function testApplyPathPrefix()
@@ -471,12 +473,12 @@ class FilesystemTest extends TestCase
         $ret = $this->storage->readStream('a.txt');
 
         $this->assertEquals($ret['filename'], 'a.txt');
-        $this->assertTrue(is_resource($ret['stream']));
+        $this->assertIsResource($ret['stream']);
     }
 
     public function testReadFileStreamMissingFileThrowsException()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->storage->readStream('missing');
     }
@@ -485,7 +487,7 @@ class FilesystemTest extends TestCase
     {
         $this->storage->createDir('/', 'sub');
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->storage->readStream('sub');
     }
@@ -557,7 +559,7 @@ class FilesystemTest extends TestCase
 
     public function testRenameNonexistingFileThrowsException()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->storage->move('/', 'nonexisting.txt', 'a1.txt');
     }
@@ -629,7 +631,7 @@ class FilesystemTest extends TestCase
     {
         $this->storage->createDir('/', 'tmp');
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->storage->copyFile('/missing.txt', '/tmp/');
     }
 

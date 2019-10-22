@@ -15,6 +15,7 @@ use Filegator\Services\Auth\UsersCollection;
 use Filegator\Services\Storage\DirectoryCollection;
 use Filegator\Utils\Collection;
 use Tests\TestCase;
+use Exception;
 
 /**
  * @internal
@@ -27,7 +28,7 @@ class CollectionTest extends TestCase
         $mock->add('one');
         $mock->add('two');
 
-        $this->assertEquals($mock->length(), 2);
+        $this->assertEquals(2, $mock->length());
     }
 
     public function testDeleteFromCollection()
@@ -36,7 +37,7 @@ class CollectionTest extends TestCase
         $mock->add('one');
         $mock->delete('one');
 
-        $this->assertEquals($mock->length(), 0);
+        $this->assertEquals(0, $mock->length());
     }
 
     public function testSort()
@@ -46,15 +47,15 @@ class CollectionTest extends TestCase
         $mock->add(['val' => 'a']);
         $mock->add(['val' => 'c']);
 
-        $this->assertEquals($mock->all()[0]['val'], 'b');
+        $this->assertEquals('b', $mock->all()[0]['val']);
 
         $mock->sortByValue('val');
 
-        $this->assertEquals($mock->all()[0]['val'], 'a');
+        $this->assertEquals('a', $mock->all()[0]['val']);
 
         $mock->sortByValue('val', true);
 
-        $this->assertEquals($mock->all()[0]['val'], 'c');
+        $this->assertEquals('c', $mock->all()[0]['val']);
     }
 
     public function testUsersCollection()
@@ -69,7 +70,7 @@ class CollectionTest extends TestCase
         $mock->addUser($user2);
         $mock->addUser($user3);
 
-        $this->assertEquals($mock->length(), 3);
+        $this->assertEquals(3, $mock->length());
     }
 
     public function testUserSerialization()
@@ -81,7 +82,7 @@ class CollectionTest extends TestCase
 
         $json = json_encode($mock);
 
-        $this->assertEquals($json, '[{"val":"b"},{"val":"a"},{"val":"c"}]');
+        $this->assertEquals('[{"val":"b"},{"val":"a"},{"val":"c"}]', $json);
     }
 
     public function testDirectoryCollection()
@@ -95,9 +96,9 @@ class CollectionTest extends TestCase
 
         $json = json_encode($dir);
 
-        $this->assertEquals($json, '{"location":"\/sub1\/sub2","files":[{"type":"back","path":"\/sub1","name":"..","size":0,"time":1558942228},{"type":"dir","path":"\/sub1\/sub2\/sub3","name":"sub3","size":0,"time":1558942228},{"type":"file","path":"\/sub1\/sub2\/test.txt","name":"test.txt","size":30000,"time":1558942228},{"type":"file","path":"\/sub1\/sub2\/test2.txt","name":"test.txt","size":30000,"time":1558942228}]}');
+        $this->assertEquals('{"location":"\/sub1\/sub2","files":[{"type":"back","path":"\/sub1","name":"..","size":0,"time":1558942228},{"type":"dir","path":"\/sub1\/sub2\/sub3","name":"sub3","size":0,"time":1558942228},{"type":"file","path":"\/sub1\/sub2\/test.txt","name":"test.txt","size":30000,"time":1558942228},{"type":"file","path":"\/sub1\/sub2\/test2.txt","name":"test.txt","size":30000,"time":1558942228}]}', $json);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $dir->addFile('badType', 'aaa', 'aa', 0, 1558942228);
     }
 
@@ -110,6 +111,6 @@ class CollectionTest extends TestCase
 
         $json = json_encode($user);
 
-        $this->assertEquals($json, '[{"role":"guest","permissions":[],"homedir":"","username":"","name":""},{"role":"guest","permissions":[],"homedir":"","username":"","name":""}]');
+        $this->assertEquals('[{"role":"guest","permissions":[],"homedir":"","username":"","name":""},{"role":"guest","permissions":[],"homedir":"","username":"","name":""}]', $json);
     }
 }
