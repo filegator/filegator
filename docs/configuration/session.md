@@ -54,6 +54,23 @@ Then, open `configuration.php` and update Session handler to:
 ```
 Don't forget to enter correct database details.
 
+## Configuring Session service to use Redis
+
+You must require additional library `composer require predis/predis`
+
+```
+        'Filegator\Services\Session\SessionStorageInterface' => [
+            'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' => [
+                'handler' => function () {
+                    $predis = new \Predis\Client();
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler($predis);
+
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
+            ],
+        ],
+```
 
 ## Tweaking session options
 
