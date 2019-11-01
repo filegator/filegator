@@ -56,14 +56,14 @@ Don't forget to enter correct database details.
 
 ## Configuring Session service to use Redis
 
-You must require additional library `composer require predis/predis`
+You must require additional [predis](https://github.com/nrk/predis/) library `composer require predis/predis`
 
 ```
         'Filegator\Services\Session\SessionStorageInterface' => [
             'handler' => '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' => [
                 'handler' => function () {
-                    $predis = new \Predis\Client();
+                    $predis = new \Predis\Client('tcp://127.0.0.1:6379');
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler($predis);
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
