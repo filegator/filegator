@@ -169,12 +169,12 @@
 </code></pre>
 <p>Don't forget to enter correct database details.</p>
 <h2 id="configuring-session-service-to-use-redis">Configuring Session service to use Redis</h2>
-<p>You must require additional library <code>composer require predis/predis</code></p>
+<p>You must require additional <a href="https://github.com/nrk/predis/">predis</a> library <code>composer require predis/predis</code></p>
 <pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
             'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
             'config' =&gt; [
                 'handler' =&gt; function () {
-                    $predis = new \Predis\Client();
+                    $predis = new \Predis\Client('tcp://127.0.0.1:6379');
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler($predis);
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
