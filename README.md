@@ -23,6 +23,15 @@ If allowed, users can download multiple files or folders at once.
 
 File upload supports drag&drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server configuration.
 
+## Typical use cases
+- share a folder with colleagues, your team, friends or family
+- give students access to upload their work
+- allow workers to upload field data / docs / images
+- use as cloud backup
+- manage cdn with multiple people
+- use as ftp/sftp replacement
+- manage s3 or other 3rd party cloud storage
+- use to quickly zip and download remote files
 
 ## Demo
 [https://demo.filegator.io](https://demo.filegator.io)
