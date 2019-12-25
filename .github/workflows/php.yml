@@ -1,0 +1,23 @@
+name: PHP
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate
+
+    - name: Install dependencies
+      run: composer install --no-interaction
+    
+    - name: Copy configuration.php
+      run: cp configuration_sample.php configuration.php
+      
+    - name: Execute tests
+      run: vendor/bin/phpunit
