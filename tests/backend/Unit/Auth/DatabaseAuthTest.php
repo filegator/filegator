@@ -23,9 +23,9 @@ class DatabaseAuthTest extends AuthTest
     {
         $this->auth = new Database($this->session);
         $this->auth->init([
-            'driver' => 'pdo',
+            'driver' => 'sqlite',
             'dsn' => 'sqlite::memory:',
-            'database' => 'users',
+            'database' => 'tests/backend/tmp/temp/sqlite',
         ]);
 
         $this->conn = $this->auth->getConnection();
