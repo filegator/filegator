@@ -7,17 +7,24 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v1
+    strategy:
+      matrix:
+        php-version: ['7.1', '7.2', '7.3', '7.4']
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Setup PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v1
+      with:
+        php-version: ${{ matrix.php-version }}
 
     - name: Install dependencies
       run: composer install --no-interaction
-    
+
     - name: Copy configuration.php
       run: cp configuration_sample.php configuration.php
-      
+
     - name: Execute tests
       run: vendor/bin/phpunit
