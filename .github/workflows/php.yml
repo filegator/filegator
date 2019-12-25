@@ -19,7 +19,7 @@ jobs:
       uses: shivammathur/setup-php@v1
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: mbstring, zip
+        extensions: mbstring, zip, sqlite3
 
     - name: Install dependencies
       run: composer install --no-interaction
