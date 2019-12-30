@@ -1,5 +1,9 @@
 # Chanelog
 
+## 7.1.4 - 2019-12-30
+
+* npm updates, vue & vue-cli
+
 ## 7.1.3 - 2019-12-04
 
 * Symfony update, fixes CVE-2019-18888
