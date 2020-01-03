@@ -193,9 +193,9 @@ export default {
       return this.$store.state.cwd.content
     },
     totalCount() {
-      return _.sumBy(this.$store.state.cwd.content, (o) => {
+      return Number(_.sumBy(this.$store.state.cwd.content, (o) => {
         return o.type == 'file' || o.type == 'dir'
-      }) || 0
+      }))
     },
   },
   watch: {
