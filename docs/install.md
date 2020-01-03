@@ -11,7 +11,7 @@ Precompiled build is created for non-developers. In this version, the frontend (
 
 - Download: [v7.1.4](https://github.com/filegator/static/raw/master/builds/filegator_v7.1.4.zip)
 - Unzip files and upload them to your PHP server
-- Make sure you webserver can read and write to `/storage` and `/private` folders
+- Make sure your webserver can read and write to `/repository` and `/private` folders
 - Set the website document root to `/dist` directory. This is also known as 'public' folder.
 - Visit web page, if something goes wrong check `/private/logs/app.log`
 - Login with default credentials `admin/admin123`
