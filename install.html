@@ -139,15 +139,22 @@
 <li>Download: <a href="https://github.com/filegator/static/raw/master/builds/filegator_v7.1.4.zip">v7.1.4</a></li>
 <li>Unzip files and upload them to your PHP server</li>
 <li>Make sure your webserver can read and write to <code>/repository</code> and <code>/private</code> folders</li>
-<li>Set the website document root to <code>/dist</code> directory. This is also known as 'public' folder.</li>
+<li>Set the website document root to <code>/dist</code> directory. This is also known as 'public' folder</li>
 <li>Visit web page, if something goes wrong check <code>/private/logs/app.log</code></li>
 <li>Login with default credentials <code>admin/admin123</code></li>
 <li>Change default admin's password</li>
 </ul>
 <p>NOTE: For security reasons <code>/dist</code> is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.</p>
 <h2 id="upgrade">Upgrade</h2>
-<p>Since version 7 is completely rewriten from scratch, there is no clear upgrade path from the older versions.</p>
+<p>Since version 7 is completely rewriten from scratch, there is no clear upgrade path from older versions.</p>
 <p>If you have an older version of FileGator please backup everything and install the script again.</p>
+<p>Upgrade instructions for non-developers:</p>
+<ul>
+<li>Backup everythig</li>
+<li>Download the latest version</li>
+<li>Replace all files and folders except <code>repository/</code> and <code>private/</code></li>
+</ul>
+<p>Which versions am I running? Look for <code>APP_VERSION</code> inside <code>dist/index.php</code> file</p>
                 </section>
 
             </div>
