@@ -12,7 +12,7 @@ Precompiled build is created for non-developers. In this version, the frontend (
 - Download: [v7.1.4](https://github.com/filegator/static/raw/master/builds/filegator_v7.1.4.zip)
 - Unzip files and upload them to your PHP server
 - Make sure your webserver can read and write to `/repository` and `/private` folders
-- Set the website document root to `/dist` directory. This is also known as 'public' folder.
+- Set the website document root to `/dist` directory. This is also known as 'public' folder
 - Visit web page, if something goes wrong check `/private/logs/app.log`
 - Login with default credentials `admin/admin123`
 - Change default admin's password
@@ -21,8 +21,14 @@ NOTE: For security reasons `/dist` is the ONLY folder you want to be exposed thr
 
 ## Upgrade
 
-Since version 7 is completely rewriten from scratch, there is no clear upgrade path from the older versions.
+Since version 7 is completely rewriten from scratch, there is no clear upgrade path from older versions.
 
 If you have an older version of FileGator please backup everything and install the script again.
 
+Upgrade instructions for non-developers:
 
+- Backup everythig
+- Download the latest version
+- Replace all files and folders except `repository/` and `private/`
+
+Which versions am I running? Look for `APP_VERSION` inside `dist/index.php` file
