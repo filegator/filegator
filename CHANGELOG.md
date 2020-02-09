@@ -1,5 +1,9 @@
 # Chanelog
 
+## 7.1.5 - 2020-01-09
+
+* Translations added, Dutch, Chinese
+
 ## 7.1.4 - 2019-12-30
 
 * npm updates, vue & vue-cli

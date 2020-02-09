@@ -15,6 +15,8 @@ Available languages:
 - turkish
 - lithuanian
 - portuguese
+- dutch
+- chinese
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 
