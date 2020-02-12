@@ -8,15 +8,18 @@ Language is configured by adjusting `language` variable in your `configuration.p
 
 Available languages:
 
-- english (default)
-- spanish
-- german
-- indonesian
-- turkish
-- lithuanian
-- portuguese
-- dutch
-- chinese
+- ```english``` (default)
+- ```spanish```
+- ```german```
+- ```indonesian```
+- ```turkish```
+- ```lithuanian```
+- ```portuguese```
+- ```dutch```
+- ```chinese``` (simplified)
+- ```bulgarian```
+- ```serbian```
+- ```french```
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 

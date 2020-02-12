@@ -1,5 +1,9 @@
 # Chanelog
 
+## 7.1.6 - 2020-01-12
+
+* Translations added, Bulgarian, Serbian, French
+
 ## 7.1.5 - 2020-01-09
 
 * Translations added, Dutch, Chinese
