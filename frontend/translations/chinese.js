@@ -70,6 +70,7 @@ const data = {
   'Updated': '已上传',
   'Deleted': '已删除',
   'Your file is ready': '您的文件已备妥',
+  'View': 'View',
 }
 
 export default data

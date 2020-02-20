@@ -70,6 +70,7 @@ const data = {
   'Updated': 'Atnaujintas',
   'Deleted': 'Ištrintas',
   'Your file is ready': 'Jūsų failas paruoštas',
+  'View': 'View',
 }
 
 export default data

@@ -198,6 +198,16 @@ const api = {
         .catch(error => reject(error))
     })
   },
+  saveContent (params) {
+    return new Promise((resolve, reject) => {
+      axios.post('savecontent', {
+        name: params.name,
+        content: params.content,
+      })
+        .then(res => resolve(res.data))
+        .catch(error => reject(error))
+    })
+  },
 }
 
 export default api

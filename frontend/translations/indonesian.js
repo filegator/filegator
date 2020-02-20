@@ -70,6 +70,7 @@ const data = {
   'Updated': 'Diperbarui',
   'Deleted': 'Dihapus',
   'Your file is ready': 'File Anda sudah siap',
+  'View': 'View',
 }
 
 export default data

@@ -170,4 +170,25 @@ class FileController
 
         return $response->json('Done');
     }
+
+    public function saveContent(Request $request, Response $response)
+    {
+        $path = $request->input('dir', $this->session->get(self::SESSION_CWD, $this->separator));
+
+        $name = $request->input('name');
+        $content = $request->input('content');
+
+        $stream = tmpfile();
+        fwrite($stream, $content);
+        rewind($stream);
+
+        $res = $this->storage->deleteFile($path.$this->separator.$name);
+        $res = $this->storage->store($path, $name, $stream);
+
+        if (is_resource($stream)) {
+            fclose($stream);
+        }
+
+        return $response->json('Done');
+    }
 }

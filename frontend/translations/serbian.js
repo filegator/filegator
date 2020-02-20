@@ -70,6 +70,7 @@ const data = {
   'Updated': 'Izmenjeno',
   'Deleted': 'Obrisano',
   'Your file is ready': 'Vaš fajl je spreman',
+  'View': 'View',
 }
 
 export default data

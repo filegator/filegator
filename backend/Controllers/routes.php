@@ -256,4 +256,15 @@ return [
         'permissions' => [
         ],
     ],
+    [
+        'route' => [
+            'POST', '/savecontent', '\Filegator\Controllers\FileController@saveContent',
+        ],
+        'roles' => [
+            'guest', 'user', 'admin',
+        ],
+        'permissions' => [
+            'read', 'write',
+        ],
+    ],
 ];

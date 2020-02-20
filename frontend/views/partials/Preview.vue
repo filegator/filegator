@@ -13,6 +13,9 @@
       </div>
     </section>
     <footer class="modal-card-foot">
+      <button v-if="isText() && can(['write'])" class="button" type="button" @click="saveFile()">
+        {{ lang('Save') }}
+      </button>
       <button class="button" type="button" @click="$parent.close()">
         {{ lang('Close') }}
       </button>
@@ -54,6 +57,20 @@ export default {
     hasExtension(exts) {
       return (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(this.item.path)
     },
+    saveFile() {
+      api.saveContent({
+        name: this.item.name,
+        content: this.content,
+      })
+        .then(() => {
+          this.$toast.open({
+            message: this.lang('Updated'),
+            type: 'is-success',
+          })
+          this.$parent.close()
+        })
+        .catch(error => this.handleError(error))
+    }
   },
 }
 </script>

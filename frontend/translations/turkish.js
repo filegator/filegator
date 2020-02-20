@@ -70,6 +70,7 @@ const data = {
   'Updated': 'Güncellendi',
   'Deleted': 'Silindi',
   'Your file is ready': 'Dosyanız Hazır',
+  'View': 'View',
 }
 
 export default data

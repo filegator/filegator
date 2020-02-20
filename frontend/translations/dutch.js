@@ -70,6 +70,7 @@ const data = {
   'Updated': 'Aangepast',
   'Deleted': 'Verwijderd',
   'Your file is ready': 'Uw bestand is verwerkt',
+  'View': 'View',
 }
 
 export default data

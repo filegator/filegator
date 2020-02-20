@@ -70,6 +70,7 @@ const data = {
   'Updated': 'Atualizado',
   'Deleted': 'Excluido',
   'Your file is ready': 'Seu arquivo está pronto',
+  'View': 'View',
 }
 
 export default data

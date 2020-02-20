@@ -586,4 +586,49 @@ class FilesTest extends TestCase
 
         $this->assertOk();
     }
+
+    public function testUpdateFileContent()
+    {
+        $username = 'john@example.com';
+        $this->signIn($username, 'john123');
+
+        mkdir(TEST_REPOSITORY.'/john');
+        file_put_contents(TEST_REPOSITORY.'/john/john.txt', 'lorem ipsum');
+
+        $this->sendRequest('POST', '/savecontent', [
+            'name' => 'john.txt',
+            'content' => 'lorem ipsum new'
+        ]);
+
+        $this->assertOk();
+
+        $updated = file_get_contents(TEST_REPOSITORY.'/john/john.txt');
+
+        $this->assertEquals($updated, 'lorem ipsum new');
+    }
+
+    public function testUpdateFileContentInSubDir()
+    {
+        $username = 'john@example.com';
+        $this->signIn($username, 'john123');
+
+        mkdir(TEST_REPOSITORY.'/john');
+        mkdir(TEST_REPOSITORY.'/john/sub');
+        file_put_contents(TEST_REPOSITORY.'/john/sub/john.txt', 'lorem ipsum');
+
+        $this->sendRequest('POST', '/changedir', [
+            'to' => '/sub/',
+        ]);
+
+        $this->sendRequest('POST', '/savecontent', [
+            'name' => 'john.txt',
+            'content' => 'lorem ipsum new'
+        ]);
+
+        $this->assertOk();
+
+        $updated = file_get_contents(TEST_REPOSITORY.'/john/sub/john.txt');
+
+        $this->assertEquals($updated, 'lorem ipsum new');
+    }
 }
