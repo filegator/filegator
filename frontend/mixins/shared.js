@@ -122,6 +122,18 @@ const funcs = {
     getDownloadLink(path) {
       return Vue.config.baseURL+'/download&path='+encodeURIComponent(Base64.encode(path))
     },
+    hasPreview(name) {
+      return this.isText(name) || this.isImage(name)
+    },
+    isText(name) {
+      return this.hasExtension(name, ['.txt', '.html', '.css', '.js', '.ts', '.php'])
+    },
+    isImage(name) {
+      return this.hasExtension(name, ['.jpg', '.jpeg', '.gif', '.png'])
+    },
+    hasExtension(name, exts) {
+      return (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(name)
+    },
   }
 }
 

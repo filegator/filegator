@@ -113,7 +113,7 @@
                 <b-dropdown-item v-if="props.row.type == 'file' && can('download')" aria-role="listitem" @click="download(props.row)">
                   <b-icon icon="download" size="is-small" /> {{ lang('Download') }}
                 </b-dropdown-item>
-                <b-dropdown-item v-if="props.row.type == 'file' && can(['read', 'download'])" aria-role="listitem" @click="preview(props.row)">
+                <b-dropdown-item v-if="props.row.type == 'file' && can(['download']) && hasPreview(props.row.path)" aria-role="listitem" @click="preview(props.row)">
                   <b-icon icon="file-alt" size="is-small" /> {{ lang('View') }}
                 </b-dropdown-item>
                 <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="copy($event, props.row)">
@@ -252,8 +252,10 @@ export default {
     itemClick(item) {
       if (item.type == 'dir' || item.type == 'back') {
         this.goTo(item.path)
-      } else if (this.can(['read', 'download'])) {
+      } else if (this.can(['download']) && this.hasPreview(item.path)) {
         this.preview(item)
+      } else if (this.can(['download'])) {
+        this.download(item)
       }
     },
     selectDir() {

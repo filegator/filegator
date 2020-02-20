@@ -7,13 +7,13 @@
       </p>
     </header>
     <section class="modal-card-body preview">
-      <textarea v-if="isText()" v-model="content" class="textarea" name="content" rows="20" />
-      <div v-if="isImage()" class="image">
+      <textarea v-if="isText(item.path)" v-model="content" class="textarea" name="content" rows="20" />
+      <div v-if="isImage(item.path)" class="image">
         <img :src="content">
       </div>
     </section>
     <footer class="modal-card-foot">
-      <button v-if="isText() && can(['write'])" class="button" type="button" @click="saveFile()">
+      <button v-if="isText(item.path) && can(['write'])" class="button" type="button" @click="saveFile()">
         {{ lang('Save') }}
       </button>
       <button class="button" type="button" @click="$parent.close()">
@@ -35,7 +35,7 @@ export default {
     }
   },
   mounted() {
-    if (this.isText()) {
+    if (this.isText(this.item.path)) {
       api.downloadItem({
         path: this.item.path,
       })
@@ -43,20 +43,11 @@ export default {
           this.content = res
         })
         .catch(error => this.handleError(error))
-    } else if (this.isImage()) {
+    } else if (this.isImage(this.item.path)) {
       this.content =this.getDownloadLink(this.item.path)
     }
   },
   methods: {
-    isText() {
-      return this.hasExtension(['.txt', '.html', '.css', '.js', '.ts', '.php'])
-    },
-    isImage() {
-      return this.hasExtension(['.jpg', '.jpeg', '.gif', '.png'])
-    },
-    hasExtension(exts) {
-      return (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(this.item.path)
-    },
     saveFile() {
       api.saveContent({
         name: this.item.name,
