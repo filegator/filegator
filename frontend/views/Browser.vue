@@ -113,6 +113,9 @@
                 <b-dropdown-item v-if="props.row.type == 'file' && can('download')" aria-role="listitem" @click="download(props.row)">
                   <b-icon icon="download" size="is-small" /> {{ lang('Download') }}
                 </b-dropdown-item>
+                <b-dropdown-item v-if="props.row.type == 'file' && can('read')" aria-role="listitem" @click="preview(props.row)">
+                  <b-icon icon="file-alt" size="is-small" /> {{ lang('View') }}
+                </b-dropdown-item>
                 <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="copy($event, props.row)">
                   <b-icon icon="copy" size="is-small" /> {{ lang('Copy') }}
                 </b-dropdown-item>
@@ -151,11 +154,11 @@
 import Vue from 'vue'
 import Menu from './partials/Menu'
 import Tree from './partials/Tree'
+import Preview from './partials/Preview'
 import Pagination from './partials/Pagination'
 import Upload from './partials/Upload'
 import api from '../api/api'
 import VueClipboard from 'vue-clipboard2'
-import { Base64 } from 'js-base64'
 import _ from 'lodash'
 
 Vue.use(VueClipboard)
@@ -250,7 +253,7 @@ export default {
       if (item.type == 'dir' || item.type == 'back') {
         this.goTo(item.path)
       } else {
-        this.download(item)
+        this.preview(item)
       }
     },
     selectDir() {
@@ -335,17 +338,19 @@ export default {
           this.handleError(error)
         })
     },
-    getDownloadLink(item) {
-      return Vue.config.baseURL+'/download&path='+encodeURIComponent(Base64.encode(item.path))
-    },
     download(item) {
-      window.open(this.getDownloadLink(item), '_blank')
+      window.open(this.getDownloadLink(item.path), '_blank')
     },
     search() {
       // TODO: create search logic
     },
-    edit() {
-      // TODO: create edit file logic
+    preview(item) {
+      this.$modal.open({
+        parent: this,
+        props: { item: item },
+        hasModalCard: true,
+        component: Preview,
+      })
     },
     isArchive(item) {
       return item.type == 'file' && item.name.split('.').pop() == 'zip'

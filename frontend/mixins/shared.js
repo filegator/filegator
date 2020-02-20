@@ -1,6 +1,8 @@
+import Vue from 'vue'
 import moment from 'moment'
 import store from '../store.js'
 import api from '../api/api'
+import { Base64 } from 'js-base64'
 
 import english from '../translations/english'
 import spanish from '../translations/spanish'
@@ -46,7 +48,7 @@ const funcs = {
       let args = rest
       if(!available_languages[language] || available_languages[language][term] == undefined) {
         // translation required
-        return 'TR: '+term
+        return term
       }
       return available_languages[language][term].replace(/{(\d+)}/g, function(match, number) {
         return typeof args[number] != 'undefined'
@@ -116,7 +118,10 @@ const funcs = {
         type: 'is-danger',
         duration: 5000,
       })
-    }
+    },
+    getDownloadLink(path) {
+      return Vue.config.baseURL+'/download&path='+encodeURIComponent(Base64.encode(path))
+    },
   }
 }
 

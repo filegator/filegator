@@ -78,6 +78,19 @@ class DownloadController
             'binary'
         );
 
+        // @codeCoverageIgnoreStart
+        if (APP_ENV == 'development') {
+            $streamedResponse->headers->set(
+                'Access-Control-Allow-Origin',
+                $request->headers->get('Origin')
+            );
+            $streamedResponse->headers->set(
+                'Access-Control-Allow-Credentials',
+                'true'
+            );
+        }
+        // @codeCoverageIgnoreEnd
+
         // close session so we can continue streaming, note: dev is single-threaded
         $this->session->save();
 
