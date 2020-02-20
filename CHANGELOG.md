@@ -1,5 +1,9 @@
 # Chanelog
 
+## 7.2.0 - 2020-02-20
+
+* File preview & edit feature added (preview images, edit txt files)
+
 ## 7.1.6 - 2020-01-12
 
 * Translations added, Bulgarian, Serbian, French
