@@ -24,6 +24,15 @@ describe('Browser', () => {
     cy.contains('My Documents')
   })
 
+  it('Preview & edit txt file', () => {
+    cy.visit('/')
+    cy.contains('read_only_demo.txt')
+    cy.get('.dropdown').last().click()
+    cy.get('.fa-file-alt').last().click()
+    cy.contains('Close')
+    cy.contains('Save')
+  })
+
   it('Go to subfolder', () => {
     cy.visit('/')
     cy.contains('My Documents').click()
