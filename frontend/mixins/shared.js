@@ -74,7 +74,7 @@ const funcs = {
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
     },
     formatDate(timestamp) {
-      return moment.unix(timestamp).format('YY/MM/DD hh:mm:ss')
+      return moment.unix(timestamp).format(store.state.config.date_format ? store.state.config.date_format : 'YY/MM/DD hh:mm:ss')
     },
     checkUser() {
       api.getUser()
@@ -126,10 +126,10 @@ const funcs = {
       return this.isText(name) || this.isImage(name)
     },
     isText(name) {
-      return this.hasExtension(name, ['.txt', '.html', '.css', '.js', '.ts', '.php'])
+      return this.hasExtension(name, store.state.config.editable ? store.state.config.editable : ['.txt'])
     },
     isImage(name) {
-      return this.hasExtension(name, ['.jpg', '.jpeg', '.gif', '.png'])
+      return this.hasExtension(name, ['.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff'])
     },
     hasExtension(name, exts) {
       return (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(name)

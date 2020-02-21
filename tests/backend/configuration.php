@@ -12,6 +12,8 @@ return [
         'upload_chunk_size' => 1 * 1024 * 1024,
         'upload_simultaneous' => 3,
         'default_archive_name' => 'archive.zip',
+        'editable' => ['.txt', '.css', '.js', '.ts', '.html', '.php'],
+        'date_format' => 'YY/MM/DD hh:mm:ss',
     ],
 
     'services' => [

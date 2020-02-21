@@ -154,7 +154,8 @@
 import Vue from 'vue'
 import Menu from './partials/Menu'
 import Tree from './partials/Tree'
-import Preview from './partials/Preview'
+import Editor from './partials/Editor'
+import Gallery from './partials/Gallery'
 import Pagination from './partials/Pagination'
 import Upload from './partials/Upload'
 import api from '../api/api'
@@ -347,11 +348,18 @@ export default {
       // TODO: create search logic
     },
     preview(item) {
+      let modal = null
+      if (this.isImage(item.path)) {
+        modal = Gallery
+      }
+      if (this.isText(item.path)) {
+        modal = Editor
+      }
       this.$modal.open({
         parent: this,
         props: { item: item },
         hasModalCard: true,
-        component: Preview,
+        component: modal,
       })
     },
     isArchive(item) {

@@ -84,6 +84,10 @@ html, body, #wrapper, #inner, .container {
   justify-content: flex-end;
 }
 
+.animation-content {
+  width: 100%;
+}
+
 @media all and (max-width: 1088px) {
   .container {
     padding: 20px;
