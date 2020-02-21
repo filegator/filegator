@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "core-js": "^3.4.4",
-    "js-base64": "^2.5.1"
+    "js-base64": "^2.5.1",
+    "prismjs": "^1.19.0",
+    "vue-prism-editor": "^0.5.1"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.12.0",

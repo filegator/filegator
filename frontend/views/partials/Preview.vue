@@ -1,37 +1,47 @@
 /* eslint-disable */
 <template>
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">
-        {{ item.name }}
-      </p>
-    </header>
-    <section class="modal-card-body preview">
-      <textarea v-if="isText(item.path)" v-model="content" class="textarea" name="content" rows="20" />
-      <div v-if="isImage(item.path)" class="image">
-        <img :src="content">
-      </div>
-    </section>
-    <footer class="modal-card-foot">
-      <button v-if="isText(item.path) && can(['write'])" class="button" type="button" @click="saveFile()">
-        {{ lang('Save') }}
-      </button>
-      <button class="button" type="button" @click="$parent.close()">
-        {{ lang('Close') }}
-      </button>
-    </footer>
+  <div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">
+          {{ item.name }}
+        </p>
+      </header>
+      <section class="modal-card-body preview">
+        <template v-if="isText(item.path)">
+          <prism-editor v-model="content" :readonly="!can('write')" :line-numbers="lineNumbers" />
+        </template>
+        <div v-if="isImage(item.path)" class="image">
+          <img :src="content">
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button v-if="isText(item.path) && can('write')" class="button" type="button" @click="saveFile()">
+          {{ lang('Save') }}
+        </button>
+        <button class="button" type="button" @click="$parent.close()">
+          {{ lang('Close') }}
+        </button>
+      </footer>
+    </div>
   </div>
 </template>
 
 <script>
 import api from '../../api/api'
+import 'prismjs'
+import 'prismjs/themes/prism.css'
+import 'vue-prism-editor/dist/VuePrismEditor.css'
+import PrismEditor from 'vue-prism-editor'
 
 export default {
   name: 'Preview',
+  components: { PrismEditor },
   props: [ 'item' ],
   data() {
     return {
       content: '',
+      lineNumbers: true,
     }
   },
   mounted() {
@@ -67,6 +77,13 @@ export default {
 </script>
 
 <style scoped>
+@media (min-width: 1100px) {
+  .modal-card {
+    width: 100%;
+    min-width: 640px;
+  }
+}
+
 .preview {
   min-height: 450px;
 }
