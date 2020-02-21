@@ -6,6 +6,7 @@ import Buefy from 'buefy'
 import shared from './mixins/shared'
 import axios from 'axios'
 import api from './api/api'
+import VueLazyload from 'vue-lazyload'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/css/fontawesome.css'
 
@@ -24,6 +25,11 @@ axios.defaults.headers['Content-Type'] = 'application/json'
 Vue.use(Buefy, {
   defaultIconPack: 'fas',
 })
+
+Vue.use(VueLazyload, {
+  preLoad: 1.3,
+})
+
 
 Vue.mixin(shared)
 

@@ -19,7 +19,7 @@
             <div v-if="images.length > 1" class="column is-one-fifth sidebox">
               <ul>
                 <li v-for="(image, index) in images" :key="index">
-                  <img :src="imageSrc(image.path)" @click="currentItem = image">
+                  <img v-lazy="imageSrc(image.path)" @click="currentItem = image">
                 </li>
               </ul>
             </div>
