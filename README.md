@@ -23,6 +23,10 @@ If allowed, users can download multiple files or folders at once.
 
 File upload supports drag&drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server configuration.
 
+Preview and edit files (New!)
+
+Image gallery (New!)
+
 ## Typical use cases
 - share a folder with colleagues, your team, friends or family
 - give students access to upload their work

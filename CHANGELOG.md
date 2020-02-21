@@ -1,5 +1,11 @@
 # Chanelog
 
+## 7.2.1 - 2020-02-21
+
+* Better editor & image gallery
+* New config: `editable` (file extensions that can be opened with editor)
+* New config: `date_format`
+
 ## 7.2.0 - 2020-02-20
 
 * File preview & edit feature added (preview images, edit txt files)
