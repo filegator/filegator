@@ -24,7 +24,7 @@
           {{ lang('Login') }}
         </a>
         <a v-if="!is('guest')" class="navbar-item" @click="profile">
-          {{ lang('Profile') }}
+          {{ this.$store.state.user.name }}
         </a>
         <a v-if="!is('guest')" class="navbar-item" @click="logout">
           {{ lang('Logout') }}

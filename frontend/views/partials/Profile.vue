@@ -2,7 +2,7 @@
   <div class="modal-card">
     <header class="modal-card-head">
       <p class="modal-card-title">
-        {{ $store.state.user.name }}
+        {{ lang('Profile') }}
       </p>
     </header>
     <section class="modal-card-body">

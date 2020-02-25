@@ -52,7 +52,7 @@ describe('Browser', () => {
     cy.contains('a.navbar-item', 'Files')
     cy.contains('a.navbar-item', 'Users')
     cy.contains('a.navbar-item', 'Log out')
-    cy.contains('a.navbar-item', 'Profile').click()
+    cy.contains('a.navbar-item', 'Admin').click()
     cy.contains('.modal', 'Old password')
     cy.contains('.modal', 'New password')
     cy.get('.modal-close').click()
