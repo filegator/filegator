@@ -16,6 +16,7 @@ import chinese from '../translations/chinese'
 import bulgarian from '../translations/bulgarian'
 import serbian from '../translations/serbian'
 import french from '../translations/french'
+import slovak from '../translations/slovak'
 
 const funcs = {
   methods: {
