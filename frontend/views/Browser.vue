@@ -25,10 +25,10 @@
             </ul>
           </div>
           <div>
-            <a class="search-btn" @click="search">
+            <a id="search" class="search-btn" @click="search">
               <b-icon icon="search" size="is-small" />
             </a>
-            <a class="is-paddingless" @click="selectDir">
+            <a id="sitemap" class="is-paddingless" @click="selectDir">
               <b-icon icon="sitemap" size="is-small" />
             </a>
           </div>

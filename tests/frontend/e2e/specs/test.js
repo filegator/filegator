@@ -130,4 +130,14 @@ describe('Browser', () => {
     cy.contains('Close').click()
   })
 
+  it('Search', () => {
+    cy.viewport(1024, 768)
+    cy.visit('/')
+    cy.contains('My Documents').click()
+    cy.get('#search').click()
+    cy.contains('Search')
+    cy.contains('Name')
+    cy.contains('Close').click()
+  })
+
 })
