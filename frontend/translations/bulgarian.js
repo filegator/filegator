@@ -71,6 +71,7 @@ const data = {
   'Deleted': 'изтрити',
   'Your file is ready': 'Вашия файл е готов',
   'View': 'View',
+  'Search': 'Search',
 }
 
 export default data

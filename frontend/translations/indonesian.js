@@ -71,6 +71,7 @@ const data = {
   'Deleted': 'Dihapus',
   'Your file is ready': 'File Anda sudah siap',
   'View': 'View',
+  'Search': 'Search',
 }
 
 export default data

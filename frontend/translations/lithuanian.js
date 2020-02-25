@@ -71,6 +71,7 @@ const data = {
   'Deleted': 'Ištrintas',
   'Your file is ready': 'Jūsų failas paruoštas',
   'View': 'View',
+  'Search': 'Search',
 }
 
 export default data

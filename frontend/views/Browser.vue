@@ -25,8 +25,11 @@
             </ul>
           </div>
           <div>
-            <a id="sitemap" class="is-paddingless" @click="selectDir">
-              <b-icon icon="sitemap" class="is-marginless" size="is-small" />
+            <a class="search-btn" @click="search">
+              <b-icon icon="search" size="is-small" />
+            </a>
+            <a class="is-paddingless" @click="selectDir">
+              <b-icon icon="sitemap" size="is-small" />
             </a>
           </div>
         </div>
@@ -156,6 +159,7 @@ import Menu from './partials/Menu'
 import Tree from './partials/Tree'
 import Editor from './partials/Editor'
 import Gallery from './partials/Gallery'
+import Search from './partials/Search'
 import Pagination from './partials/Pagination'
 import Upload from './partials/Upload'
 import api from '../api/api'
@@ -345,7 +349,16 @@ export default {
       window.open(this.getDownloadLink(item.path), '_blank')
     },
     search() {
-      // TODO: create search logic
+      this.$modal.open({
+        parent: this,
+        hasModalCard: true,
+        component: Search,
+        events: {
+          selected: item => {
+            this.goTo(item.dir)
+          }
+        },
+      })
     },
     preview(item) {
       let modal = null
@@ -574,5 +587,8 @@ export default {
 }
 .drop-info {
   margin: 20% auto;
+}
+.search-btn {
+  margin-right: 10px;
 }
 </style>

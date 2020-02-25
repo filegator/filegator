@@ -71,6 +71,7 @@ const data = {
   'Deleted': 'Obrisano',
   'Your file is ready': 'Vaš fajl je spreman',
   'View': 'View',
+  'Search': 'Search',
 }
 
 export default data

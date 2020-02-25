@@ -71,6 +71,7 @@ const data = {
   'Deleted': 'Silindi',
   'Your file is ready': 'Dosyanız Hazır',
   'View': 'View',
+  'Search': 'Search',
 }
 
 export default data
