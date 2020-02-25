@@ -1,5 +1,9 @@
 # Chanelog
 
+## 7.3.0 - 2020-02-25
+
+* Search feature
+
 ## 7.2.1 - 2020-02-21
 
 * Better editor & image gallery
