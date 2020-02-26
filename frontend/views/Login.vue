@@ -13,7 +13,7 @@
             </div>
             <br>
             <b-field :label="lang('Username')">
-              <b-input v-model="username" name="username" required @input="error = ''" />
+              <b-input v-model="username" name="username" required @input="error = ''" ref="username" />
             </b-field>
             <b-field :label="lang('Password')">
               <b-input v-model="password" type="password" name="password" required @input="error = ''" />
@@ -46,6 +46,9 @@ export default {
       password: '',
       error: '',
     }
+  },
+  mounted() {
+    this.$refs.username.focus()
   },
   methods: {
     login() {
