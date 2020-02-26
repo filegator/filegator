@@ -54,7 +54,7 @@ const data = {
   'Write': 'Zapisovanie',
   'Upload': 'Nahrávanie',
   'Permissions': 'Oprávnenia',
-  'Homedir': 'Domovský adresár',
+  'Homedir': 'Hlavný adresár',
   'Leave blank for no change': 'Ak nechcete zmeniť nechajte prázdne',
   'Are you sure you want to do this?': 'Naozaj to chcete urobiť?',
   'Are you sure you want to allow access to everyone?': 'Naozaj chcete povoliť prístup bez hesla?',
