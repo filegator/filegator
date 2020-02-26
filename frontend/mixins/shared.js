@@ -42,6 +42,7 @@ const funcs = {
         'bulgarian': bulgarian,
         'serbian': serbian,
         'french': french,
+        'slovak': slovak,
       }
 
       let language = store.state.config.language
