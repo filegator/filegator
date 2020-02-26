@@ -22,7 +22,7 @@ Note: if you've made a mistake in configuration file (forgot to close a quote?) 
         'upload_simultaneous' => 3,
         'default_archive_name' => 'archive.zip',
         'editable' => ['.txt', '.css', '.js', '.ts', '.html', '.php'],
-        'date_format' => 'YY/MM/DD hh:mm:ss',
+        'date_format' => 'YY/MM/DD hh:mm:ss', // see: https://momentjs.com/docs/#/displaying/format/
     ],
 ```
 
