@@ -33,7 +33,7 @@ const data = {
   'Batch Download': 'Hromadné sťahovanie',
   'Unzip': 'Rozbaliť zip archív',
   'Delete': 'Vymazať',
-  'Download': 'Sťahovať',
+  'Download': 'Stiahnuť',
   'Copy link': 'Skopírovať odkaz',
   'Done': 'Hotovo',
   'File': 'Súbor',
@@ -50,9 +50,9 @@ const data = {
   'User': 'Používateľ',
   'Admin': 'Admin',
   'Save': 'Uložiť',
-  'Read': 'Čitať',
-  'Write': 'Zapisovať',
-  'Upload': 'Nahrať',
+  'Read': 'Čitanie',
+  'Write': 'Zapisovanie',
+  'Upload': 'Nahrávanie',
   'Permissions': 'Oprávnenia',
   'Homedir': 'Domovský adresár',
   'Leave blank for no change': 'Ak nechcete zmeniť nechajte prázdne',
@@ -72,8 +72,8 @@ const data = {
   'Your file is ready': 'Váš súbor je pripravený',
   'View': 'Zobraziť',
   'Search': 'Vyhľadávanie',
-  'Download permission': 'Sťahovať',
-  'Guest': 'Guest',
+  'Download permission': 'Sťahovanie',
+  'Guest': 'Hosť',
 }
 
 export default data
