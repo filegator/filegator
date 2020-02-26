@@ -20,6 +20,7 @@ Available languages:
 - ```bulgarian```
 - ```serbian```
 - ```french```
+- ```slovak```
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 

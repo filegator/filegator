@@ -24,6 +24,10 @@ if (! is_writable(__DIR__.'/../repository/')) {
     die;
 }
 
+if (! file_exists(__DIR__.'/../configuration.php')) {
+    copy(__DIR__.'/../configuration_sample.php', __DIR__.'/../configuration.php');
+}
+
 require __DIR__.'/../vendor/autoload.php';
 
 if (! defined('APP_ENV')) {
