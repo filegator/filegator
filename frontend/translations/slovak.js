@@ -30,7 +30,7 @@ const data = {
   'Rename': 'Premenovať',
   'Required': 'Vyplňte toto pole',
   'Zip': 'Archivovať do zip',
-  'Batch Download': 'Hromadné sťahovanie',
+  'Batch Download': 'Hromadné stiahnutie',
   'Unzip': 'Rozbaliť zip archív',
   'Delete': 'Vymazať',
   'Download': 'Stiahnuť',
