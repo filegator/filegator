@@ -40,7 +40,7 @@
         </b-table-column>
 
         <b-table-column :label="lang('Role')" field="role" sortable>
-          {{ props.row.role }}
+          {{ lang(capitalize(props.row.role)) }}
         </b-table-column>
 
         <b-table-column>

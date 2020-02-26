@@ -48,7 +48,7 @@
               {{ lang('Upload') }}
             </b-checkbox>
             <b-checkbox v-model="permissions.download">
-              {{ lang('Download') }}
+              {{ lang('Download permission') }}
             </b-checkbox>
             <b-checkbox v-model="permissions.batchdownload">
               {{ lang('Batch Download') }}

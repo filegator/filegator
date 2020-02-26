@@ -72,6 +72,8 @@ const data = {
   'Your file is ready': 'Seu arquivo está pronto',
   'View': 'View',
   'Search': 'Search',
+  'Download permission': 'Download',
+  'Guest': 'Guest',
 }
 
 export default data

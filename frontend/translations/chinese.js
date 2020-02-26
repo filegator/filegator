@@ -72,6 +72,8 @@ const data = {
   'Your file is ready': '您的文件已备妥',
   'View': 'View',
   'Search': 'Search',
+  'Download permission': '下载',
+  'Guest': 'Guest',
 }
 
 export default data

@@ -8,7 +8,7 @@
     <section class="modal-card-body">
       <b-input ref="input" v-model="term" @input="searchFiles" :placeholder="lang('Name')" />
       <br>
-      <b-loading :is-full-page="false" :active.sync="searching"></b-loading>
+      <b-loading :is-full-page="false" :active.sync="searching" />
       <ul ref="results">
         <li v-for="(item, index) in results" :key="index">
           <a @click="select(item)">{{ item.file.path }}</a>

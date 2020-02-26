@@ -72,6 +72,8 @@ const data = {
   'Your file is ready': 'Vaš fajl je spreman',
   'View': 'View',
   'Search': 'Search',
+  'Download permission': 'Preuzimanje',
+  'Guest': 'Gost',
 }
 
 export default data

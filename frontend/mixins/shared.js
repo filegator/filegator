@@ -136,6 +136,9 @@ const funcs = {
     hasExtension(name, exts) {
       return (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(name)
     },
+    capitalize(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1)
+    },
   }
 }
 

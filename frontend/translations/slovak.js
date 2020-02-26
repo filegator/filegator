@@ -72,6 +72,8 @@ const data = {
   'Your file is ready': 'Váš súbor je pripravený',
   'View': 'Zobraziť',
   'Search': 'Vyhľadávanie',
+  'Download permission': 'Sťahovať',
+  'Guest': 'Guest',
 }
 
 export default data
