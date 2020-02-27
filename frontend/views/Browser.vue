@@ -246,7 +246,7 @@ export default {
         .catch(error => this.handleError(error))
     },
     goTo(path) {
-      this.$router.push({ name: 'browser', query: { 'cd': path }})
+      this.$router.push({ name: 'browser', query: { 'cd': path }}).catch(() => {})
     },
     getSelected() {
       return _.reduce(this.checked, function(result, value) {

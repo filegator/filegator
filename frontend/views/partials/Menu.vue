@@ -58,7 +58,7 @@ export default {
           api.getUser()
             .then(user => {
               this.$store.commit('setUser', user)
-              this.$router.push('/login')
+              this.$router.push('/')
             })
             .catch(() => {
               this.$store.commit('initialize')
