@@ -1,9 +1,14 @@
 # Chanelog
 
+## Upcoming...
+
+* Fixes #31
+* Password reveal added to login screen
+
 ## 7.3.1 - 2020-02-26
 
-* fixes for #41 #42 #43 #45 #46 #47
-* slovak translation (thanks @jannyba)
+* Fixes for #41 #42 #43 #45 #46 #47
+* Slovak translation (thanks @jannyba)
 
 ## 7.3.0 - 2020-02-25
 
