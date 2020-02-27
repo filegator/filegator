@@ -48,7 +48,7 @@ At the end, the more people who can see and test a set of code, the more likely 
 
 ## Show your support
 
-Please star this repository on [GitHub](https://github.com/filegator/filegator) if this project helped you!
+Please star this repository on [GitHub](https://github.com/filegator/filegator/stargazers) if this project helped you!
 
 ## License
 

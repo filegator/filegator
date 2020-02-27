@@ -19,6 +19,12 @@ Precompiled build is created for non-developers. In this version, the frontend (
 
 NOTE: For security reasons `/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.
 
+
+## Show your support
+
+Please star this repository on [GitHub](https://github.com/filegator/filegator/stargazers) if this project helped you!
+
+
 ## Upgrade
 
 Since version 7 is completely rewriten from scratch, there is no clear upgrade path from older versions.
