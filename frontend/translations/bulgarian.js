@@ -71,7 +71,7 @@ const data = {
   'Deleted': 'Изтрити',
   'Your file is ready': 'Вашия файл е готов',
   'View': 'Преглед',
-  'Search': 'Търси,
+  'Search': 'Търси',
   'Download permission': 'Свали',
   'Guest': 'Гост',
 }
