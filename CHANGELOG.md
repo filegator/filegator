@@ -2,8 +2,12 @@
 
 ## Upcoming...
 
-* Fixes #31
+## 7.3.2 - 2020-03-06
+
+* View PDF files in the browser (thanks @pauloklaus)
+* Fixes #31 #51
 * Password reveal added to login screen
+* Language fix
 
 ## 7.3.1 - 2020-02-26
 
