@@ -65,13 +65,21 @@ class DownloadController
             // @codeCoverageIgnoreEnd
         });
 
+        $contentDisposition = HeaderUtils::DISPOSITION_ATTACHMENT;
+        $contentType = 'application/octet-stream';
+
+        if (pathinfo($file['filename'], PATHINFO_EXTENSION) == 'pdf') {
+            $contentDisposition = HeaderUtils::DISPOSITION_INLINE;
+            $contentType = 'application/pdf';
+        }
+
         $streamedResponse->headers->set(
             'Content-Disposition',
-            HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $file['filename'], 'file')
+            $contentDisposition
         );
         $streamedResponse->headers->set(
             'Content-Type',
-            'application/octet-stream'
+            $contentType
         );
         $streamedResponse->headers->set(
             'Content-Transfer-Encoding',
