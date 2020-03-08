@@ -2,6 +2,11 @@
 
 ## Upcoming...
 
+## 7.3.3 - 2020-03-08
+
+* Download filename bugfix
+* Language fix
+
 ## 7.3.2 - 2020-03-06
 
 * View PDF files in the browser (thanks @pauloklaus)
