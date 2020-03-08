@@ -15,6 +15,7 @@ use Filegator\Config\Config;
 use Filegator\Container\Container;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
+use Filegator\Kernel\StreamedResponse;
 use Filegator\Services\Session\Session;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage;
@@ -36,6 +37,8 @@ class TestCase extends BaseTestCase
     use TestResponse;
 
     public $response;
+
+    public $streamedResponse;
 
     public $previous_session = false;
 
@@ -74,6 +77,7 @@ class TestCase extends BaseTestCase
         $app = $this->bootFreshApp(null, $fakeRequest, null, true);
 
         $this->response = $app->resolve(Response::class);
+        $this->streamedResponse = $app->resolve(StreamedResponse::class);
 
         return $app;
     }

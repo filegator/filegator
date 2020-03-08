@@ -10,8 +10,8 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use Exception;
+use Tests\TestCase;
 
 /**
  * @internal
@@ -148,7 +148,7 @@ class FilesTest extends TestCase
         $this->assertOk();
     }
 
-    public function testDownloadFile()
+    public function testDownloadFileHeaders()
     {
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
@@ -158,6 +158,30 @@ class FilesTest extends TestCase
 
         $path_encoded = base64_encode('john.txt');
         $this->sendRequest('GET', '/download&path='.$path_encoded);
+
+        $headers = $this->streamedResponse->headers;
+        $this->assertEquals($headers->get('content-disposition'), "attachment; filename=file; filename*=utf-8''john.txt");
+        $this->assertEquals($headers->get('content-type'), 'application/octet-stream');
+        $this->assertEquals($headers->get('content-transfer-encoding'), 'binary');
+
+        $this->assertOk();
+    }
+
+    public function testDownloadPDFFileHeaders()
+    {
+        $username = 'john@example.com';
+        $this->signIn($username, 'john123');
+
+        mkdir(TEST_REPOSITORY.'/john');
+        touch(TEST_REPOSITORY.'/john/john.pdf', $this->timestamp);
+
+        $path_encoded = base64_encode('john.pdf');
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
+
+        $headers = $this->streamedResponse->headers;
+        $this->assertEquals($headers->get('content-disposition'), "inline; filename=file; filename*=utf-8''john.pdf");
+        $this->assertEquals($headers->get('content-type'), 'application/pdf');
+        $this->assertEquals($headers->get('content-transfer-encoding'), 'binary');
 
         $this->assertOk();
     }
@@ -597,7 +621,7 @@ class FilesTest extends TestCase
 
         $this->sendRequest('POST', '/savecontent', [
             'name' => 'john.txt',
-            'content' => 'lorem ipsum new'
+            'content' => 'lorem ipsum new',
         ]);
 
         $this->assertOk();
@@ -622,7 +646,7 @@ class FilesTest extends TestCase
 
         $this->sendRequest('POST', '/savecontent', [
             'name' => 'john.txt',
-            'content' => 'lorem ipsum new'
+            'content' => 'lorem ipsum new',
         ]);
 
         $this->assertOk();
