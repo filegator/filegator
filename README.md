@@ -39,7 +39,7 @@ Image gallery (New!)
       </td>
       <td align="center" valign="middle">
         <a href="https://www.getping.info/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
-          <img title="Trigger an email notification with a simple GET request" width="177px" src="https://www.getping.info/images/logo.png">
+          <img title="Trigger an email notification with a simple GET request" width="177px" src="https://www.getping.info/img/logo.png">
         </a>
       </td>
       <td align="center" valign="middle">
