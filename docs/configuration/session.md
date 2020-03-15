@@ -43,7 +43,7 @@ Then, open `configuration.php` and update Session handler to:
             'config' => [
                 'handler' => function () {
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-                            'mysql://root:password@localhost:3360/filegator'
+                            'mysql://root:password@localhost:3306/filegator'
                             );
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
@@ -82,7 +82,7 @@ For example you can pass `cookie_lifetime` parameter to extend default session l
             'config' => [
                 'handler' => function () {
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-                            'mysql://root:password@localhost:3360/filegator'
+                            'mysql://root:password@localhost:3306/filegator'
                             );
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
