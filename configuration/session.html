@@ -159,7 +159,7 @@
             'config' =&gt; [
                 'handler' =&gt; function () {
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-                            'mysql://root:password@localhost:3360/filegator'
+                            'mysql://root:password@localhost:3306/filegator'
                             );
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
@@ -189,7 +189,7 @@ For example you can pass <code>cookie_lifetime</code> parameter to extend defaul
             'config' =&gt; [
                 'handler' =&gt; function () {
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-                            'mysql://root:password@localhost:3360/filegator'
+                            'mysql://root:password@localhost:3306/filegator'
                             );
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
