@@ -182,8 +182,8 @@ class FileController
         fwrite($stream, $content);
         rewind($stream);
 
-        $res = $this->storage->deleteFile($path.$this->separator.$name);
-        $res = $this->storage->store($path, $name, $stream);
+        $this->storage->deleteFile($path.$this->separator.$name);
+        $this->storage->store($path, $name, $stream);
 
         if (is_resource($stream)) {
             fclose($stream);

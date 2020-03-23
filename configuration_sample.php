@@ -3,6 +3,7 @@
 return [
     'public_path' => APP_PUBLIC_PATH,
     'public_dir' => APP_PUBLIC_DIR,
+    'overwrite_on_upload' => false,
 
     'frontend_config' => [
         'app_name' => 'FileGator',

@@ -65,6 +65,8 @@ class UploadController
 
         $file = $request->files->get('file');
 
+        $overwrite_on_upload = (bool) $this->config->get('overwrite_on_upload', false);
+
         if (! $file || ! $file->isValid() || $file->getSize() > $this->config->get('frontend_config.upload_max_size')) {
             return $response->json('Bad file', 422);
         }
@@ -103,7 +105,7 @@ class UploadController
             }
 
             $final = $this->tmpfs->readStream($file_name);
-            $res = $this->storage->store($destination, $final['filename'], $final['stream']);
+            $res = $this->storage->store($destination, $final['filename'], $final['stream'], $overwrite_on_upload);
 
             // cleanup
             $this->tmpfs->remove($file_name);

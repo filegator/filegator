@@ -161,12 +161,16 @@ class Filesystem implements Service
         return $this->storage->rename($from, $to);
     }
 
-    public function store(string $path, string $name, $resource): bool
+    public function store(string $path, string $name, $resource, bool $overwrite = false): bool
     {
         $destination = $this->joinPaths($this->applyPathPrefix($path), $name);
 
         while ($this->storage->has($destination)) {
-            $destination = $this->upcountName($destination);
+            if ($overwrite) {
+                $this->deleteFile($destination);
+            } else {
+                $destination = $this->upcountName($destination);
+            }
         }
 
         return $this->storage->putStream($destination, $resource);

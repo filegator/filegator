@@ -3,6 +3,7 @@
 return [
     'public_path' => '',
     'public_dir' => __DIR__.'/../../dist',
+    'overwrite_on_upload' => false,
 
     'frontend_config' => [
         'app_name' => 'FileGator',

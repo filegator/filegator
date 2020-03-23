@@ -10,10 +10,10 @@
 
 namespace Tests\Unit;
 
+use Exception;
 use Filegator\Services\Storage\Filesystem;
 use League\Flysystem\Adapter\Local;
 use Tests\TestCase;
-use Exception;
 
 /**
  * @internal
@@ -262,6 +262,33 @@ class FilesystemTest extends TestCase
 
         // second file is also here but with upcounted name
         $ret = $this->storage->readStream('singletone (1).txt');
+        $this->assertEquals('croissant', stream_get_contents($ret['stream']));
+    }
+
+    public function testStoringFileWithTheSameNameOverwritesOriginalFile()
+    {
+        // create dummy file
+        $string = 'lorem ipsum';
+        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+
+        // and store it
+        $this->storage->store('/', 'singletone.txt', $resource);
+        fclose($resource);
+
+        // first file contains lorem ipsum
+        $ret = $this->storage->readStream('singletone.txt');
+        $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
+
+        // create another dummy file
+        $string = 'croissant';
+        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+
+        // and store it with the same name
+        $this->storage->store('/', 'singletone.txt', $resource, true);
+        fclose($resource);
+
+        // first file is overwritten
+        $ret = $this->storage->readStream('singletone.txt');
         $this->assertEquals('croissant', stream_get_contents($ret['stream']));
     }
 
