@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+## 7.3.4 - 2020-03-23
+
 * New config param: overwrite files on upload
 
 ## 7.3.3 - 2020-03-08
