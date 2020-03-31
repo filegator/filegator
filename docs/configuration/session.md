@@ -4,7 +4,7 @@ currentMenu: sessions
 
 ## Default Session handler
 
-Session handling is provided through the Symfony's [HttpFoundation](https://symfony.com/doc/current/components/http_foundation.html) component. Please check their docs for more info.
+Session handling is provided through the Symfony's [HttpFoundation](https://symfony.com/doc/4.4/components/http_foundation.html) component. Please check their docs for more info.
 
 Default session handler will user PHP's built in file storage. You can also specify your own `$save_path` to store session files.
 
