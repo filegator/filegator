@@ -19,6 +19,32 @@ Precompiled build is created for non-developers. In this version, the frontend (
 
 NOTE: For security reasons `/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.
 
+## Install on fresh Ubuntu 18.04 or Debian 10.3
+```
+apt update
+apt install -y wget unzip apache2 php libapache2-mod-php php-zip
+
+cd /var/www/
+wget https://github.com/filegator/static/raw/master/builds/filegator_v7.3.4.zip
+unzip filegator_v7.3.4.zip && rm filegator_v7.3.4.zip
+
+chown -R www-data:www-data filegator/
+chmod -R 775 filegator/
+
+echo "
+<VirtualHost *:80>
+    DocumentRoot /var/www/filegator/dist
+    ServerName filegator.example.com
+</VirtualHost>
+" >> /etc/apache2/sites-available/filegator.conf
+
+a2dissite 000-default.conf
+a2ensite filegator.conf
+systemctl restart apache2
+```
+Open your browser and go to http://your.server.ip.address/filegator
+
+
 
 ## Show your support
 
