@@ -145,6 +145,28 @@
 <li>Change default admin's password</li>
 </ul>
 <p>NOTE: For security reasons <code>/dist</code> is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.</p>
+<h2 id="install-on-fresh-ubuntu-1804-or-debian-103">Install on fresh Ubuntu 18.04 or Debian 10.3</h2>
+<pre><code>apt update
+apt install -y wget unzip apache2 php libapache2-mod-php php-zip
+
+cd /var/www/
+wget https://github.com/filegator/static/raw/master/builds/filegator_v7.3.4.zip
+unzip filegator_v7.3.4.zip &amp;&amp; rm filegator_v7.3.4.zip
+
+chown -R www-data:www-data filegator/
+chmod -R 775 filegator/
+
+echo "
+&lt;VirtualHost *:80&gt;
+    DocumentRoot /var/www/filegator/dist
+    ServerName filegator.example.com
+&lt;/VirtualHost&gt;
+" &gt;&gt; /etc/apache2/sites-available/filegator.conf
+
+a2dissite 000-default.conf
+a2ensite filegator.conf
+systemctl restart apache2</code></pre>
+<p>Open your browser and go to <a href="http://your.server.ip.address/filegator">http://your.server.ip.address/filegator</a></p>
 <h2 id="show-your-support">Show your support</h2>
 <p>Please star this repository on <a href="https://github.com/filegator/filegator/stargazers">GitHub</a> if this project helped you!</p>
 <h2 id="upgrade">Upgrade</h2>
