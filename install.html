@@ -146,6 +146,7 @@
 </ul>
 <p>NOTE: For security reasons <code>/dist</code> is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.</p>
 <h2 id="install-on-fresh-ubuntu-1804-or-debian-103">Install on fresh Ubuntu 18.04 or Debian 10.3</h2>
+<p>On a new server, login as root and copy/paste this into the shell:</p>
 <pre><code>apt update
 apt install -y wget unzip apache2 php libapache2-mod-php php-zip
 
@@ -159,14 +160,14 @@ chmod -R 775 filegator/
 echo "
 &lt;VirtualHost *:80&gt;
     DocumentRoot /var/www/filegator/dist
-    ServerName filegator.example.com
 &lt;/VirtualHost&gt;
 " &gt;&gt; /etc/apache2/sites-available/filegator.conf
 
 a2dissite 000-default.conf
 a2ensite filegator.conf
-systemctl restart apache2</code></pre>
-<p>Open your browser and go to <a href="http://your.server.ip.address/filegator">http://your.server.ip.address/filegator</a></p>
+systemctl restart apache2
+</code></pre>
+<p>Open your browser and go to <a href="http://your_server_ip_address">http://your_server_ip_address</a></p>
 <h2 id="show-your-support">Show your support</h2>
 <p>Please star this repository on <a href="https://github.com/filegator/filegator/stargazers">GitHub</a> if this project helped you!</p>
 <h2 id="upgrade">Upgrade</h2>
