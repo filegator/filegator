@@ -92,8 +92,10 @@ This is read-only demo with guest account enabled.
 - Framework free [™](https://www.youtube.com/watch?v=L5jI9I03q8E)
 
 
-## Requirements
+## Minimum Requirements
 - PHP 7.1.3+
+
+See [install instructinos](https://docs.filegator.io/install.html) for Ubuntu 18.04 or Debian 10.3. Get $100 in ([server credits here](https://m.do.co/c/93994ebda78d)) so you can play around.
 
 
 ## Download precompiled build
@@ -116,8 +118,6 @@ composer install
 npm install
 npm run build
 ```
-
-We also have a sample docker image [here](https://github.com/filegator/demo)
 
 
 ## Compiles and hot-reloads

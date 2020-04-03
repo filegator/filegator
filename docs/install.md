@@ -2,7 +2,7 @@
 currentMenu: install
 ---
 
-## Requirements
+## Minimum Requirements
 - PHP 7.1.3+
 
 
@@ -11,16 +11,16 @@ Precompiled build is created for non-developers. In this version, the frontend (
 
 - Download: [v7.3.4](https://github.com/filegator/static/raw/master/builds/filegator_v7.3.4.zip)
 - Unzip files and upload them to your PHP server
-- Make sure your webserver can read and write to `/repository` and `/private` folders
-- Set the website document root to `/dist` directory. This is also known as 'public' folder
-- Visit web page, if something goes wrong check `/private/logs/app.log`
+- Make sure your webserver can read and write to `filegator/repository/` and `filegator/private/` folders
+- Set the website document root to `filegator/dist/` directory. This is also known as 'public' folder
+- Visit web page, if something goes wrong check `filegator/private/logs/app.log`
 - Login with default credentials `admin/admin123`
 - Change default admin's password
 
 NOTE: For security reasons `/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.
 
 ## Install on fresh Ubuntu 18.04 or Debian 10.3
-On a new server, login as root and copy/paste this into the shell:
+On a new server ([get $100 in credits for servers here](https://m.do.co/c/93994ebda78d)) login as root and copy/paste this into the shell:
 ```
 apt update
 apt install -y wget unzip apache2 php libapache2-mod-php php-zip
@@ -42,6 +42,7 @@ a2dissite 000-default.conf
 a2ensite filegator.conf
 systemctl restart apache2
 
+exit
 ```
 Open your browser and go to http://your_server_ip_address
 
