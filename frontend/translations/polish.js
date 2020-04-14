@@ -1,8 +1,8 @@
 const data = {
-  'Selected': 'Selected: {0} of {1}',
-  'Uploading files': 'Uploading {0}% of {1}',
-  'File size error': '{0} is too large, please upload files less than {1}',
-  'Upload failed': '{0} failed to upload',
+  'Selected': 'Wybrano: {0} z {1}',
+  'Uploading files': 'Przesyłanie {0}% z {1}',
+  'Błąd rozmiaru pliku': '{0} jest za duży, prześlij mniejszy plik {1}',
+  'Upload failed': '{0} plików nie udało się przesłać',
   'Per page': '{0} Na stronę',
   'Folder': 'Folder',
   'Login failed, please try again': 'Zły login lub hasło.',
@@ -75,5 +75,7 @@ const data = {
   'Download permission': 'Download',
   'Guest': 'Gość',
 }
+
+export default data
 
 export default data
