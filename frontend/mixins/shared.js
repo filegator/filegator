@@ -17,6 +17,7 @@ import bulgarian from '../translations/bulgarian'
 import serbian from '../translations/serbian'
 import french from '../translations/french'
 import slovak from '../translations/slovak'
+import polish from '../translations/polish'
 
 const funcs = {
   methods: {
@@ -43,6 +44,7 @@ const funcs = {
         'serbian': serbian,
         'french': french,
         'slovak': slovak,
+		'polish': polish,
       }
 
       let language = store.state.config.language
