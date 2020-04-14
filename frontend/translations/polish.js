@@ -75,3 +75,5 @@ const data = {
   'Download permission': 'Download',
   'Guest': 'Gość',
 }
+
+export default data
