@@ -131,12 +131,12 @@
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
                     <h2 id="project-setup-for-development-linux">Project setup for development (Linux)</h2>
 <p>You must have <code>git</code>, <code>php</code>, <code>npm</code>, and <code>composer</code> installed.</p>
-<pre><code>git clone git@github.com:filegator/filegator.git
+<pre><code>git clone https://github.com/filegator/filegator.git
 cd filegator
 cp configuration_sample.php configuration.php
-sudo chmod -R 777 private/
-sudo chmod -R 777 repository/
-composer install
+chmod -R 775 private/
+chmod -R 775 repository/
+composer install --ignore-platform-reqs
 npm install
 npm run build</code></pre>
 <h2 id="compiles-and-hot-reloads">Compiles and hot-reloads</h2>
@@ -144,7 +144,7 @@ npm run build</code></pre>
 <pre><code>npm run serve</code></pre>
 <p>Once everything is ready visit: <code>http://localhost:8080</code></p>
 <h2 id="run-tests-amp-static-analysis">Run tests &amp; static analysis</h2>
-<p>Testing requires xdebug and sqlite php extensions.</p>
+<p>Testing requires xdebug, php-zip and sqlite php extensions.</p>
 <pre><code>vendor/bin/phpunit
 vendor/bin/phpstan analyse ./backend
 npm run lint
