@@ -7,12 +7,12 @@ currentMenu: development
 You must have `git`, `php`, `npm`, and `composer` installed.
 
 ```
-git clone git@github.com:filegator/filegator.git
+git clone https://github.com/filegator/filegator.git
 cd filegator
 cp configuration_sample.php configuration.php
-sudo chmod -R 777 private/
-sudo chmod -R 777 repository/
-composer install
+chmod -R 775 private/
+chmod -R 775 repository/
+composer install --ignore-platform-reqs
 npm install
 npm run build
 ```
@@ -28,7 +28,7 @@ Once everything is ready visit: `http://localhost:8080`
 
 ## Run tests & static analysis
 
-Testing requires xdebug and sqlite php extensions.
+Testing requires xdebug, php-zip and sqlite php extensions.
 
 ```
 vendor/bin/phpunit
