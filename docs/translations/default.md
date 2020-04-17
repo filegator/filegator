@@ -22,6 +22,7 @@ Available languages:
 - ```french```
 - ```slovak```
 - ```polish```
+- ```italian```
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 
