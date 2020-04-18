@@ -151,7 +151,7 @@
 </ul>
 <p>Please help us translating FileGator to your language by submitting a Pull Request on GitHub.</p>
 <h2 id="how-to-translate">How to translate</h2>
-<p>Default language file is located under <code>frontend/translations/english.js</code> You can add more languages in the same folder. Once your language file is in place, it needs to be added to <code>frontend/mixins/shared.js</code> and then you can use it by adjusting <code>language</code> variable in your <code>configuration.php</code> file.</p>
+<p>First, you must setup the project like desribed in 'Development' section. Default language file is located under <code>frontend/translations/english.js</code> You can add more languages in the same folder. Once your language file is in place, it needs to be added to <code>frontend/mixins/shared.js</code>. After this, recompile everything with <code>npm run build</code> and then you can use it by adjusting <code>language</code> variable in your <code>configuration.php</code> file.</p>
 <p>You should only translate value on the right, for example:</p>
 <pre><code>'Close': 'Schliessen',</code></pre>
 <p>Default language file:</p>
