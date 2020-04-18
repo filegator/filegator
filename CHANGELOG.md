@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+## 7.3.5 - 2020-04-18
+
 * Translations added: Polish, Italian
 * Bump symfony, dibi
 
