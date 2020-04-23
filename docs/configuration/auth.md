@@ -60,9 +60,9 @@ At the end, open `configuration.php` and update AuthInterface handler to reflect
 
 ## Custom Authentication using 3rd party
 
-If you want to use FileGator as a part of another application, you probably already have users stored somewhere else. What you need in this case is to build a new custom Auth adapter that matches the (AuthInterface)[https://github.com/filegator/filegator/blob/master/backend/Services/Auth/AuthInterface.php] to connect those two. Basically, this new adapter will try to authenticate users in your application and store a (User)[https://github.com/filegator/filegator/blob/master/backend/Services/Auth/User.php] object into the filegator's session.
+If you want to use FileGator as a part of another application, you probably already have users stored somewhere else. What you need in this case is to build a new custom Auth adapter that matches the [AuthInterface](https://github.com/filegator/filegator/blob/master/backend/Services/Auth/AuthInterface.php) to connect those two. This new adapter will try to authenticate users in your application and store a [User](https://github.com/filegator/filegator/blob/master/backend/Services/Auth/User.php) object into the filegator's session.
 
-Please look at this simplest (demo auth adapter)[https://github.com/filegator/demo_auth_adapter] to see how all this works.
+Please look at this simplest [demo auth adapter](https://github.com/filegator/demo_auth_adapter) to see how all this works.
 
 
 ## API authentication
