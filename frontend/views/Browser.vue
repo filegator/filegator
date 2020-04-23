@@ -86,7 +86,7 @@
                  :per-page="perPage"
                  :current-page.sync="currentPage"
                  :hoverable="true"
-                 :is-row-checkable="(row) => row.type != 'back'"
+                 :is-row-checkable="isRowCheckable"
                  :row-class="(row) => 'file-row type-'+row.type"
                  :checked-rows.sync="checked"
                  :loading="isLoading"
@@ -274,6 +274,12 @@ export default {
           }
         },
       })
+    },
+    isRowCheckable(row) {
+      if (row.type == 'back')
+        return false
+
+      return (this.can('batchDownload') || this.can('write') || this.can('zip'))
     },
     copy(event, item) {
       this.$modal.open({
