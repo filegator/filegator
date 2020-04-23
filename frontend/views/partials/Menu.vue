@@ -4,7 +4,9 @@
       <a class="navbar-item logo" @click="$router.push('/')">
         <img :src="this.$store.state.config.logo">
       </a>
-
+      <div v-if="appName" class="navbar-text">
+        {{ appName }}
+      </div>
       <a :class="[navbarActive ? 'is-active' : '', 'navbar-burger burger']" role="button" aria-label="menu" aria-expanded="false" @click="navbarActive = !navbarActive">
         <span aria-hidden="true" />
         <span aria-hidden="true" />
@@ -43,6 +45,7 @@ export default {
   data() {
     return {
       navbarActive: false,
+      appName: this.$store.state.config.app_name
     }
   },
   mounted() {
@@ -86,6 +89,13 @@ export default {
 <style scoped>
 .navbar {
   z-index: 10;
+  border-bottom: 1px solid #999;
+  margin-bottom: 10px;
+}
+.navbar-text {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0 20px;
 }
 @media all and (max-width: 1088px) {
   .logo {
