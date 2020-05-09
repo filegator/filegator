@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="!$store.state.config.guest_redirection">
     <a v-if="can('read')" id="back-arrow" @click="$router.push('/')">
       <b-icon icon="times" />
     </a>
@@ -48,6 +48,10 @@ export default {
     }
   },
   mounted() {
+    if (this.$store.state.config.guest_redirection) {
+      window.location.href = this.$store.state.config.guest_redirection
+      return
+    }
     this.$refs.username.focus()
   },
   methods: {

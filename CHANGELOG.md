@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+* New config: 'guest_redirection' (useful for external auth adapters)
+* More css classes so the elements can be easily hidden (e.g. add_to_head style)
+
 ## 7.3.5 - 2020-04-18
 
 * Translations added: Polish, Italian

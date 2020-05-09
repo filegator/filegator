@@ -15,6 +15,7 @@ return [
         'default_archive_name' => 'archive.zip',
         'editable' => ['.txt', '.css', '.js', '.ts', '.html', '.php'],
         'date_format' => 'YY/MM/DD hh:mm:ss',
+        'guest_redirection' => '', // useful for external auth adapters
     ],
 
     'services' => [

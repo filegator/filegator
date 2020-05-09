@@ -7,6 +7,7 @@
     "upload_max_size": 104857600,
     "upload_chunk_size": 1048576,
     "upload_simultaneous": 3,
-    "default_archive_name": "archive.zip"
+    "default_archive_name": "archive.zip",
+    "guest_redirection": ""
   }
 }
