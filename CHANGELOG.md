@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+## 7.4.0 - 2020-05-09 ✌️
+
 * WordPress Auth adapter is now included in the main repo
 * New config: 'guest_redirection' (useful for external auth adapters)
 * More css classes so the elements can be easily hidden (e.g. add_to_head style)

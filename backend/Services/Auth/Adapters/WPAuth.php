@@ -15,6 +15,9 @@ use Filegator\Services\Auth\User;
 use Filegator\Services\Auth\UsersCollection;
 use Filegator\Services\Service;
 
+/**
+ * @codeCoverageIgnore
+ */
 class WPAuth implements Service, AuthInterface
 {
 
