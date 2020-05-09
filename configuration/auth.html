@@ -169,9 +169,30 @@ VALUES
                 'database' =&gt; 'filegator',
             ],
         ],</code></pre>
-<h2 id="custom-authentication-using-3rd-party-wordpress-or-similar">Custom Authentication using 3rd party (WordPress or similar)</h2>
+<h2 id="configuring-auth-service-to-use-wordpress">Configuring Auth service to use WordPress</h2>
+<p>Replace your current Auth handler in <code>configuration.php</code> file like this:</p>
+<pre><code>        'Filegator\Services\Auth\AuthInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Auth\Adapters\WPAuth',
+            'config' =&gt; [
+                'wp_dir' =&gt; '/var/www/my_wordpress_site/',
+                'permissions' =&gt; ['read', 'write', 'upload', 'download', 'batchdownload', 'zip'],
+                'private_repos' =&gt; false,
+            ],
+        ],</code></pre>
+<p>Adjust in the config above:</p>
+<ul>
+<li><code>wp_dir</code> should be the directory path of your wordpress installation</li>
+<li><code>permissions</code> is the array of permissions given to each user</li>
+<li><code>private_repos</code> each user will have its own sub folder, admin will see everything (false/true)</li>
+</ul>
+<p>Note: With more recent versions of FileGator you can set <code>guest_redirection</code> in your <code>configuration.php</code> to redirect logged-out users back to your WP site:</p>
+<pre><code>'frontend_config' =&gt; [
+  ...
+    'guest_redirection' =&gt; 'http://example.com/wp-admin/',
+  ...
+]</code></pre>
+<h2 id="custom-authentication-using-3rd-party">Custom Authentication using 3rd party</h2>
 <p>If you want to use FileGator as a part of another application, you probably already have users stored somewhere else. What you need in this case is to build a new custom Auth adapter that matches the <a href="https://github.com/filegator/filegator/blob/master/backend/Services/Auth/AuthInterface.php">AuthInterface</a> to connect those two. This new adapter will try to authenticate users in your application and translate each user into filegator <a href="https://github.com/filegator/filegator/blob/master/backend/Services/Auth/User.php">User</a> object.</p>
-<p>You can look at this simple <a href="https://github.com/filegator/wp_auth_adapter">WordPress auth adapter</a> to see how all this works.</p>
 <h2 id="api-authentication">API authentication</h2>
 <p>Front-end will use session based authentication to authenticate and consume the back-end.</p>
 <p>Note: The application will not work if you disable cookies.</p>
