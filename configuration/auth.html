@@ -170,7 +170,8 @@ VALUES
             ],
         ],</code></pre>
 <h2 id="configuring-auth-service-to-use-wordpress">Configuring Auth service to use WordPress</h2>
-<p>Replace your current Auth handler in <code>configuration.php</code> file like this:</p>
+<p>This adapter allows WordPress users to use FileGator.</p>
+<p>Replace your current Auth handler in <code>configuration.php</code> file with this:</p>
 <pre><code>        'Filegator\Services\Auth\AuthInterface' =&gt; [
             'handler' =&gt; '\Filegator\Services\Auth\Adapters\WPAuth',
             'config' =&gt; [
@@ -185,12 +186,14 @@ VALUES
 <li><code>permissions</code> is the array of permissions given to each user</li>
 <li><code>private_repos</code> each user will have its own sub folder, admin will see everything (false/true)</li>
 </ul>
-<p>Note: With more recent versions of FileGator you can set <code>guest_redirection</code> in your <code>configuration.php</code> to redirect logged-out users back to your WP site:</p>
+<p>With more recent versions of FileGator you can set <code>guest_redirection</code> in your <code>configuration.php</code> to redirect logged-out users back to your WP site:</p>
 <pre><code>'frontend_config' =&gt; [
   ...
     'guest_redirection' =&gt; 'http://example.com/wp-admin/',
   ...
 ]</code></pre>
+<p>Note: If your blog and FileGator are not on the same domain or subdomain, you have to customize cookie domain in wp-config.php</p>
+<pre><code>define('COOKIE_DOMAIN', '.domain.com')</code></pre>
 <h2 id="custom-authentication-using-3rd-party">Custom Authentication using 3rd party</h2>
 <p>If you want to use FileGator as a part of another application, you probably already have users stored somewhere else. What you need in this case is to build a new custom Auth adapter that matches the <a href="https://github.com/filegator/filegator/blob/master/backend/Services/Auth/AuthInterface.php">AuthInterface</a> to connect those two. This new adapter will try to authenticate users in your application and translate each user into filegator <a href="https://github.com/filegator/filegator/blob/master/backend/Services/Auth/User.php">User</a> object.</p>
 <h2 id="api-authentication">API authentication</h2>
