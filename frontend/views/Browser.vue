@@ -90,7 +90,7 @@
                  :row-class="(row) => 'file-row type-'+row.type"
                  :checked-rows.sync="checked"
                  :loading="isLoading"
-                 checkable
+                 :checkable="can('batchDownload') || can('write') || can('zip')"
         >
           <template slot-scope="props">
             <b-table-column :label="lang('Name')" :custom-sort="sortByName" field="data.name" sortable>
