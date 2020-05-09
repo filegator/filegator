@@ -43,7 +43,7 @@
                 </a>
               </b-upload>
             </b-field>
-            <a v-if="can(['read', 'write']) && ! checked.length" class="is-inline-block">
+            <a v-if="can(['read', 'write']) && ! checked.length" class="add-new is-inline-block">
               <b-dropdown :disabled="checked.length > 0" aria-role="list">
                 <span slot="trigger">
                   <b-icon icon="plus" size="is-small" /> {{ lang('New') }}
@@ -74,7 +74,7 @@
               <b-icon icon="trash-alt" size="is-small" /> {{ lang('Delete') }}
             </a>
           </div>
-          <div v-if="can('read')">
+          <div id="pagination" v-if="can('read')">
             <Pagination :perpage="perPage" @selected="perPage = $event" />
           </div>
         </section>

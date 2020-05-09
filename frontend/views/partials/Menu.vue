@@ -14,19 +14,19 @@
 
     <div :class="[navbarActive ? 'is-active' : '', 'navbar-menu']">
       <div class="navbar-end">
-        <a v-if="is('admin')" class="navbar-item" @click="$router.push('/')">
+        <a v-if="is('admin')" class="navbar-item files" @click="$router.push('/')">
           {{ lang('Files') }}
         </a>
-        <a v-if="is('admin')" class="navbar-item" @click="$router.push('/users')">
+        <a v-if="is('admin')" class="navbar-item users" @click="$router.push('/users')">
           {{ lang('Users') }}
         </a>
-        <a v-if="is('guest')" class="navbar-item" @click="login">
+        <a v-if="is('guest')" class="navbar-item login" @click="login">
           {{ lang('Login') }}
         </a>
-        <a v-if="!is('guest')" class="navbar-item" @click="profile">
+        <a v-if="!is('guest')" class="navbar-item profile" @click="profile">
           {{ this.$store.state.user.name }}
         </a>
-        <a v-if="!is('guest')" class="navbar-item" @click="logout">
+        <a v-if="!is('guest')" class="navbar-item logout" @click="logout">
           {{ lang('Logout') }}
         </a>
       </div>
