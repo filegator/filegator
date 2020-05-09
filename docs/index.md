@@ -23,7 +23,7 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 
 ## Features & Goals
 - Multiple storage adapters (Local, FTP, Amazon S3, Dropbox, DO Spaces, Azure Blob and many others via [Flysystem](https://github.com/thephpleague/flysystem))
-- Multiple auth adapters with roles and permissions (Store users in json file or database)
+- Multiple auth adapters with roles and permissions (Store users in json file, database or use WordPress)
 - Multiple session adapters (Native File, Pdo, Redis, MongoDB, Memcached and others via [Symfony](https://github.com/symfony/symfony/tree/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/Handler))
 - Single page front-end (built with [Vuejs](https://github.com/vuejs/vue), [Bulma](https://github.com/jgthms/bulma) and [Buefy](https://github.com/buefy/buefy))
 - Chunked uploads (built with [Resumable.js](https://github.com/23/resumable.js))
