@@ -47,13 +47,7 @@ class Tmpfs implements Service, TmpfsInterface
     {
         $filename = $this->sanitizeFilename($filename);
 
-        $realPath = $this->getPath().$filename;
-
-        if (! is_file($realPath)) {
-            touch($realPath);
-        }
-
-        return $realPath;
+        return $this->getPath().$filename;
     }
 
     public function read(string $filename): string

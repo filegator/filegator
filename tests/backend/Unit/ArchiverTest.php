@@ -38,7 +38,7 @@ class ArchiverTest extends TestCase
         parent::setUp();
     }
 
-    public function testCreatingArchive()
+    public function testCreatingEmptyArchive()
     {
         $storage = new Filesystem();
         $storage->init([
@@ -51,7 +51,7 @@ class ArchiverTest extends TestCase
         $uniqid = $this->archiver->createArchive($storage);
 
         $this->assertNotNull($uniqid);
-        $this->assertFileExists(TEST_TMP_PATH.$uniqid);
+        $this->assertFileNotExists(TEST_TMP_PATH.$uniqid);
     }
 
     public function testAddingDirectoryWithFilesAndSubdir()
