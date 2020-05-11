@@ -94,11 +94,12 @@ class ZipArchiver implements Service, ArchiverInterface
         $contents = $archive->listContents('/', true);
 
         foreach ($contents as $item) {
-            $stream = $archive->readStream($item['path']);
+            $stream = null;
             if ($item['type'] == 'dir') {
                 $storage->createDir($destination, $item['path']);
             }
             if ($item['type'] == 'file') {
+                $stream = $archive->readStream($item['path']);
                 $storage->store($destination.'/'.$item['dirname'], $item['basename'], $stream);
             }
             if (is_resource($stream)) {
