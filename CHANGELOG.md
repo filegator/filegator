@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+* libzip BC fix
+* composer update dependencies
+
 ## 7.4.0 - 2020-05-09 ✌️
 
 * WordPress Auth adapter is now included in the main repo
