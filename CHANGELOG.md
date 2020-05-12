@@ -5,6 +5,7 @@
 * libzip BC fix
 * zip adapter fix
 * composer update dependencies
+* npm update / audit fix
 
 ## 7.4.0 - 2020-05-09 ✌️
 
