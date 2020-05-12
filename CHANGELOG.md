@@ -3,6 +3,7 @@
 ## Upcoming...
 
 * libzip BC fix
+* zip adapter fix
 * composer update dependencies
 
 ## 7.4.0 - 2020-05-09 ✌️
