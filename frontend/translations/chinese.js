@@ -67,13 +67,13 @@ const data = {
   'Old password': '旧密码',
   'New password': '新密码',
   'Wrong password': '密码错误',
-  'Updated': '已上传',
+  'Updated': '已更新',
   'Deleted': '已删除',
   'Your file is ready': '您的文件已备妥',
-  'View': 'View',
-  'Search': 'Search',
+  'View': '查看',
+  'Search': '搜索',
   'Download permission': '下载',
-  'Guest': 'Guest',
+  'Guest': '游客',
 }
 
 export default data
