@@ -50,7 +50,7 @@ const data = {
   'User': 'Používateľ',
   'Admin': 'Admin',
   'Save': 'Uložiť',
-  'Read': 'Čitanie',
+  'Read': 'Čítanie',
   'Write': 'Zapisovanie',
   'Upload': 'Nahrávanie',
   'Permissions': 'Oprávnenia',
