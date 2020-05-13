@@ -39,7 +39,7 @@ const data = {
   'File': '文件',
   'Drop files to upload': '拖放文件即可上传',
   'Close': '关闭',
-  'Select Folder': '选择文件夹r',
+  'Select Folder': '选择文件夹',
   'Users': '用户',
   'Files': '文件',
   'Role': '角色',
