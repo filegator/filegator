@@ -3,6 +3,7 @@
 ## Upcoming...
 
 * fonts update
+* catch/fix NavigationDuplicated errors
 
 ## 7.4.1 - 2020-05-17
 
