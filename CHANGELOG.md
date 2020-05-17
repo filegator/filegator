@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* fonts update
+
 ## 7.4.1 - 2020-05-17
 
 * libzip BC fix
