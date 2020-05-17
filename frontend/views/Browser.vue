@@ -289,6 +289,7 @@ export default {
             })
               .then(() => {
                 this.isLoading = false
+                this.loadFiles()
               })
               .catch(error => {
                 this.isLoading = false
@@ -313,6 +314,7 @@ export default {
             })
               .then(() => {
                 this.isLoading = false
+                this.loadFiles()
               })
               .catch(error => {
                 this.isLoading = false
