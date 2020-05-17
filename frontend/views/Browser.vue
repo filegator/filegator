@@ -179,7 +179,7 @@ export default {
       currentPage: 1,
       checked: [],
       isLoading: false,
-      defaultSort: ['data.name', 'desc'],
+      defaultSort: ['data.name', 'asc'],
       files: [],
     }
   },
@@ -526,30 +526,30 @@ export default {
         }
       })
     },
-    sortByName(a, b, isAsc) {
-      return this.customSort(a, b, isAsc, 'name')
+    sortByName(a, b, order) {
+      return this.customSort(a, b, !order, 'name')
     },
-    sortBySize(a, b, isAsc) {
-      return this.customSort(a, b, isAsc, 'size')
+    sortBySize(a, b, order) {
+      return this.customSort(a, b, !order, 'size')
     },
-    sortByTime(a, b, isAsc) {
-      return this.customSort(a, b, isAsc, 'time')
+    sortByTime(a, b, order) {
+      return this.customSort(a, b, !order, 'time')
     },
-    customSort(a, b, isAsc, param) {
+    customSort(a, b, order, param) {
       // TODO: firefox is broken
       if (b.type == 'back') return 1
       if (a.type == 'back') return -1
       if (b.type == 'dir' && a.type == 'dir') {
-        return (a[param] < b[param]) || isAsc ? -1 : 1
+        return (a[param] < b[param]) || order ? -1 : 1
       } else if (b.type == 'dir') {
         return 1
       } else if (a.type == 'dir') {
         return -1
       }
       if (_.isString(a[param])) {
-        return (_.lowerCase(a[param]) < _.lowerCase(b[param])) || isAsc ? -1 : 1
+        return (_.lowerCase(a[param]) < _.lowerCase(b[param])) || order ? -1 : 1
       } else {
-        return (a[param] < b[param]) || isAsc ? -1 : 1
+        return (a[param] < b[param]) || order ? -1 : 1
       }
     },
   }
