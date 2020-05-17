@@ -91,6 +91,7 @@
                  :checked-rows.sync="checked"
                  :loading="isLoading"
                  :checkable="can('batchDownload') || can('write') || can('zip')"
+                 @contextmenu="rightClick"
         >
           <template slot-scope="props">
             <b-table-column :label="lang('Name')" :custom-sort="sortByName" field="data.name" sortable>
@@ -109,7 +110,7 @@
 
             <b-table-column id="single-actions" width="51">
               <b-dropdown v-if="props.row.type != 'back'" :disabled="checked.length > 0" aria-role="list" position="is-bottom-left">
-                <button slot="trigger" class="button is-small">
+                <button :ref="'ref-single-action-button-'+props.row.path" slot="trigger" class="button is-small">
                   <b-icon icon="ellipsis-h" size="is-small" />
                 </button>
 
@@ -262,6 +263,13 @@ export default {
       } else if (this.can(['download'])) {
         this.download(item)
       }
+    },
+    rightClick(row, event) {
+      if (row.type == 'back') {
+        return
+      }
+      event.preventDefault()
+      this.$refs['ref-single-action-button-'+row.path].click()
     },
     selectDir() {
       this.$modal.open({

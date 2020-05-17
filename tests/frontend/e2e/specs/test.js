@@ -111,6 +111,20 @@ describe('Browser', () => {
     cy.contains('tr.type-file', 'Unzip')
     cy.contains('tr.type-file', 'Delete')
     cy.contains('tr.type-file', 'Copy link')
+
+    // click on single file action button
+    cy.get('.dropdown-trigger').last().click()
+    cy.get('.dropdown-content').last().contains('Download').should('be.visible')
+    // close context menu
+    cy.get('.dropdown-trigger').last().click()
+    cy.get('.dropdown-content').last().contains('Download').should('not.be.visible')
+
+    // right-click on the file row should also open context menu
+    cy.get('tr.type-file').last().rightclick()
+    cy.get('.dropdown-content').last().contains('Download').should('be.visible')
+    // close context menu with another right-click
+    cy.get('tr.type-file').last().rightclick()
+    cy.get('.dropdown-content').last().contains('Download').should('not.be.visible')
   })
 
   it('New folder and file', () => {

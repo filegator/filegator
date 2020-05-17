@@ -6,6 +6,8 @@
 * zip adapter fix
 * composer update dependencies
 * npm update / audit fix
+* right-click opens single file context menu
+* fixes #81, #86
 
 ## 7.4.0 - 2020-05-09 ✌️
 
