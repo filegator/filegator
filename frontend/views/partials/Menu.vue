@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
-      <a class="navbar-item logo" @click="$router.push('/')">
+      <a class="navbar-item logo" @click="$router.push('/').catch(() => {})">
         <img :src="this.$store.state.config.logo">
       </a>
 
@@ -14,10 +14,10 @@
 
     <div :class="[navbarActive ? 'is-active' : '', 'navbar-menu']">
       <div class="navbar-end">
-        <a v-if="is('admin')" class="navbar-item files" @click="$router.push('/')">
+        <a v-if="is('admin')" class="navbar-item files" @click="$router.push('/').catch(() => {})">
           {{ lang('Files') }}
         </a>
-        <a v-if="is('admin')" class="navbar-item users" @click="$router.push('/users')">
+        <a v-if="is('admin')" class="navbar-item users" @click="$router.push('/users').catch(() => {})">
           {{ lang('Users') }}
         </a>
         <a v-if="is('guest')" class="navbar-item login" @click="login">
@@ -58,7 +58,7 @@ export default {
           api.getUser()
             .then(user => {
               this.$store.commit('setUser', user)
-              this.$router.push('/')
+              this.$router.push('/').catch(() => {})
             })
             .catch(() => {
               this.$store.commit('initialize')
@@ -70,7 +70,7 @@ export default {
         })
     },
     login() {
-      this.$router.push('/login')
+      this.$router.push('/login').catch(() => {})
     },
     profile() {
       this.$modal.open({

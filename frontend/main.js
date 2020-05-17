@@ -45,7 +45,7 @@ new Vue({
           .then((user) => {
             this.$store.commit('initialize')
             this.$store.commit('setUser', user)
-            this.$router.push('/')
+            this.$router.push('/').catch(() => {})
           })
           .catch(() => {
             this.$notification.open({

@@ -1,6 +1,6 @@
 <template>
   <div v-if="!$store.state.config.guest_redirection">
-    <a v-if="can('read')" id="back-arrow" @click="$router.push('/')">
+    <a v-if="can('read')" id="back-arrow" @click="$router.push('/').catch(() => {})">
       <b-icon icon="times" />
     </a>
 
@@ -64,7 +64,7 @@ export default {
           this.$store.commit('setUser', user)
           api.changeDir({
             to: '/'
-          }).then(() => this.$router.push('/'))
+          }).then(() => this.$router.push('/').catch(() => {}))
         })
         .catch(error => {
           if (error.response && error.response.data) {
