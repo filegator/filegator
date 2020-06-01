@@ -7,7 +7,7 @@
 
 <br>
 
-[FileGator](https://filegator.io) is a free, [open-source](https://github.com/filegator/filegator) PHP script for managing files and folders.
+[FileGator](https://filegator.io) is a free, [open-source](https://github.com/filegator/filegator), self-hosted web application for managing files and folders.
 
 You can manage files inside your local repository folder (on your server's hard drive) or connect to other storage adapters (see below).
 

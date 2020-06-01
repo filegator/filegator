@@ -13,7 +13,7 @@
 
 ## FileGator - Powerful Multi-User File Manager
 
-FileGator is a free, open-source PHP script for managing files and folders.
+FileGator is a free, open-source, self-hosted web application for managing files and folders.
 
 You can manage files inside your local repository folder (on your server's hard drive) or connect to other storage adapters (see below).
 
