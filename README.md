@@ -25,7 +25,9 @@ If allowed, users can download multiple files or folders at once.
 
 File upload supports drag&drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server configuration.
 
-<a href="https://demo.filegator.io"><img src="https://filegator.io/img/main.png" alt="Screenshot"></a>
+<p align="center">
+<a href="https://demo.filegator.io"><img src="https://filegator.io/img/animation.gif" alt="Screenshot"></a>
+</p>
 
 
 ## Sponsors
