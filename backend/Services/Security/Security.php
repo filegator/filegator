@@ -48,9 +48,11 @@ class Security implements Service
             }
         }
 
-        if (! empty($config['ip_whitelist'])) {
+        if (! empty($config['ip_whitelist'])) $config['ip_allowlist'] = $config['ip_whitelist']; // deprecated, compatibility
+
+        if (! empty($config['ip_allowlist'])) {
             $pass = false;
-            foreach ($config['ip_whitelist'] as $ip) {
+            foreach ($config['ip_allowlist'] as $ip) {
                 if ($this->request->getClientIp() == $ip) {
                     $pass = true;
                 }
@@ -62,9 +64,11 @@ class Security implements Service
             }
         }
 
-        if (! empty($config['ip_blacklist'])) {
+        if (! empty($config['ip_blacklist'])) $config['ip_denylist'] = $config['ip_blacklist']; // deprecated, compatibility
+
+        if (! empty($config['ip_denylist'])) {
             $pass = true;
-            foreach ($config['ip_blacklist'] as $ip) {
+            foreach ($config['ip_denylist'] as $ip) {
                 if ($this->request->getClientIp() == $ip) {
                     $pass = false;
                 }

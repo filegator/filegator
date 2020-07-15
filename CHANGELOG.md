@@ -2,6 +2,7 @@
 
 ## Upcoming...
 
+* inclusive terminology: BC! please replace ip_whitelist/ip_blacklist to ip_allowlist/ip_denylist in your configuration.php
 * fonts update
 * catch/fix NavigationDuplicated errors
 

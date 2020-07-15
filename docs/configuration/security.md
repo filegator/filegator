@@ -7,16 +7,16 @@ currentMenu: security
 Simple security service is included in the script by default. This service provides:
 
 - Basic session-based [CSRF](https://en.wikipedia.org/wiki/Cross-site_request_forgery) protection
-- IP whitelisting
-- IP blacklisting
+- IP allow list
+- IP deny list
 
 ```
         'Filegator\Services\Security\Security' => [
             'handler' => '\Filegator\Services\Security\Security',
             'config' => [
                 'csrf_protection' => true,
-                'ip_whitelist' => [],
-                'ip_blacklist' => [
+                'ip_allowlist' => [],
+                'ip_denylist' => [
                     '172.16.1.2',
                     '172.16.3.4',
                 ],
@@ -24,4 +24,4 @@ Simple security service is included in the script by default. This service provi
         ],
 ```
 
-If you set `ip_whitelist` then only users coming from listed IP addresses will be able to use the script.
+If you set `ip_allowlist` then only users coming from listed IP addresses will be able to use the script.

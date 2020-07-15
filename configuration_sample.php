@@ -63,8 +63,8 @@ return [
             'handler' => '\Filegator\Services\Security\Security',
             'config' => [
                 'csrf_protection' => true,
-                'ip_whitelist' => [],
-                'ip_blacklist' => [],
+                'ip_allowlist' => [],
+                'ip_denylist' => [],
             ],
         ],
         'Filegator\Services\View\ViewInterface' => [
