@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+## 7.4.3 - 2020-07-18
+
 * disabling axios response auto-transformation when editing content, fixes #110
 * config params: .json and .md extensions added as 'editable' by default
 * config params: timezone support added, mostly for accurate logging, defaults to UTC
