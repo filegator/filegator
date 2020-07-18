@@ -17,6 +17,9 @@ class Config
     public function __construct(array $config = [])
     {
         $this->config = $config;
+
+        $timezone = isset($this->config['timezone']) ? $this->config['timezone'] : 'UTC';
+        date_default_timezone_set($timezone);
     }
 
     public function get($key = null, $default = null)

@@ -4,6 +4,7 @@ return [
     'public_path' => APP_PUBLIC_PATH,
     'public_dir' => APP_PUBLIC_DIR,
     'overwrite_on_upload' => false,
+    'timezone' => 'UTC', // https://www.php.net/manual/en/timezones.php
 
     'frontend_config' => [
         'app_name' => 'FileGator',
