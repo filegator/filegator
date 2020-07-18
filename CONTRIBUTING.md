@@ -1,8 +1,10 @@
 ## Contributing to FileGator
 
+Please note we have a code of conduct, please follow it in all your interactions with the project.
+
+- Before starting to write code, talk to a maintainer and discuss proposed changes
 - File an issue before submitting a pull request
-- Please talk to a maintainer before submitting a pull request
-- Please make sure Continuous Integration passes
+- Please make sure continuous integration passes
 
 ## Where to report bugs?
 
