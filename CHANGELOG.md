@@ -2,7 +2,12 @@
 
 ## Upcoming...
 
+## 7.4.2 - 2020-07-18
+
 * inclusive terminology: BC! please replace ip_whitelist/ip_blacklist to ip_allowlist/ip_denylist in your configuration.php
+* fixes #113 #108
+* add mime-types to download headers
+* support for vector images (svg)
 * fonts update
 * catch/fix NavigationDuplicated errors
 
