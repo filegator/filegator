@@ -133,21 +133,21 @@
 <p>Simple security service is included in the script by default. This service provides:</p>
 <ul>
 <li>Basic session-based <a href="https://en.wikipedia.org/wiki/Cross-site_request_forgery">CSRF</a> protection</li>
-<li>IP whitelisting</li>
-<li>IP blacklisting</li>
+<li>IP allow list</li>
+<li>IP deny list</li>
 </ul>
 <pre><code>        'Filegator\Services\Security\Security' =&gt; [
             'handler' =&gt; '\Filegator\Services\Security\Security',
             'config' =&gt; [
                 'csrf_protection' =&gt; true,
-                'ip_whitelist' =&gt; [],
-                'ip_blacklist' =&gt; [
+                'ip_allowlist' =&gt; [],
+                'ip_denylist' =&gt; [
                     '172.16.1.2',
                     '172.16.3.4',
                 ],
             ],
         ],</code></pre>
-<p>If you set <code>ip_whitelist</code> then only users coming from listed IP addresses will be able to use the script.</p>
+<p>If you set <code>ip_allowlist</code> then only users coming from listed IP addresses will be able to use the script.</p>
                 </section>
 
             </div>
