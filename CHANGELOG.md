@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+* disabling axios response auto-transformation when editing content, fixes #110
+* config params: .json and .md extensions added as 'editable' by default
+
 ## 7.4.2 - 2020-07-18
 
 * inclusive terminology: BC! please replace ip_whitelist/ip_blacklist to ip_allowlist/ip_denylist in your configuration.php

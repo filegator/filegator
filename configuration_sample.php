@@ -14,7 +14,7 @@ return [
         'upload_chunk_size' => 1 * 1024 * 1024, // 1MB
         'upload_simultaneous' => 3,
         'default_archive_name' => 'archive.zip',
-        'editable' => ['.txt', '.css', '.js', '.ts', '.html', '.php'],
+        'editable' => ['.txt', '.css', '.js', '.ts', '.html', '.php', '.json', '.md'],
         'date_format' => 'YY/MM/DD hh:mm:ss', // see: https://momentjs.com/docs/#/displaying/format/
         'guest_redirection' => '', // useful for external auth adapters
     ],

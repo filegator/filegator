@@ -194,7 +194,9 @@ const api = {
   downloadItem (params) {
     return new Promise((resolve, reject) => {
       axios.get('download&path='+encodeURIComponent(Base64.encode(params.path)),
-        {transformResponse : undefined})
+        {
+          transformResponse: undefined,
+        })
         .then(res => resolve(res.data))
         .catch(error => reject(error))
     })
