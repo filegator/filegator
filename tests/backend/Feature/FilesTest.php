@@ -155,15 +155,40 @@ class FilesTest extends TestCase
 
         mkdir(TEST_REPOSITORY.'/john');
         touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
+        touch(TEST_REPOSITORY.'/john/image.jpg', $this->timestamp);
+        touch(TEST_REPOSITORY.'/john/vector.svg', $this->timestamp);
+        touch(TEST_REPOSITORY.'/john/inlinedoc.pdf', $this->timestamp);
 
         $path_encoded = base64_encode('john.txt');
         $this->sendRequest('GET', '/download&path='.$path_encoded);
-
         $headers = $this->streamedResponse->headers;
         $this->assertEquals($headers->get('content-disposition'), "attachment; filename=file; filename*=utf-8''john.txt");
-        $this->assertEquals($headers->get('content-type'), 'application/octet-stream');
+        $this->assertEquals($headers->get('content-type'), 'text/plain');
         $this->assertEquals($headers->get('content-transfer-encoding'), 'binary');
+        $this->assertOk();
 
+        $path_encoded = base64_encode('image.jpg');
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $headers = $this->streamedResponse->headers;
+        $this->assertEquals($headers->get('content-disposition'), "attachment; filename=file; filename*=utf-8''image.jpg");
+        $this->assertEquals($headers->get('content-type'), 'image/jpeg');
+        $this->assertEquals($headers->get('content-transfer-encoding'), 'binary');
+        $this->assertOk();
+
+        $path_encoded = base64_encode('vector.svg');
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $headers = $this->streamedResponse->headers;
+        $this->assertEquals($headers->get('content-disposition'), "attachment; filename=file; filename*=utf-8''vector.svg");
+        $this->assertEquals($headers->get('content-type'), 'image/svg+xml');
+        $this->assertEquals($headers->get('content-transfer-encoding'), 'binary');
+        $this->assertOk();
+
+        $path_encoded = base64_encode('inlinedoc.pdf');
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $headers = $this->streamedResponse->headers;
+        $this->assertEquals($headers->get('content-disposition'), "inline; filename=file; filename*=utf-8''inlinedoc.pdf");
+        $this->assertEquals($headers->get('content-type'), 'application/pdf');
+        $this->assertEquals($headers->get('content-transfer-encoding'), 'binary');
         $this->assertOk();
     }
 

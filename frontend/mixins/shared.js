@@ -135,7 +135,7 @@ const funcs = {
       return this.hasExtension(name, store.state.config.editable ? store.state.config.editable : ['.txt'])
     },
     isImage(name) {
-      return this.hasExtension(name, ['.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.tif'])
+      return this.hasExtension(name, ['.jpg', '.jpeg', '.gif', '.png', '.bmp', '.svg', '.tiff', '.tif'])
     },
     hasExtension(name, exts) {
       return (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(name)
