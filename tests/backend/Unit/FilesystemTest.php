@@ -401,6 +401,9 @@ class FilesystemTest extends TestCase
         $this->assertEquals('/john/test', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/test']));
         $this->assertEquals('/john/test.txt', $this->invokeMethod($this->storage, 'applyPathPrefix', ['test.txt']));
         $this->assertEquals('/john/test.txt/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['test.txt/']));
+        // no escaping path to upper dir
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/..']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/sub/../../']));
     }
 
     public function testStripPathPrefix()
@@ -769,5 +772,50 @@ class FilesystemTest extends TestCase
         $this->storage->move('/test1', '/test2/test1/');
 
         $this->assertDirectoryExists(TEST_REPOSITORY.'/test2/test1/');
+    }
+
+    public function testCannotGoUpTheHomeDirUsingPathFiddle()
+    {
+        $this->storage->createFile('/', 'hidden.txt');
+        $this->storage->createDir('/', 'johnsub');
+        $this->storage->createFile('/johnsub', 'john.txt');
+        $this->storage->setPathPrefix('/johnsub');
+
+        $ret = $this->storage->getDirectoryCollection('/');
+        $ret->resetTimestamps(-1);
+        $this->assertJsonStringEqualsJsonString(json_encode([
+            'location' => '/',
+            'files' => [
+                0 => [
+                    'type' => 'file',
+                    'path' => '/john.txt',
+                    'name' => 'john.txt',
+                    'size' => 0,
+                    'time' => -1,
+                ],
+            ],
+        ]), json_encode($ret));
+
+        $ret = $this->storage->getDirectoryCollection('/..');
+        $ret->resetTimestamps(-1);
+        $this->assertJsonStringEqualsJsonString(json_encode([
+            'location' => '/..',
+            'files' => [
+                0 => [
+                    'type' => 'back',
+                    'path' => '/',
+                    'name' => '..',
+                    'size' => 0,
+                    'time' => -1,
+                ],
+                1 => [
+                    'type' => 'file',
+                    'path' => '/john.txt',
+                    'name' => 'john.txt',
+                    'size' => 0,
+                    'time' => -1,
+                ],
+            ],
+        ]), json_encode($ret));
     }
 }

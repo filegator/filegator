@@ -234,6 +234,9 @@ class Filesystem implements Service
 
     private function applyPathPrefix(string $path): string
     {
+        if (strpos($path, '..') !== false) {
+            $path = "/";
+        }
         return $this->joinPaths($this->getPathPrefix(), $path);
     }
 

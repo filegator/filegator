@@ -2,6 +2,10 @@
 
 ## Upcoming...
 
+## 7.4.4 - 2020-07-28 [Security]
+
+* This version patches a security vulnerability #116 please upgrade
+
 ## 7.4.3 - 2020-07-18
 
 * disabling axios response auto-transformation when editing content, fixes #110
