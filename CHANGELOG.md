@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* Korean language added #119 (Thanks Jinhee-Kim)
+
 ## 7.4.4 - 2020-07-28 [Security]
 
 * This version patches a security vulnerability #116 please upgrade
