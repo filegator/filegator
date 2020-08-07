@@ -37,7 +37,7 @@ const data = {
   'Copy link': '링크 복사',
   'Done': '완료',
   'File': '파일',
-  'Drop files to upload': '업로드할 파일 삭제',
+  'Drop files to upload': '업로드할 파일을 끌어서 놓으십시오.',
   'Close': '닫기',
   'Select Folder': '폴더 선택',
   'Users': '사용자',
