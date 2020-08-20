@@ -3,6 +3,7 @@
 ## Upcoming...
 
 * Korean language added #119 (Thanks Jinhee-Kim)
+* Galician language added #126 (Thanks vinpoloaire)
 
 ## 7.4.4 - 2020-07-28 [Security]
 
