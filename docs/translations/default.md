@@ -23,6 +23,9 @@ Available languages:
 - ```slovak```
 - ```polish```
 - ```italian```
+- ```korean```
+- ```czech```
+- ```galician```
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 
