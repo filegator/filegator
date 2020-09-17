@@ -45,6 +45,11 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
         </a>
       </td>
       <td align="center" valign="middle">
+        <a href="https://correctme.app/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
+          <img title="Free Online Grammar and Spell Checker" width="177px" src="https://correctme.app/logo.png">
+        </a>
+      </td>
+      <td align="center" valign="middle">
         <a href="https://interactive32.com/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
           <img title="Modern approach to software development" width="177px" src="https://interactive32.com/images/logo.png">
         </a>
