@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+## 7.4.5 - 2020-10-12
+
 * New config: 'download_inline' #141 (download configured extensions inline in the browser)
 * Korean language added #119 (Thanks Jinhee-Kim)
 * Galician language added #126 (Thanks vinpoloaire)
