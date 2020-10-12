@@ -5,6 +5,7 @@ return [
     'public_dir' => APP_PUBLIC_DIR,
     'overwrite_on_upload' => false,
     'timezone' => 'UTC', // https://www.php.net/manual/en/timezones.php
+    'download_inline' => ['pdf'], // download inline in the browser, array of extensions, use * for all
 
     'frontend_config' => [
         'app_name' => 'FileGator',

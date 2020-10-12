@@ -5,6 +5,7 @@ return [
     'public_dir' => __DIR__.'/../../dist',
     'overwrite_on_upload' => false,
     'timezone' => 'UTC', // https://www.php.net/manual/en/timezones.php
+    'download_inline' => ['pdf'],
 
     'frontend_config' => [
         'app_name' => 'FileGator',

@@ -66,12 +66,14 @@ class DownloadController
             // @codeCoverageIgnoreEnd
         });
 
-        $mimes = (new MimeTypes())->getMimeTypes(pathinfo($file['filename'], PATHINFO_EXTENSION));
+        $extension = pathinfo($file['filename'], PATHINFO_EXTENSION);
+        $mimes = (new MimeTypes())->getMimeTypes($extension);
         $contentType = !empty($mimes) ? $mimes[0] : 'application/octet-stream';
 
         $disposition = HeaderUtils::DISPOSITION_ATTACHMENT;
 
-        if ($contentType == 'application/pdf') {
+        $download_inline = (array)$this->config->get('download_inline', ['pdf']);
+        if (in_array($extension, $download_inline) || in_array('*', $download_inline)) {
             $disposition = HeaderUtils::DISPOSITION_INLINE;
         }
 
