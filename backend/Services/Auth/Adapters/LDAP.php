@@ -5,29 +5,6 @@
  *
  * (c) Adriano Hänggli <https://github.com/ahaenggli>
  *
- * For the full copyright and license information, please view the LICENSE file
-
-        'Filegator\Services\Auth\AuthInterface' => [
-            'handler' => '\Filegator\Services\Auth\Adapters\LDAP',
-            'config' => [                
-                    'private_repos' => false,
-                    'ldap_server'=>'ldap://192.168.1.1',
-                    'ldap_bindDN'=>'uid=ldapbinduser,cn=users,dc=ldap,dc=example,dc=com',
-                    'ldap_bindPass'=>'ldapbinduser',
-                    'ldap_baseDN'=>'cn=users,dc=ldap,dc=example,dc=com',                
-                    'ldap_filter'=>'(uid=*)', //ex: 'ldap_filter'=>'(&(uid=*)(memberOf=cn=administrators,cn=groups,dc=ldap,dc=example,dc=com))',
-                    'ldap_userFieldMapping'=> [
-                        'username' =>'uid',
-                        'name' =>'cn',
-                        'userDN' =>'dn',
-                        'default_permissions' => 'read|write|upload|download|batchdownload|zip',
-                        'admin_usernames' =>['admin'],                        
-                    ],                 
-            ],
-        ],      
-
-
-
  */
 
 namespace Filegator\Services\Auth\Adapters;
@@ -77,10 +54,8 @@ class LDAP implements Service, AuthInterface
                 @ldap_close($connect);
                 throw new \Exception('could not connect to domain');
          }
-
-        // 
+       
         @ldap_close($connect);               
-        //$this->verifyPassword('', '');
     }
 
     public function user(): ?User
@@ -143,15 +118,13 @@ class LDAP implements Service, AuthInterface
     {
         $guest = $this->find(self::GUEST_USERNAME);
 
-        if (!$guest || ! $guest->isGuest()) {           
-            //throw new \Exception('No guest account');
+        if (!$guest || !$guest->isGuest()) {           
             $guest = new User();
             $guest->setUsername('guest');
             $guest->setName('Guest');
             $guest->setRole('guest');
             $guest->setHomedir('/');
-            $guest->setPermissions([]);
-    
+            $guest->setPermissions([]);    
             return $guest;
         }
 
@@ -182,12 +155,10 @@ class LDAP implements Service, AuthInterface
 
     protected function getUsers(): array
     {
-            // try to connect to the server
             $ldapConn = @ldap_connect($this->ldap_server);
             if (!$ldapConn) throw new \Exception('Cannot Connect to LDAP server');         
             @ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
             
-            // bind
             $ldapBind = @ldap_bind($ldapConn, $this->ldap_bindDN,$this->ldap_bindPass);
             if (!$ldapBind) throw new \Exception('Cannot Bind to LDAP server: Wrong credentials?');
                     
@@ -224,16 +195,13 @@ class LDAP implements Service, AuthInterface
                     $user['permissions'] = 'read|write|upload|download|batchdownload|zip';
                 }               
 
-                if(is_array($user) && !empty($user))
-                    $users[] = $user;
-                //print_r($ldapResults[$item]);
+                if(is_array($user) && !empty($user)) $users[] = $user;
             }
-            //print_r($users);
         return is_array($users) ? $users : [];
     }
 
-    private function verifyPassword($auth_user, $password){
-        
+    private function verifyPassword($auth_user, $password)
+    {            
         if(!isset($this->ldap_server) || empty($this->ldap_server)) return false;
         if(!extension_loaded('ldap')) return false;
         
@@ -244,15 +212,12 @@ class LDAP implements Service, AuthInterface
             @ldap_close($connect);
             return true;
         } else {
-          //send error message - password incorrect           
             @ldap_close($connect);
             return false;
             }
         }
      
-    // 
     @ldap_close($connect);
     return false;
-    }
-    
+    }   
 }
