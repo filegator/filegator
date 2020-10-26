@@ -191,6 +191,26 @@ VALUES
     'guest_redirection' =&gt; 'http://example.com/wp-admin/',
   ...
 ]</code></pre>
+<h2 id="configuring-auth-service-to-use-ldap">Configuring Auth service to use LDAP</h2>
+<p>Replace your current Auth handler in <code>configuration.php</code> file like this:</p>
+<pre><code>        'Filegator\Services\Auth\AuthInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Auth\Adapters\LDAP',
+            'config' =&gt; [
+                    'private_repos' =&gt; false,
+                    'ldap_server'=&gt;'ldap://192.168.1.1',
+                    'ldap_bindDN'=&gt;'uid=ldapbinduser,cn=users,dc=ldap,dc=example,dc=com',
+                    'ldap_bindPass'=&gt;'ldapbinduser-password',
+                    'ldap_baseDN'=&gt;'cn=users,dc=ldap,dc=example,dc=com',
+                    'ldap_filter'=&gt;'(uid=*)', //ex: 'ldap_filter'=&gt;'(&amp;(uid=*)(memberOf=cn=administrators,cn=groups,dc=ldap,dc=example,dc=com))',
+                    'ldap_userFieldMapping'=&gt; [
+                        'username' =&gt;'uid',
+                        'name' =&gt;'cn',
+                        'userDN' =&gt;'dn',
+                        'default_permissions' =&gt; 'read|write|upload|download|batchdownload|zip',
+                        'admin_usernames' =&gt;['user1', 'user2'],
+                    ],
+            ],
+        ],</code></pre>
 <h2 id="custom-authentication-using-3rd-party">Custom Authentication using 3rd party</h2>
 <p>If you want to use FileGator as a part of another application, you probably already have users stored somewhere else. What you need in this case is to build a new custom Auth adapter that matches the <a href="https://github.com/filegator/filegator/blob/master/backend/Services/Auth/AuthInterface.php">AuthInterface</a> to connect those two. This new adapter will try to authenticate users in your application and translate each user into filegator <a href="https://github.com/filegator/filegator/blob/master/backend/Services/Auth/User.php">User</a> object.</p>
 <h2 id="api-authentication">API authentication</h2>
