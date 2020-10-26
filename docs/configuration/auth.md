@@ -110,19 +110,6 @@ Replace your current Auth handler in `configuration.php` file like this:
             ],
         ],
 ```
-Adjust in the config above:
-- `wp_dir` should be the directory path of your wordpress installation
-- `permissions` is the array of permissions given to each user
-- `private_repos` each user will have its own sub folder, admin will see everything (false/true)
-
-Note: With more recent versions of FileGator you can set `guest_redirection` in your `configuration.php` to redirect logged-out users back to your WP site:
-```
-'frontend_config' => [
-  ...
-    'guest_redirection' => 'http://example.com/wp-admin/',
-  ...
-]
-```
 
 ## Custom Authentication using 3rd party
 
