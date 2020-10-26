@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* New LDAP auth adapter (Thanks @ahaenggli)
+
 ## 7.4.5 - 2020-10-12
 
 * New config: 'download_inline' #141 (download configured extensions inline in the browser)

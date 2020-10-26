@@ -86,6 +86,44 @@ Note: With more recent versions of FileGator you can set `guest_redirection` in 
 ]
 ```
 
+## Configuring Auth service to use LDAP
+
+Replace your current Auth handler in `configuration.php` file like this:
+
+```
+        'Filegator\Services\Auth\AuthInterface' => [
+            'handler' => '\Filegator\Services\Auth\Adapters\LDAP',
+            'config' => [
+                    'private_repos' => false,
+                    'ldap_server'=>'ldap://192.168.1.1',
+                    'ldap_bindDN'=>'uid=ldapbinduser,cn=users,dc=ldap,dc=example,dc=com',
+                    'ldap_bindPass'=>'ldapbinduser-password',
+                    'ldap_baseDN'=>'cn=users,dc=ldap,dc=example,dc=com',
+                    'ldap_filter'=>'(uid=*)', //ex: 'ldap_filter'=>'(&(uid=*)(memberOf=cn=administrators,cn=groups,dc=ldap,dc=example,dc=com))',
+                    'ldap_userFieldMapping'=> [
+                        'username' =>'uid',
+                        'name' =>'cn',
+                        'userDN' =>'dn',
+                        'default_permissions' => 'read|write|upload|download|batchdownload|zip',
+                        'admin_usernames' =>['user1', 'user2'],
+                    ],
+            ],
+        ],
+```
+Adjust in the config above:
+- `wp_dir` should be the directory path of your wordpress installation
+- `permissions` is the array of permissions given to each user
+- `private_repos` each user will have its own sub folder, admin will see everything (false/true)
+
+Note: With more recent versions of FileGator you can set `guest_redirection` in your `configuration.php` to redirect logged-out users back to your WP site:
+```
+'frontend_config' => [
+  ...
+    'guest_redirection' => 'http://example.com/wp-admin/',
+  ...
+]
+```
+
 ## Custom Authentication using 3rd party
 
 If you want to use FileGator as a part of another application, you probably already have users stored somewhere else. What you need in this case is to build a new custom Auth adapter that matches the [AuthInterface](https://github.com/filegator/filegator/blob/master/backend/Services/Auth/AuthInterface.php) to connect those two. This new adapter will try to authenticate users in your application and translate each user into filegator [User](https://github.com/filegator/filegator/blob/master/backend/Services/Auth/User.php) object.

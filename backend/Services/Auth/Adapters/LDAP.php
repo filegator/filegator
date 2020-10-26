@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is NOT (yet) part of the FileGator package.
+ * This file is part of the FileGator package.
  *
  * (c) Adriano Hänggli <https://github.com/ahaenggli>
  *
@@ -26,9 +26,9 @@ class LDAP implements Service, AuthInterface
     protected $ldap_bindDN;
     protected $ldap_bindPass;
     protected $ldap_baseDN;
-    protected $ldap_filter;    
+    protected $ldap_filter;
     protected $ldap_userFieldMapping;
-   
+
     public function __construct(Session $session)
     {
         $this->session = $session;
@@ -39,23 +39,23 @@ class LDAP implements Service, AuthInterface
         if(!isset($config['ldap_server']) || empty($config['ldap_server']))
             throw new \Exception('config ldap_server missing');
 
-        if (!extension_loaded('ldap')) throw new \Exception('ldap extension missing'); 
-        
+        if (!extension_loaded('ldap')) throw new \Exception('ldap extension missing');
+
         if($connect=ldap_connect($config['ldap_server'])){
                 ldap_set_option($connect, LDAP_OPT_PROTOCOL_VERSION, 3);
-                $this->private_repos = $config['private_repos']; 
-                $this->ldap_server = $config['ldap_server']; 
-                $this->ldap_bindDN = $config['ldap_bindDN']; 
-                $this->ldap_bindPass = $config['ldap_bindPass']; 
-                $this->ldap_baseDN = $config['ldap_baseDN']; 
-                $this->ldap_filter = $config['ldap_filter'];             
-                $this->ldap_userFieldMapping = $config['ldap_userFieldMapping']; 
-        }else {        
+                $this->private_repos = $config['private_repos'];
+                $this->ldap_server = $config['ldap_server'];
+                $this->ldap_bindDN = $config['ldap_bindDN'];
+                $this->ldap_bindPass = $config['ldap_bindPass'];
+                $this->ldap_baseDN = $config['ldap_baseDN'];
+                $this->ldap_filter = $config['ldap_filter'];
+                $this->ldap_userFieldMapping = $config['ldap_userFieldMapping'];
+        }else {
                 @ldap_close($connect);
                 throw new \Exception('could not connect to domain');
          }
-       
-        @ldap_close($connect);               
+
+        @ldap_close($connect);
     }
 
     public function user(): ?User
@@ -118,13 +118,13 @@ class LDAP implements Service, AuthInterface
     {
         $guest = $this->find(self::GUEST_USERNAME);
 
-        if (!$guest || !$guest->isGuest()) {           
+        if (!$guest || !$guest->isGuest()) {
             $guest = new User();
             $guest->setUsername('guest');
             $guest->setName('Guest');
             $guest->setRole('guest');
             $guest->setHomedir('/');
-            $guest->setPermissions([]);    
+            $guest->setPermissions([]);
             return $guest;
         }
 
@@ -156,34 +156,34 @@ class LDAP implements Service, AuthInterface
     protected function getUsers(): array
     {
             $ldapConn = @ldap_connect($this->ldap_server);
-            if (!$ldapConn) throw new \Exception('Cannot Connect to LDAP server');         
+            if (!$ldapConn) throw new \Exception('Cannot Connect to LDAP server');
             @ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
-            
+
             $ldapBind = @ldap_bind($ldapConn, $this->ldap_bindDN,$this->ldap_bindPass);
             if (!$ldapBind) throw new \Exception('Cannot Bind to LDAP server: Wrong credentials?');
-                    
+
             // search the LDAP server for users
             $ldapSearch  = @ldap_search($ldapConn, $this->ldap_baseDN, $this->ldap_filter, ['*']);
             $ldapResults = @ldap_get_entries($ldapConn, $ldapSearch);
             @ldap_close($ldapConn);
 
             $users = [];
-            
+
             for ($item = 0; $item < $ldapResults['count']; $item++)
-            {        
-                $user = [];                
+            {
+                $user = [];
                 $user['username']  = $ldapResults[$item][$this->ldap_userFieldMapping['username']][0];
-                $user['name']      = $ldapResults[$item][$this->ldap_userFieldMapping['name']][0]; 
+                $user['name']      = $ldapResults[$item][$this->ldap_userFieldMapping['name']][0];
                 $user['role']      = 'user';
                 $user['homedir']   = '/';
                 $user['permissions']=$this->ldap_userFieldMapping['default_permissions'];
-                $user['userDN'] = $ldapResults[$item][$this->ldap_userFieldMapping['userDN']]; 
-                
+                $user['userDN'] = $ldapResults[$item][$this->ldap_userFieldMapping['userDN']];
+
                 if(is_array($this->ldap_userFieldMapping['admin_usernames']))
                 {
                     if(in_array($user['username'], $this->ldap_userFieldMapping['admin_usernames'])) $user['role'] = 'admin';
                 }
-                              
+
                 // private repositories for each user?
                 if ($this->private_repos) {
                     $user->setHomedir('/'.$user['username']);
@@ -193,7 +193,7 @@ class LDAP implements Service, AuthInterface
                 if ($user['role'] == 'admin'){
                     $user['homedir']   = '/';
                     $user['permissions'] = 'read|write|upload|download|batchdownload|zip';
-                }               
+                }
 
                 if(is_array($user) && !empty($user)) $users[] = $user;
             }
@@ -201,14 +201,14 @@ class LDAP implements Service, AuthInterface
     }
 
     private function verifyPassword($auth_user, $password)
-    {            
+    {
         if(!isset($this->ldap_server) || empty($this->ldap_server)) return false;
         if(!extension_loaded('ldap')) return false;
-        
+
         if($connect=ldap_connect($this->ldap_server))
-        {            
+        {
          ldap_set_option($connect, LDAP_OPT_PROTOCOL_VERSION, 3);
-         if($bind=ldap_bind($connect, $auth_user, $password)){            
+         if($bind=ldap_bind($connect, $auth_user, $password)){
             @ldap_close($connect);
             return true;
         } else {
@@ -216,8 +216,8 @@ class LDAP implements Service, AuthInterface
             return false;
             }
         }
-     
+
     @ldap_close($connect);
     return false;
-    }   
+    }
 }
