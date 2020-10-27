@@ -76,10 +76,7 @@ export default {
   },
   watch: {
     'files' (files) {
-      this.visible = true
-      this.progressVisible = true
-      _.forEach(files, file => {
-        file.relativePath = this.$store.state.cwd.location
+      _.forEach(files, file => {        
         this.resumable.addFile(file)
       })
     },
@@ -92,6 +89,7 @@ export default {
       },
       withCredentials: true,
       simultaneousUploads: this.$store.state.config.upload_simultaneous,
+      minFileSize: 0,
       chunkSize: this.$store.state.config.upload_chunk_size,
       maxFileSize: this.$store.state.config.upload_max_size,
       maxFileSizeErrorCallback: (file) => {
@@ -104,7 +102,7 @@ export default {
       }
     })
 
-    if (! this.resumable.support) {
+    if (!this.resumable.support) {
       this.$dialog.alert({
         type: 'is-danger',
         message: this.lang('Browser not supported.'),
@@ -112,11 +110,23 @@ export default {
       return
     }
 
-    this.resumable.on('fileAdded', () => {
-      if (! this.paused) {
-        this.resumable.upload()
+    this.resumable.assignDrop(document.getElementById('dropzone'));
+
+    var _parentThis = this;
+
+    this.resumable.on('fileAdded', function(file) {
+      _parentThis.visible = true;
+      _parentThis.progressVisible = true;
+
+      if(file.relativePath === undefined || file.relativePath === null || file.relativePath == file.fileName) file.relativePath = _parentThis.$store.state.cwd.location;
+      else file.relativePath = [_parentThis.$store.state.cwd.location, file.relativePath].join('/').replace('//', '/').replace(file.fileName, '').replace(/\/$/, '');
+
+      if (!_parentThis.paused) {
+        _parentThis.resumable.upload();
       }
-    })
+
+    });
+
     this.resumable.on('fileSuccess', (file) => {
       file.file.uploadingError = false
       this.$forceUpdate()
