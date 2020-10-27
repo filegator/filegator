@@ -110,22 +110,22 @@ export default {
       return
     }
 
-    this.resumable.assignDrop(document.getElementById('dropzone'));
+    this.resumable.assignDrop(document.getElementById('dropzone'))
 
-    var _parentThis = this;
+    var _parentThis = this
 
     this.resumable.on('fileAdded', function(file) {
-      _parentThis.visible = true;
-      _parentThis.progressVisible = true;
+      _parentThis.visible = true
+      _parentThis.progressVisible = true
 
-      if(file.relativePath === undefined || file.relativePath === null || file.relativePath == file.fileName) file.relativePath = _parentThis.$store.state.cwd.location;
-      else file.relativePath = [_parentThis.$store.state.cwd.location, file.relativePath].join('/').replace('//', '/').replace(file.fileName, '').replace(/\/$/, '');
+      if(file.relativePath === undefined || file.relativePath === null || file.relativePath == file.fileName) file.relativePath = _parentThis.$store.state.cwd.location
+      else file.relativePath = [_parentThis.$store.state.cwd.location, file.relativePath].join('/').replace('//', '/').replace(file.fileName, '').replace(/\/$/, '')
 
       if (!_parentThis.paused) {
-        _parentThis.resumable.upload();
+        _parentThis.resumable.upload()
       }
 
-    });
+    })
 
     this.resumable.on('fileSuccess', (file) => {
       file.file.uploadingError = false
