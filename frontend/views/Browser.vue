@@ -538,17 +538,16 @@ export default {
     customSort(a, b, order, param) {
       if (a.type == 'back') return -1
       if (b.type == 'back') return 1
-      
+
       if (a.type == 'dir' && b.type != 'dir') return -1
       if (b.type == 'dir' && a.type != 'dir') return 1
 
-      if (b.type == a.type)
-      {
+      if (b.type == a.type) {
         if (a[param] === b[param]) return this.customSort(a, b, false, 'name')
 
         if (_.isString(a[param])) return (a[param].localeCompare(b[param])) * (order ? -1 : 1)
         else return ((a[param] < b[param]) ? -1 : 1) * (order ? -1 : 1)
-      } 
+      }
     },
   }
 }

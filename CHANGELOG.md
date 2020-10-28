@@ -3,6 +3,7 @@
 ## Upcoming...
 
 * New LDAP auth adapter (Thanks @ahaenggli)
+* Fixes #17 (Thanks @ahaenggli)
 
 ## 7.4.5 - 2020-10-12
 
