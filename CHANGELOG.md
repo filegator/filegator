@@ -4,6 +4,7 @@
 
 * New LDAP auth adapter (Thanks @ahaenggli)
 * Fixes #17 (Thanks @ahaenggli)
+* Hungarian translation added (Thanks zsolti19850610)
 
 ## 7.4.5 - 2020-10-12
 
