@@ -76,7 +76,7 @@ export default {
   },
   watch: {
     'files' (files) {
-      _.forEach(files, file => {        
+      _.forEach(files, file => {
         this.resumable.addFile(file)
       })
     },
@@ -112,17 +112,15 @@ export default {
 
     this.resumable.assignDrop(document.getElementById('dropzone'))
 
-    var _parentThis = this
+    this.resumable.on('fileAdded', (file) => {
+      this.visible = true
+      this.progressVisible = true
 
-    this.resumable.on('fileAdded', function(file) {
-      _parentThis.visible = true
-      _parentThis.progressVisible = true
+      if(file.relativePath === undefined || file.relativePath === null || file.relativePath == file.fileName) file.relativePath = this.$store.state.cwd.location
+      else file.relativePath = [this.$store.state.cwd.location, file.relativePath].join('/').replace('//', '/').replace(file.fileName, '').replace(/\/$/, '')
 
-      if(file.relativePath === undefined || file.relativePath === null || file.relativePath == file.fileName) file.relativePath = _parentThis.$store.state.cwd.location
-      else file.relativePath = [_parentThis.$store.state.cwd.location, file.relativePath].join('/').replace('//', '/').replace(file.fileName, '').replace(/\/$/, '')
-
-      if (!_parentThis.paused) {
-        _parentThis.resumable.upload()
+      if (!this.paused) {
+        this.resumable.upload()
       }
 
     })
