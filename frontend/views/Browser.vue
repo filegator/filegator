@@ -8,7 +8,7 @@
 
     <Upload v-if="can('upload')" v-show="dropZone == false" :files="files" :drop-zone="dropZone" />
 
-    <b-upload v-if="dropZone && ! isLoading" multiple drag-drop @input="files = $event">
+    <b-upload v-if="dropZone && ! isLoading" multiple drag-drop>
       <b class="drop-info">{{ lang('Drop files to upload') }}</b>
     </b-upload>
 
