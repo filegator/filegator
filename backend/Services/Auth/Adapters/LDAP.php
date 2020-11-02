@@ -15,6 +15,9 @@ use Filegator\Services\Auth\UsersCollection;
 use Filegator\Services\Service;
 use Filegator\Services\Session\SessionStorageInterface as Session;
 
+/**
+ * @codeCoverageIgnore
+ */
 class LDAP implements Service, AuthInterface
 {
     const SESSION_KEY = 'LDAP_auth';
