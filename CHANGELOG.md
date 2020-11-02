@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.4.6 - 2020-11-02
+
+* New feature - upload folder with drag&drop, fixes #25 (Thanks @ahaenggli)
 * New LDAP auth adapter (Thanks @ahaenggli)
 * Fixes #17 (Thanks @ahaenggli)
 * Hungarian translation added (Thanks zsolti19850610)
