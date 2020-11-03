@@ -142,7 +142,7 @@ const funcs = {
       return this.isText(name) || this.isImage(name)
     },
     isText(name) {
-      return this.hasExtension(name, store.state.config.editable ? store.state.config.editable : ['.txt'])
+      return this.hasExtension(name, (store.state.config.editable && store.state.config.editable.length > 0) ? store.state.config.editable : ['.txt'])
     },
     isImage(name) {
       return this.hasExtension(name, ['.jpg', '.jpeg', '.gif', '.png', '.bmp', '.svg', '.tiff', '.tif'])
