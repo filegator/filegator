@@ -3,6 +3,7 @@ import moment from 'moment'
 import store from '../store.js'
 import api from '../api/api'
 import { Base64 } from 'js-base64'
+import _ from 'lodash'
 
 import english from '../translations/english'
 import spanish from '../translations/spanish'
@@ -142,13 +143,13 @@ const funcs = {
       return this.isText(name) || this.isImage(name)
     },
     isText(name) {
-      return this.hasExtension(name, (store.state.config.editable && store.state.config.editable.length > 0) ? store.state.config.editable : ['.txt'])
+      return this.hasExtension(name, store.state.config.editable)
     },
     isImage(name) {
       return this.hasExtension(name, ['.jpg', '.jpeg', '.gif', '.png', '.bmp', '.svg', '.tiff', '.tif'])
     },
     hasExtension(name, exts) {
-      return (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(name)
+      return !_.isEmpty(exts) && (new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$', 'i')).test(name)
     },
     capitalize(string) {
       return string.charAt(0).toUpperCase() + string.slice(1)

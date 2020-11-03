@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* Fixes #153 (Thanks @Gui13)
+
 ## 7.4.6 - 2020-11-02
 
 * New feature - upload folder with drag&drop, fixes #25 (Thanks @ahaenggli)
