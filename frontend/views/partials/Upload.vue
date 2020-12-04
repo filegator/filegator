@@ -9,7 +9,7 @@
                 <b-icon :icon="progressVisible ? 'angle-down' : 'angle-up'" />
               </a>
               <span v-if="activeUploads">
-                {{ lang('Uploading files', Math.round(resumable.progress()*100), formatBytes(resumable.getSize())) }}
+                {{ lang('Uploading files', resumable.getSize() > 0 ? Math.round(resumable.progress()*100) : 100, formatBytes(resumable.getSize())) }}
               </span>
               <span v-if="activeUploads && paused">
                 ({{ lang('Paused') }})
@@ -34,7 +34,7 @@
             <div>
               <div>{{ file.relativePath != '/' ? file.relativePath : '' }}/{{ file.fileName }}</div>
               <div class="is-flex is-justify-between">
-                <progress :class="[file.file.uploadingError ? 'is-danger' : 'is-primary', 'progress is-large']" :value="file.progress()*100" max="100" />
+                <progress :class="[file.file.uploadingError ? 'is-danger' : 'is-primary', 'progress is-large']" :value="file.size > 0 ? file.progress()*100 : 100" max="100" />
                 <a v-if="! file.isUploading() && file.file.uploadingError" class="progress-icon" @click="file.retry()">
                   <b-icon icon="redo" type="is-danger" />
                 </a>
@@ -71,7 +71,7 @@ export default {
   },
   computed: {
     activeUploads() {
-      return this.resumable.files.length && this.resumable.progress() < 1
+      return this.resumable.files.length > 0 && this.resumable.progress() < 1
     },
   },
   watch: {
