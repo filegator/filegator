@@ -3,6 +3,7 @@
 ## Upcoming...
 
 * Fixes #153 (Thanks @Gui13)
+* Fixes #163
 
 ## 7.4.6 - 2020-11-02
 
