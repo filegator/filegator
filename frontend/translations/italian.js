@@ -45,7 +45,7 @@ const data = {
   'Role': 'Ruolo',
   'Cancel': 'Annulla',
   'Paused': 'Sospeso',
-  'Confirm': 'Elimina',
+  'Confirm': 'Conferma',
   'Create': 'Crea',
   'User': 'Utente',
   'Admin': 'Amministratore',
