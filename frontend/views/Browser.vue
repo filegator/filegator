@@ -586,6 +586,9 @@ export default {
 .file-row a {
   color: #373737;
 }
+.file-row a.name {
+  word-break: break-all;
+}
 .file-row.type-dir a.name {
   font-weight: bold
 }
