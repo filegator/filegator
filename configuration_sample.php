@@ -80,6 +80,14 @@ return [
             'handler' => '\Filegator\Services\Storage\Filesystem',
             'config' => [
                 'separator' => '/',
+                //'excludes' => ['Recycle.bin/', 'File System Information/', '.DS_Store', '@eaDir/', '#recycle/'],
+                /**
+                 * 'excludes' explanation:
+                 * entry starts with separator => full path has to match, example: '/homes/web/filegator/justthisfile'
+                 * entry ends with separator => exclude only folders and a file with the same name will be shown, example: 'hiddenfolder/'
+                 * neither => it is a file and could be in every folder, example: 'hidden.txt'
+                 * both => full folder path has to match, example: '/homes/web/filegator/justthisfolder/'
+                 */
                 'config' => [],
                 'adapter' => function () {
                     return new \League\Flysystem\Adapter\Local(
