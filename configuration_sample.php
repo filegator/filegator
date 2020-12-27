@@ -19,6 +19,14 @@ return [
         'editable' => ['.txt', '.css', '.js', '.ts', '.html', '.php', '.json', '.md'],
         'date_format' => 'YY/MM/DD hh:mm:ss', // see: https://momentjs.com/docs/#/displaying/format/
         'guest_redirection' => '', // useful for external auth adapters
+        'filter_cwd_entries' => ['Recycle.bin/', 'File System Information/', '.DS_Store', '@eaDir/', '#recycle/'],
+        /**
+         * 'filter_cwd_entries' explanation:
+         * filter starts with separator => full path has to match, example: '/all/one/filegator/demo.txt'
+         * filter ends with separator => filter only folders (a file with the same name will be shown), example: '.git/'
+         * neither of above => it is a file and could be in every folder, example: '.htaccess'
+         * both of above => full folder path has to match, example: '/homes/web/filegator/.npm/'
+         */
     ],
 
     'services' => [
@@ -80,14 +88,6 @@ return [
             'handler' => '\Filegator\Services\Storage\Filesystem',
             'config' => [
                 'separator' => '/',
-                //'excludes' => ['Recycle.bin/', 'File System Information/', '.DS_Store', '@eaDir/', '#recycle/'],
-                /**
-                 * 'excludes' explanation:
-                 * entry starts with separator => full path has to match, example: '/homes/web/filegator/justthisfile'
-                 * entry ends with separator => exclude only folders and a file with the same name will be shown, example: 'hiddenfolder/'
-                 * neither => it is a file and could be in every folder, example: 'hidden.txt'
-                 * both => full folder path has to match, example: '/homes/web/filegator/justthisfolder/'
-                 */
                 'config' => [],
                 'adapter' => function () {
                     return new \League\Flysystem\Adapter\Local(

@@ -21,13 +21,10 @@ class Filesystem implements Service
 
     protected $path_prefix;
 
-    protected $excludes;
-
     public function init(array $config = [])
     {
         $this->separator = $config['separator'];
         $this->path_prefix = $this->separator;
-        $this->excludes = isset($config['excludes']) ? $config['excludes'] : [];
 
         $adapter = $config['adapter'];
         $config = isset($config['config']) ? $config['config'] : [];
@@ -206,38 +203,6 @@ class Filesystem implements Service
             $dirname = isset($entry['dirname']) ? $entry['dirname'] : $path;
             $size = isset($entry['size']) ? $entry['size'] : 0;
             $timestamp = isset($entry['timestamp']) ? $entry['timestamp'] : 0;
-
-            if(!empty($this->excludes)) {
-                $_excludeContinue = false;
-                foreach($this->excludes as $_excludeEntry) {
-                    if(!empty($_excludeEntry)) {
-                        // exclude definition ends with separator, so it's a dir
-                        $_excludeEntry_type = (substr($_excludeEntry, -1) == $this->getSeparator()) ? 'dir':'file';
-                        $_excludeEntry = rtrim($_excludeEntry, $this->getSeparator());
-
-                        // exclude definition starts with separator, so the whole path should match
-                        $_excludeEntry_isFullPath = (substr($_excludeEntry, 0, 1) == $this->getSeparator());
-                        $_excludeEntry_tmpName    = ($_excludeEntry_isFullPath)? $this->getSeparator().$this->getSeparator().$entry['path'] : $name;
-                        $_excludeEntry            = ($_excludeEntry_isFullPath)? $this->getSeparator().$_excludeEntry : $_excludeEntry;
-
-                        // escape some chars (they would mess up our regex)
-                        $_excludeEntry_escapeBeforePregMatch = [$this->getSeparator(), "\\", '^', '.', '$', '|', '(', ')', '[', ']', '*', '+', '?', '{', '}', ','];
-                        foreach($_excludeEntry_escapeBeforePregMatch as $_excludeEntry_esc) {
-                            $_excludeEntry = preg_replace('~(?<!\\\\)[\\'.$_excludeEntry_esc.']~', '\\'.$_excludeEntry_esc, $_excludeEntry);
-                        }
-
-                        // finally: is the exclude term matching?
-                        if($entry['type'] == $_excludeEntry_type && preg_match("/^{$_excludeEntry}$/iu", $_excludeEntry_tmpName)) {
-                            $_excludeContinue = true;
-                            break;
-                        }
-                    }
-                }
-                // our entry shall be excluded -> skip it
-                if($_excludeContinue) {
-                    continue;
-                }
-            }
 
             $collection->addFile($entry['type'], $userpath, $name, $size, $timestamp);
         }

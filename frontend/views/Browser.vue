@@ -216,6 +216,7 @@ export default {
         to: to.query.cd
       })
         .then(ret => {
+          ret.files = this.filterEntries(ret.files)
           this.$store.commit('setCwd', {
             content: ret.files,
             location: ret.location,
@@ -234,11 +235,59 @@ export default {
     }
   },
   methods: {
+    filterEntries(files){
+      var filter_cwd_entries = this.$store.state.config.filter_cwd_entries
+      if (typeof filter_cwd_entries !== 'undefined' && filter_cwd_entries.length > 0){
+            // the array is defined and has at least one element
+
+            let filteredFiles = []
+
+            _.forEach(files, (file) => {
+              let filterContinue = false
+              console.log(file)
+              _.forEach(filter_cwd_entries, (ffilter_Entry) => {
+                   if (typeof ffilter_Entry !== 'undefined' && ffilter_Entry.length > 0){
+                            let filter_Entry = ffilter_Entry
+                            // filter definition ends with separator, so it's a dir
+                            let filterEntry_type = filter_Entry.endsWith("/")? "dir":"file"
+                            filter_Entry = filter_Entry.replace(/\/$/, "")
+
+                            // filter definition starts with separator, so the whole path should match
+                            let filterEntry_isFullPath = filter_Entry.startsWith('/')
+                            let filterEntry_tmpName  = filterEntry_isFullPath? '/'+file.path : file.name
+                            filter_Entry             = filterEntry_isFullPath? '/'+filter_Entry : filter_Entry
+
+                            // escape some chars (they would mess up our regex)
+                            // keep * as .* so wildcard is supported
+                            filter_Entry = filter_Entry.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '\.$&')
+
+                            // finally: is the filter term matching?
+                            console.log(filter_Entry)
+                            console.log(filterEntry_tmpName)
+                            let thisRegex = new RegExp('^'+filter_Entry+'$', 'iu')
+                            if(file.type == filterEntry_type && thisRegex.test(filterEntry_tmpName))
+                            {
+                                filterContinue = true
+                                return false
+                            }
+                   }
+               })
+               // our entry shall be filtered -> skip it
+               if(!filterContinue){
+                 filteredFiles.push(file)
+               }
+            })
+
+            return filteredFiles
+      }
+    return files
+    },
     loadFiles() {
       api.getDir({
         to: '',
       })
         .then(ret => {
+          ret.files = this.filterEntries(ret.files)
           this.$store.commit('setCwd', {
             content: ret.files,
             location: ret.location,
