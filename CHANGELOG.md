@@ -2,6 +2,7 @@
 
 ## Upcoming...
 
+* Fixes #135 (Thanks @ahaenggli)
 * Fixes #153 (Thanks @Gui13)
 * Fixes #163
 
