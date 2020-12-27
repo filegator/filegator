@@ -90,7 +90,7 @@
                  :row-class="(row) => 'file-row type-'+row.type"
                  :checked-rows.sync="checked"
                  :loading="isLoading"
-                 :checkable="can('batchDownload') || can('write') || can('zip')"
+                 :checkable="can('batchdownload') || can('write') || can('zip')"
                  @contextmenu="rightClick"
         >
           <template slot-scope="props">
