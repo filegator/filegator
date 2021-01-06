@@ -144,19 +144,17 @@
               </b-dropdown>
             </b-table-column>
           </template>
-
         </b-table>
 
-         <section class="is-flex is-justify-between">
+        <section class="is-flex is-justify-between">
           <div>
-          <span>{{ lang('Selected', checked.length, totalCount) }}</span>
+            <span>{{ lang('Selected', checked.length, totalCount) }}</span>
           </div>
           <div v-if="(showAllEntries || hasFilteredEntries) ">
             <input type="checkbox" id="checkbox" v-model="showAllEntries" @click="loadFiles">
             <label for="checkbox"> {{ lang('show all files/folders') }}</label>
           </div>
         </section>
-
       </div>
     </div>
   </div>
@@ -255,12 +253,12 @@ export default {
               _.forEach(filter_cwd_entries, (ffilter_Entry) => {
                    if (typeof ffilter_Entry !== 'undefined' && ffilter_Entry.length > 0){
                             let filter_Entry = ffilter_Entry
-                            let filterEntry_type = filter_Entry.endsWith("/")? "dir":"file"
-                            filter_Entry = filter_Entry.replace(/\/$/, "")
+                            let filterEntry_type = filter_Entry.endsWith('/')? 'dir':'file'
+                            filter_Entry = filter_Entry.replace(/\/$/, '')
                             let filterEntry_isFullPath = filter_Entry.startsWith('/')
                             let filterEntry_tmpName  = filterEntry_isFullPath? '/'+file.path : file.name
                             filter_Entry             = filterEntry_isFullPath? '/'+filter_Entry : filter_Entry
-                            filter_Entry = filter_Entry.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '\.$&')
+                            filter_Entry = filter_Entry.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.$&')
                             let thisRegex = new RegExp('^'+filter_Entry+'$', 'iu')
                             if(file.type == filterEntry_type && thisRegex.test(filterEntry_tmpName))
                             {
