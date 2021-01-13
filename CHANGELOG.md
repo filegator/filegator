@@ -2,6 +2,7 @@
 
 ## Upcoming...
 
+* New feature - hiding files/folders on front-end, fixes #76 (Thanks @ahaenggli)
 * Fixes #135 (Thanks @ahaenggli)
 * Fixes #153 (Thanks @Gui13)
 * Fixes #163
