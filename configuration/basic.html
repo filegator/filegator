@@ -145,6 +145,12 @@
         'editable' =&gt; ['.txt', '.css', '.js', '.ts', '.html', '.php', '.json', '.md'],
         'date_format' =&gt; 'YY/MM/DD hh:mm:ss', // see: https://momentjs.com/docs/#/displaying/format/
         'guest_redirection' =&gt; '', // useful for external auth adapters
+
+        // filter starts with separator =&gt; full path has to match, example: '/all/one/filegator/demo.txt'
+        // filter ends with separator =&gt; filter only folders (a file with the same name will be shown), example: '.git/'
+        // neither of above =&gt; it is a file and could be in every folder, example: '.htaccess'
+        // both of above =&gt; full folder path has to match, example: '/homes/web/filegator/.npm/'
+        'filter_entries' =&gt; ['Recycle.bin/', 'File System Information/', '.DS_Store', '@eaDir/', '#recycle/'],
     ],</code></pre>
 <h2 id="additional-html">Additional HTML</h2>
 <p>You can add additional html to the head and body like this:</p>
