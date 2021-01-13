@@ -152,7 +152,7 @@
           </div>
           <div v-if="(showAllEntries || hasFilteredEntries) ">
             <input type="checkbox" id="checkbox" v-model="showAllEntries" @click="loadFiles">
-            <label for="checkbox"> {{ lang('show all files/folders') }}</label>
+            <label for="checkbox"> {{ lang('Show hidden') }}</label>
           </div>
         </section>
       </div>
@@ -244,13 +244,13 @@ export default {
   },
   methods: {
     filterEntries(files){
-      var filter_cwd_entries = this.$store.state.config.filter_cwd_entries
+      var filter_entries = this.$store.state.config.filter_entries
       this.hasFilteredEntries = false
-      if (!this.showAllEntries && typeof filter_cwd_entries !== 'undefined' && filter_cwd_entries.length > 0){
+      if (!this.showAllEntries && typeof filter_entries !== 'undefined' && filter_entries.length > 0){
             let filteredFiles = []
             _.forEach(files, (file) => {
               let filterContinue = false
-              _.forEach(filter_cwd_entries, (ffilter_Entry) => {
+              _.forEach(filter_entries, (ffilter_Entry) => {
                    if (typeof ffilter_Entry !== 'undefined' && ffilter_Entry.length > 0){
                             let filter_Entry = ffilter_Entry
                             let filterEntry_type = filter_Entry.endsWith('/')? 'dir':'file'
