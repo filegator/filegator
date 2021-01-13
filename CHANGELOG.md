@@ -2,10 +2,13 @@
 
 ## Upcoming...
 
+## 7.4.7 - 2021-01-13
+
 * New feature - hiding files/folders on front-end, fixes #76 (Thanks @ahaenggli)
 * Fixes #135 (Thanks @ahaenggli)
 * Fixes #153 (Thanks @Gui13)
 * Fixes #163
+* Swedish language added #174 (Thanks leifa71)
 
 ## 7.4.6 - 2020-11-02
 
