@@ -74,6 +74,7 @@ const data = {
   'Search': 'Search',
   'Download permission': 'Atsiųsti',
   'Guest': 'Guest',
+  'Show hidden': 'Rodyti paslėptą',
 }
 
 export default data

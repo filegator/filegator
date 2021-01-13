@@ -74,6 +74,7 @@ const data = {
   'Search': 'Search',
   'Download permission': 'Preuzimanje',
   'Guest': 'Gost',
+  'Show hidden': 'Prikaži skriveno',
 }
 
 export default data

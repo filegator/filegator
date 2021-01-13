@@ -74,6 +74,7 @@ const data = {
   'Search': 'Search',
   'Download permission': 'İndir',
   'Guest': 'Guest',
+  'Show hidden': 'Gizlenenleri göster',
 }
 
 export default data

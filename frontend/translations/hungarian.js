@@ -74,6 +74,7 @@ const data = {
   'Search': 'Keresés',
   'Download permission': 'Letöltés engedélyezés',
   'Guest': 'Vendég',
+  'Show hidden': 'Rejtett megjelenítése',
 }
 
 export default data

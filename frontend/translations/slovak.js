@@ -74,6 +74,7 @@ const data = {
   'Search': 'Vyhľadávanie',
   'Download permission': 'Sťahovanie',
   'Guest': 'Hosť',
+  'Show hidden': 'Zobraziť skryté',
 }
 
 export default data

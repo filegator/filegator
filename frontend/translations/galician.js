@@ -71,6 +71,7 @@ const data = {
   'Deleted': 'Eliminado',
   'Your file is ready': 'O teu arquivo está listo',
   'View': 'Ver',
+  'Show hidden': 'Amosar oculto',
 }
 
 export default data

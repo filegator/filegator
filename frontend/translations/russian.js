@@ -74,6 +74,7 @@ const data = {
   'Search': 'Поиск',
   'Download permission': 'Скачивание',
   'Guest': 'Гость',
+  'Show hidden': 'Показать скрытое',
 }
 
 export default data

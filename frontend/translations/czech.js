@@ -74,6 +74,7 @@ const data = {
   'Search': 'Vyhledávání',
   'Download permission': 'Stahování',
   'Guest': 'Host',
+  'Show hidden': 'Zobrazit skryté',
 }
 
 export default data

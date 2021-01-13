@@ -74,6 +74,7 @@ const data = {
   'Search': '搜索',
   'Download permission': '下载',
   'Guest': '游客',
+  'Show hidden': '显示隐藏',
 }
 
 export default data
