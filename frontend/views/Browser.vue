@@ -144,11 +144,17 @@
               </b-dropdown>
             </b-table-column>
           </template>
-
-          <template slot="bottom-left">
-            <span>{{ lang('Selected', checked.length, totalCount) }}</span>
-          </template>
         </b-table>
+
+        <section class="is-flex is-justify-between">
+          <div>
+            <span>{{ lang('Selected', checked.length, totalCount) }}</span>
+          </div>
+          <div v-if="(showAllEntries || hasFilteredEntries) ">
+            <input type="checkbox" id="checkbox" v-model="showAllEntries" @click="loadFiles">
+            <label for="checkbox"> {{ lang('Show hidden') }}</label>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -181,6 +187,8 @@ export default {
       isLoading: false,
       defaultSort: ['data.name', 'asc'],
       files: [],
+      hasFilteredEntries: false,
+      showAllEntries: false,
     }
   },
   computed: {
@@ -216,6 +224,7 @@ export default {
         to: to.query.cd
       })
         .then(ret => {
+          ret.files = this.filterEntries(ret.files)
           this.$store.commit('setCwd', {
             content: ret.files,
             location: ret.location,
@@ -234,11 +243,45 @@ export default {
     }
   },
   methods: {
+    filterEntries(files){
+      var filter_entries = this.$store.state.config.filter_entries
+      this.hasFilteredEntries = false
+      if (!this.showAllEntries && typeof filter_entries !== 'undefined' && filter_entries.length > 0){
+            let filteredFiles = []
+            _.forEach(files, (file) => {
+              let filterContinue = false
+              _.forEach(filter_entries, (ffilter_Entry) => {
+                   if (typeof ffilter_Entry !== 'undefined' && ffilter_Entry.length > 0){
+                            let filter_Entry = ffilter_Entry
+                            let filterEntry_type = filter_Entry.endsWith('/')? 'dir':'file'
+                            filter_Entry = filter_Entry.replace(/\/$/, '')
+                            let filterEntry_isFullPath = filter_Entry.startsWith('/')
+                            let filterEntry_tmpName  = filterEntry_isFullPath? '/'+file.path : file.name
+                            filter_Entry             = filterEntry_isFullPath? '/'+filter_Entry : filter_Entry
+                            filter_Entry = filter_Entry.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.$&')
+                            let thisRegex = new RegExp('^'+filter_Entry+'$', 'iu')
+                            if(file.type == filterEntry_type && thisRegex.test(filterEntry_tmpName))
+                            {
+                                filterContinue = true
+                                this.hasFilteredEntries = true
+                                return false
+                            }
+                   }
+               })
+               if(!filterContinue){
+                 filteredFiles.push(file)
+               }
+            })
+            return filteredFiles
+      }
+    return files
+    },
     loadFiles() {
       api.getDir({
         to: '',
       })
         .then(ret => {
+          ret.files = this.filterEntries(ret.files)
           this.$store.commit('setCwd', {
             content: ret.files,
             location: ret.location,
