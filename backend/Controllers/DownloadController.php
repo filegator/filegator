@@ -69,6 +69,7 @@ class DownloadController
         $extension = pathinfo($file['filename'], PATHINFO_EXTENSION);
         $mimes = (new MimeTypes())->getMimeTypes($extension);
         $contentType = !empty($mimes) ? $mimes[0] : 'application/octet-stream';
+        $filesize = $file['filesize'];
 
         $disposition = HeaderUtils::DISPOSITION_ATTACHMENT;
 
@@ -91,7 +92,10 @@ class DownloadController
             'Content-Transfer-Encoding',
             'binary'
         );
-
+        $streamedResponse->headers->set(
+            'Content-Length',
+            $filesize
+        );
         // @codeCoverageIgnoreStart
         if (APP_ENV == 'development') {
             $streamedResponse->headers->set(
@@ -137,6 +141,7 @@ class DownloadController
     public function batchDownloadStart(Request $request, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
     {
         $uniqid = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('uniqid'));
+        $filesize = $tmpfs->getFileSize($uniqid);
 
         $streamedResponse->setCallback(function () use ($tmpfs, $uniqid) {
             // @codeCoverageIgnoreStart
@@ -170,7 +175,10 @@ class DownloadController
             'Content-Transfer-Encoding',
             'binary'
         );
-
+        $streamedResponse->headers->set(
+            'Content-Length',
+            $filesize
+        );
         // close session so we can continue streaming, note: dev is single-threaded
         $this->session->save();
 

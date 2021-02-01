@@ -27,4 +27,6 @@ interface TmpfsInterface
     public function getFileLocation(string $filename): string;
 
     public function clean(int $older_than);
+
+    public function getFileSize(string $filename): int;
 }

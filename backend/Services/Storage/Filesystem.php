@@ -123,6 +123,11 @@ class Filesystem implements Service
         return $this->storage->delete($this->applyPathPrefix($path));
     }
 
+    public function getFileSize(string $path): int
+    {
+        return $this->storage->getSize($path);
+    }
+
     public function readStream(string $path): array
     {
         if ($this->isDir($path)) {
@@ -134,6 +139,7 @@ class Filesystem implements Service
         return [
             'filename' => $this->getBaseName($path),
             'stream' => $this->storage->readStream($path),
+            'filesize' => $this->getFileSize($path),
         ];
     }
 
