@@ -141,12 +141,11 @@ class DownloadController
     public function batchDownloadStart(Request $request, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
     {
         $uniqid = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('uniqid'));
-        $filesize = $tmpfs->getFileSize($uniqid);
+        $file = $tmpfs->readStream($uniqid);
 
-        $streamedResponse->setCallback(function () use ($tmpfs, $uniqid) {
+        $streamedResponse->setCallback(function () use ($file, $tmpfs, $uniqid) {
             // @codeCoverageIgnoreStart
             set_time_limit(0);
-            $file = $tmpfs->readStream($uniqid);
             if ($file['stream']) {
                 while (! feof($file['stream'])) {
                     echo fread($file['stream'], 1024 * 8);
@@ -177,7 +176,7 @@ class DownloadController
         );
         $streamedResponse->headers->set(
             'Content-Length',
-            $filesize
+            $file['filesize']
         );
         // close session so we can continue streaming, note: dev is single-threaded
         $this->session->save();

@@ -50,13 +50,6 @@ class Tmpfs implements Service, TmpfsInterface
         return $this->getPath().$filename;
     }
 
-    public function getFileSize(string $filename): int
-    {
-        $filename = $this->sanitizeFilename($filename);
-
-        return filesize($this->getPath().$filename);
-    }
-
     public function read(string $filename): string
     {
         $filename = $this->sanitizeFilename($filename);
@@ -69,10 +62,12 @@ class Tmpfs implements Service, TmpfsInterface
         $filename = $this->sanitizeFilename($filename);
 
         $stream = fopen($this->getPath().$filename, 'r');
+        $filesize = filesize($this->getPath().$filename);
 
         return [
             'filename' => $filename,
             'stream' => $stream,
+            'filesize' => $filesize,
         ];
     }
 
