@@ -69,7 +69,6 @@ class DownloadController
         $extension = pathinfo($file['filename'], PATHINFO_EXTENSION);
         $mimes = (new MimeTypes())->getMimeTypes($extension);
         $contentType = !empty($mimes) ? $mimes[0] : 'application/octet-stream';
-        $filesize = $file['filesize'];
 
         $disposition = HeaderUtils::DISPOSITION_ATTACHMENT;
 
@@ -92,10 +91,12 @@ class DownloadController
             'Content-Transfer-Encoding',
             'binary'
         );
-        $streamedResponse->headers->set(
-            'Content-Length',
-            $filesize
-        );
+        if (isset($file['filesize'])) {
+            $streamedResponse->headers->set(
+                'Content-Length',
+                $file['filesize']
+            );
+        }
         // @codeCoverageIgnoreStart
         if (APP_ENV == 'development') {
             $streamedResponse->headers->set(
@@ -174,10 +175,12 @@ class DownloadController
             'Content-Transfer-Encoding',
             'binary'
         );
-        $streamedResponse->headers->set(
-            'Content-Length',
-            $file['filesize']
-        );
+        if (isset($file['filesize'])) {
+            $streamedResponse->headers->set(
+                'Content-Length',
+                $file['filesize']
+            );
+        }
         // close session so we can continue streaming, note: dev is single-threaded
         $this->session->save();
 
