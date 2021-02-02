@@ -64,7 +64,7 @@ class TmpfsTest extends TestCase
         $this->service->write('a.txt', 'lorem');
 
         $ret = $this->service->readStream('a.txt');
-        $this->assertEquals($ret['filename'], 'a.txt');
+        $this->assertEquals('a.txt', $ret['filename']);
 
         $contents = stream_get_contents($ret['stream']);
         $this->assertEquals('lorem', $contents);
