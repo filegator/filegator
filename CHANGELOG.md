@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* Show filesize and remaining time on download #181 (Thanks @ahaenggli)
+
 ## 7.4.7 - 2021-01-13
 
 * New feature - hiding files/folders on front-end, fixes #76 (Thanks @ahaenggli)
