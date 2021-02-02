@@ -62,10 +62,12 @@ class Tmpfs implements Service, TmpfsInterface
         $filename = $this->sanitizeFilename($filename);
 
         $stream = fopen($this->getPath().$filename, 'r');
+        $filesize = filesize($this->getPath().$filename);
 
         return [
             'filename' => $filename,
             'stream' => $stream,
+            'filesize' => $filesize,
         ];
     }
 

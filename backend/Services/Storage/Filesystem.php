@@ -134,6 +134,7 @@ class Filesystem implements Service
         return [
             'filename' => $this->getBaseName($path),
             'stream' => $this->storage->readStream($path),
+            'filesize' => $this->storage->getSize($path),
         ];
     }
 
