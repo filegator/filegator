@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        php-version: ['7.1', '7.2', '7.3', '7.4']
+        php-version: ['7.2', '7.3', '7.4', '8.0']
 
     steps:
     - name: Checkout
@@ -19,7 +19,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: mbstring, zip, sqlite3
+        extensions: mbstring, zip, sqlite3, filter
         coverage: xdebug
 
     - name: Install dependencies

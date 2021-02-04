@@ -9,8 +9,8 @@
  * file that was distributed with this source code.
  */
 
-if (version_compare(PHP_VERSION, '7.1.3', '<')) {
-    echo 'Minimum requirement is PHP 7.1.3. You are using: '.PHP_VERSION."\n";
+if (version_compare(PHP_VERSION, '7.2', '<')) {
+    echo 'Minimum requirement is PHP 7.2 You are using: '.PHP_VERSION."\n";
     die;
 }
 

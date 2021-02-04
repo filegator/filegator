@@ -3,7 +3,7 @@ currentMenu: install
 ---
 
 ## Minimum Requirements
-- PHP 7.1.3+ (with php-zip extension)
+- PHP 7.2+ (with php-zip extension)
 
 
 ## Download precompiled build
