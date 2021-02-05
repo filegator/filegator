@@ -29,7 +29,7 @@ jobs:
       run: cp configuration_sample.php configuration.php
 
     - name: Execute tests
-      run: vendor/bin/phpunit --coverage-clover=coverage.xml
+      run: XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-clover=coverage.xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
