@@ -131,12 +131,12 @@
                 <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
                     <h2 id="minimum-requirements">Minimum Requirements</h2>
 <ul>
-<li>PHP 7.1.3+ (with php-zip extension)</li>
+<li>PHP 7.2+ (with php-zip extension)</li>
 </ul>
 <h2 id="download-precompiled-build">Download precompiled build</h2>
 <p>Precompiled build is created for non-developers. In this version, the frontend (html, css and javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.</p>
 <ul>
-<li>Download: <a href="https://github.com/filegator/static/raw/master/builds/filegator_v7.4.7.zip">v7.4.7</a></li>
+<li>Download: <a href="https://github.com/filegator/static/raw/master/builds/filegator_v7.5.0.zip">v7.5.0</a></li>
 <li>Unzip files and upload them to your PHP server</li>
 <li>Make sure your webserver can read and write to <code>filegator/repository/</code> and <code>filegator/private/</code> folders</li>
 <li>Set the website document root to <code>filegator/dist/</code> directory. This is also known as 'public' folder</li>
@@ -151,8 +151,8 @@
 apt install -y wget unzip php apache2 libapache2-mod-php php-zip
 
 cd /var/www/
-wget https://github.com/filegator/static/raw/master/builds/filegator_v7.4.7.zip
-unzip filegator_v7.4.7.zip &amp;&amp; rm filegator_v7.4.7.zip
+wget https://github.com/filegator/static/raw/master/builds/filegator_v7.5.0.zip
+unzip filegator_v7.5.0.zip &amp;&amp; rm filegator_v7.5.0.zip
 
 chown -R www-data:www-data filegator/
 chmod -R 775 filegator/
