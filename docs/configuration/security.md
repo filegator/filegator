@@ -15,6 +15,7 @@ Simple security service is included in the script by default. This service provi
             'handler' => '\Filegator\Services\Security\Security',
             'config' => [
                 'csrf_protection' => true,
+                'csrf_key' => "123456", // randomize this
                 'ip_allowlist' => [],
                 'ip_denylist' => [
                     '172.16.1.2',

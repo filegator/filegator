@@ -34,13 +34,16 @@ class Security implements Service
     public function init(array $config = [])
     {
         if ($config['csrf_protection']) {
+
+            $key = isset($config['csrf_key']) ? $config['csrf_key'] : 'protection';
+
             $http_method = $this->request->getMethod();
             $csrfManager = new CsrfTokenManager();
 
             if (in_array($http_method, ['GET', 'HEAD', 'OPTIONS'])) {
-                $this->response->headers->set('X-CSRF-Token', $csrfManager->getToken('protection'));
+                $this->response->headers->set('X-CSRF-Token', $csrfManager->getToken($key));
             } else {
-                $token = new CsrfToken('protection', $this->request->headers->get('X-CSRF-Token'));
+                $token = new CsrfToken($key, $this->request->headers->get('X-CSRF-Token'));
 
                 if (! $csrfManager->isTokenValid($token)) {
                     throw new \Exception('Csrf token not valid');
