@@ -100,6 +100,7 @@ Replace your current Auth handler in `configuration.php` file like this:
                     'ldap_bindPass'=>'ldapbinduser-password',
                     'ldap_baseDN'=>'cn=users,dc=ldap,dc=example,dc=com',
                     'ldap_filter'=>'(uid=*)', //ex: 'ldap_filter'=>'(&(uid=*)(memberOf=cn=administrators,cn=groups,dc=ldap,dc=example,dc=com))',
+                    'ldap_attributes' => ["uid","cn","dn"],
                     'ldap_userFieldMapping'=> [
                         'username' =>'uid',
                         'name' =>'cn',
