@@ -53,7 +53,7 @@ class LDAP implements Service, AuthInterface
                 $this->ldap_bindPass = $config['ldap_bindPass'];
                 $this->ldap_baseDN = $config['ldap_baseDN'];
                 $this->ldap_filter = $config['ldap_filter'];
-                $this->ldap_attributes = $config['ldap_attributes'];
+                $this->ldap_attributes = isset($config['ldap_attributes']) ? $config['ldap_attributes'] : ['*'];
                 $this->ldap_userFieldMapping = $config['ldap_userFieldMapping'];
         }else {
                 @ldap_close($connect);
