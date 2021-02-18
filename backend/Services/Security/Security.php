@@ -13,6 +13,7 @@ namespace Filegator\Services\Security;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Service;
+use Filegator\Services\Logger\LoggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 
@@ -25,10 +26,13 @@ class Security implements Service
 
     protected $response;
 
-    public function __construct(Request $request, Response $response)
+    protected $logger;
+
+    public function __construct(Request $request, Response $response, LoggerInterface $logger)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->logger = $logger;
     }
 
     public function init(array $config = [])
@@ -46,7 +50,8 @@ class Security implements Service
                 $token = new CsrfToken($key, $this->request->headers->get('X-CSRF-Token'));
 
                 if (! $csrfManager->isTokenValid($token)) {
-                    throw new \Exception('Csrf token not valid');
+                    $this->logger->log("Csrf token not valid");
+                    die;
                 }
             }
         }
@@ -63,6 +68,7 @@ class Security implements Service
             if (! $pass) {
                 $this->response->setStatusCode(403);
                 $this->response->send();
+                $this->logger->log("Forbidden - IP not found in allowlist ".$this->request->getClientIp());
                 die;
             }
         }
@@ -79,6 +85,7 @@ class Security implements Service
             if (! $pass) {
                 $this->response->setStatusCode(403);
                 $this->response->send();
+                $this->logger->log("Forbidden - IP matched against denylist ".$this->request->getClientIp());
                 die;
             }
         }
