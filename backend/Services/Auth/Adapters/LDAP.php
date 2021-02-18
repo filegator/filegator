@@ -30,6 +30,7 @@ class LDAP implements Service, AuthInterface
     protected $ldap_bindPass;
     protected $ldap_baseDN;
     protected $ldap_filter;
+    protected $ldap_attributes;
     protected $ldap_userFieldMapping;
 
     public function __construct(Session $session)
@@ -52,6 +53,7 @@ class LDAP implements Service, AuthInterface
                 $this->ldap_bindPass = $config['ldap_bindPass'];
                 $this->ldap_baseDN = $config['ldap_baseDN'];
                 $this->ldap_filter = $config['ldap_filter'];
+                $this->ldap_attributes = isset($config['ldap_attributes']) ? $config['ldap_attributes'] : ['*'];
                 $this->ldap_userFieldMapping = $config['ldap_userFieldMapping'];
         }else {
                 @ldap_close($connect);
@@ -166,7 +168,7 @@ class LDAP implements Service, AuthInterface
             if (!$ldapBind) throw new \Exception('Cannot Bind to LDAP server: Wrong credentials?');
 
             // search the LDAP server for users
-            $ldapSearch  = @ldap_search($ldapConn, $this->ldap_baseDN, $this->ldap_filter, ['*']);
+            $ldapSearch  = @ldap_search($ldapConn, $this->ldap_baseDN, $this->ldap_filter, $this->ldap_attributes);
             $ldapResults = @ldap_get_entries($ldapConn, $ldapSearch);
             @ldap_close($ldapConn);
 
