@@ -30,7 +30,11 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 </p>
 
 
-## Sponsors
+## Sponsors & Backers
+FileGator is a free, open-source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/vuejs/vue/blob/dev/BACKERS.md). If you'd like to join them, please consider:
+
+- [Become a backer or sponsor on Patreon](https://www.patreon.com/alcalbg).
+
 <table>
   <tbody>
     <tr>
