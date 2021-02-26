@@ -5,6 +5,7 @@
 * New csrf token key config option added
 * Ldap adapter improvements, new config param for attributes, pr #184 (Thanks @lzkill)
 * Logger added to security service, fixes #183
+* Japanese translation added (Thanks @tubuanha)
 
 ## 7.5.0 - 2021-02-05
 
