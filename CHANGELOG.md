@@ -6,6 +6,7 @@
 * Ldap adapter improvements, new config param for attributes, pr #184 (Thanks @lzkill)
 * Logger added to security service, fixes #183
 * Japanese translation added (Thanks @tubuanha)
+* Two consecutive periods bugfix for #202
 
 ## 7.5.0 - 2021-02-05
 
