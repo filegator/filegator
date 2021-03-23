@@ -403,6 +403,8 @@ class FilesystemTest extends TestCase
         $this->assertEquals('/john/test.txt/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['test.txt/']));
         // no escaping path to upper dir
         $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/..']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['../']));
         $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/sub/../../']));
     }
 
