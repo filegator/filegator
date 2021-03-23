@@ -7,6 +7,7 @@
 * Logger added to security service, fixes #183
 * Japanese translation added (Thanks @tubuanha)
 * Two consecutive periods bugfix for #202
+* Axios auto-transform json turned off, fixes #201
 
 ## 7.5.0 - 2021-02-05
 
