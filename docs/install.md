@@ -9,7 +9,7 @@ currentMenu: install
 ## Download precompiled build
 Precompiled build is created for non-developers. In this version, the frontend (html, css and javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
 
-- Download: [v7.5.1](https://github.com/filegator/static/raw/master/builds/filegator_v7.5.1.zip)
+- Download: [latest release](https://github.com/filegator/static/raw/master/builds/filegator_latest.zip)
 - Unzip files and upload them to your PHP server
 - Make sure your webserver can read and write to `filegator/repository/` and `filegator/private/` folders
 - Set the website document root to `filegator/dist/` directory. This is also known as 'public' folder
@@ -26,8 +26,8 @@ apt update
 apt install -y wget unzip php apache2 libapache2-mod-php php-zip
 
 cd /var/www/
-wget https://github.com/filegator/static/raw/master/builds/filegator_v7.5.1.zip
-unzip filegator_v7.5.1.zip && rm filegator_v7.5.1.zip
+wget https://github.com/filegator/static/raw/master/builds/filegator_latest.zip
+unzip filegator_latest.zip && rm filegator_latest.zip
 
 chown -R www-data:www-data filegator/
 chmod -R 775 filegator/
