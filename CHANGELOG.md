@@ -2,6 +2,11 @@
 
 ## Upcoming...
 
+## 7.5.2 - 2021-06-24
+
+* Composer update
+* Flysystem patch GHSA-9f46-5r25-5wfm
+
 ## 7.5.1 - 2021-03-23
 
 * New csrf token key config option added
