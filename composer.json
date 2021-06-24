@@ -5,7 +5,7 @@
     "type": "project",
     "config": {
         "platform": {
-            "php": "7.2"
+            "php": "7.2.5"
         }
     },
     "require": {
@@ -17,7 +17,7 @@
         "dibi/dibi": "^4.1",
         "php-di/php-di": "^6.0",
         "rakit/validation": "^1.1",
-        "league/flysystem": "^1.0",
+        "league/flysystem": "^1.1",
         "league/flysystem-ziparchive": "^1.0"
     },
     "authors": [
