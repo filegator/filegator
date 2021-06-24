@@ -6,6 +6,7 @@
 
 * Composer update
 * Flysystem patch GHSA-9f46-5r25-5wfm
+* Min supported PHP version is now 7.2.5
 
 ## 7.5.1 - 2021-03-23
 
