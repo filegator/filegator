@@ -44,7 +44,9 @@ return [
                     //$save_path = __DIR__.'/private/sessions';
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
 
-                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
+                            "cookie_samesite" => "Lax",
+                        ], $handler);
                 },
             ],
         ],

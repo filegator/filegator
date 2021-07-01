@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* Cookie samesite defaults to Lax, fixes #232
+
 ## 7.5.2 - 2021-06-24
 
 * Composer update
