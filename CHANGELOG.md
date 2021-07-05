@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.5.3 - 2021-07-05
+
+* Invalidate sessions when the user is changed, prevents session fixation (json, database)
 * Cookie samesite defaults to Lax, fixes #232
 
 ## 7.5.2 - 2021-06-24
