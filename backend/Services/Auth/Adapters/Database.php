@@ -24,6 +24,7 @@ class Database implements Service, AuthInterface
     use PasswordHash;
 
     const SESSION_KEY = 'database_auth';
+    const SESSION_HASH = 'database_auth_hash';
 
     const GUEST_USERNAME = 'guest';
 
@@ -48,7 +49,22 @@ class Database implements Service, AuthInterface
 
     public function user(): ?User
     {
-        return $this->session ? $this->session->get(self::SESSION_KEY, null) : null;
+        if (! $this->session) return null;
+
+        $user = $this->session->get(self::SESSION_KEY, null);
+        $hash = $this->session->get(self::SESSION_HASH, null);
+
+        if (! $user) return null;
+
+        $ret = $this->getConnection()
+            ->fetch('SELECT * FROM users WHERE username = ?', $user->getUsername())
+        ;
+
+        if ($ret && $hash == $ret->password) {
+            return $user;
+        }
+
+        return null;
     }
 
     public function authenticate($username, $password): bool
@@ -60,6 +76,7 @@ class Database implements Service, AuthInterface
         if ($ret && $this->verifyPassword($password, $ret->password)) {
             $user = $this->mapToUserObject($ret);
             $this->store($user);
+            $this->session->set(self::SESSION_HASH, $ret->password);
 
             return true;
         }
