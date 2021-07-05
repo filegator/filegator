@@ -52,6 +52,7 @@ export default {
             type: 'is-success',
           })
           this.$parent.close()
+          this.$router.go()
         })
         .catch(errors => {
           if (typeof errors.response.data.data != 'object') {

@@ -34,6 +34,12 @@ class MockUsers extends JsonFile implements Service, AuthInterface
         return $this->users_array = $users;
     }
 
+    public function user(): ?User
+    {
+        return $this->session ? $this->session->get(self::SESSION_KEY, null) : null;
+    }
+
+
     private function addMockUsers()
     {
         $guest = new User();
@@ -69,4 +75,5 @@ class MockUsers extends JsonFile implements Service, AuthInterface
         $this->add($john, 'john123');
         $this->add($jane, 'jane123');
     }
+
 }
