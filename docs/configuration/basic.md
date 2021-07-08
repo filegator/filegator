@@ -24,6 +24,7 @@ Note: if you've made a mistake in configuration file (forgot to close a quote?) 
         'editable' => ['.txt', '.css', '.js', '.ts', '.html', '.php', '.json', '.md'],
         'date_format' => 'YY/MM/DD hh:mm:ss', // see: https://momentjs.com/docs/#/displaying/format/
         'guest_redirection' => '', // useful for external auth adapters
+        'search_simultaneous' => 5, // how many simultaneous getdirs to spawn when searching
 
         // filter starts with separator => full path has to match, example: '/all/one/filegator/demo.txt'
         // filter ends with separator => filter only folders (a file with the same name will be shown), example: '.git/'
