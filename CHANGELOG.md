@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* Better search with configurable simultaneous search limit, fixes #234
+
 ## 7.5.3 - 2021-07-05
 
 * Invalidate sessions when the user is changed, prevents session fixation (json, database)
