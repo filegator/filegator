@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+## 7.6.0 - 2021-07-12
+
 * Better search with configurable simultaneous search limit, fixes #234
 
 ## 7.5.3 - 2021-07-05
