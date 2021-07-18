@@ -32,6 +32,10 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 - No database required
 - Framework free [™](https://www.youtube.com/watch?v=L5jI9I03q8E)
 
+## Limitations
+- Symlinks are not supported by the underlying [Flysystem](https://flysystem.thephpleague.com/v1/docs/adapter/local/)
+- File permission operations are not supported (chmod/chown)
+
 
 ## Why Open Source on GitHub?
 
