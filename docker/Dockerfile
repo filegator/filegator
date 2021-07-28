@@ -24,8 +24,7 @@ RUN apt-get update > /dev/null && \
     # cleanup apt
     apt-get purge -y wget unzip && \
     apt-get autoclean -y && \
-    rm -Rf /var/lib/apt/lists/* && \
-    service apache2 restart
+    rm -Rf /var/lib/apt/lists/*
 
 EXPOSE 80
 
