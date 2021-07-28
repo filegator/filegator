@@ -1,6 +1,6 @@
 FROM php:7-apache-buster
 
-ENV APACHE_DOCUMENT_ROOT /var/www/filegator/
+ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/
 
 RUN apt-get update > /dev/null && \
     # Install and enable php zip extension
@@ -18,14 +18,15 @@ RUN apt-get update > /dev/null && \
     <VirtualHost *:80> \n\
        DocumentRoot /var/www/filegator/dist\n\
     </VirtualHost>\n\
-    ' >> /etc/apache2/sites-available/filegator.conf && \
+    ' > /etc/apache2/sites-enabled/000-default.conf && \
     # configure php
     mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
     # cleanup apt
     apt-get purge -y wget unzip && \
     apt-get autoclean -y && \
-    rm -Rf /var/lib/apt/lists/*
-    
+    rm -Rf /var/lib/apt/lists/* && \
+    service apache2 restart
+
 EXPOSE 80
 
 VOLUME /var/www/filegator/repository
