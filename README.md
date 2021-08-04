@@ -109,7 +109,7 @@ See [install instructinos](https://docs.filegator.io/install.html) for Ubuntu 18
 ## Download precompiled build
 Precompiled build is created for non-developers. In this version, the frontend (html, css and javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
 
-[Download & install instructinos](https://docs.filegator.io/install.html)
+[Download & install instructions](https://docs.filegator.io/install.html)
 
 
 ## Project setup for development (Linux)
