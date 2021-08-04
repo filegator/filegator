@@ -103,7 +103,7 @@ This is read-only demo with guest account enabled.
 ## Minimum Requirements
 - PHP 7.2.5+ (with php-zip extension)
 
-See [install instructinos](https://docs.filegator.io/install.html) for Ubuntu 18.04 or Debian 10.3. Get $100 in ([server credits here](https://m.do.co/c/93994ebda78d)) so you can play around.
+See [install instructions](https://docs.filegator.io/install.html) for Ubuntu 18.04 or Debian 10.3. Get $100 in ([server credits here](https://m.do.co/c/93994ebda78d)) so you can play around.
 
 
 ## Download precompiled build
