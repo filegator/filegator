@@ -16,7 +16,7 @@ Note: if you've made a mistake in configuration file (forgot to close a quote?) 
         'app_name' => 'FileGator',
         'app_version' => APP_VERSION,
         'language' => 'english',
-        'logo' => 'https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.png',
+        'logo' => 'https://filegator.io/filegator_logo.svg',
         'upload_max_size' => 100 * 1024 * 1024, // 100MB
         'upload_chunk_size' => 1 * 1024 * 1024, // 1MB
         'upload_simultaneous' => 3,
