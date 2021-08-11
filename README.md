@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.gif">
+<img src="https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.svg">
 </p>
 
 <p align="center">
