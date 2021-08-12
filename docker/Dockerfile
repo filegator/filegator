@@ -18,7 +18,9 @@ RUN apt-get update > /dev/null && \
     <VirtualHost *:80> \n\
        DocumentRoot /var/www/filegator/dist\n\
     </VirtualHost>\n\
-    ' > /etc/apache2/sites-enabled/000-default.conf && \
+    ' >> /etc/apache2/sites-available/filegator.conf && \
+    sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf && \
+    sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf && \
     # configure php
     mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
     # cleanup apt
