@@ -75,14 +75,15 @@ class LDAP implements Service, AuthInterface
         if(!isset($username) || empty($username)) return false;
 
         // remove (optional) domains from the username
-        if(!empty($this->ldap_userFieldMapping['username_RemoveDomains']) && is_array($this->ldap_userFieldMapping['username_RemoveDomains'])){
+        if(!empty($this->ldap_userFieldMapping['username_RemoveDomains']) && is_array($this->ldap_userFieldMapping['username_RemoveDomains'])) {
             $username = str_replace($this->ldap_userFieldMapping['username_RemoveDomains'], '', $username);
         }
 
         // add the domain to the username
-        if(!empty($this->ldap_userFieldMapping['username_AddDomain'])){
-            if(strpos($username, $this->ldap_userFieldMapping['username_AddDomain']) === false)
-            $username .= $this->ldap_userFieldMapping['username_AddDomain'];
+        if(!empty($this->ldap_userFieldMapping['username_AddDomain'])) {
+            if(strpos($username, $this->ldap_userFieldMapping['username_AddDomain']) === false) {
+                $username .= $this->ldap_userFieldMapping['username_AddDomain'];
+            }
         }
 
         $all_users = $this->getUsers();
@@ -222,7 +223,7 @@ class LDAP implements Service, AuthInterface
 
                 if(is_array($user) && !empty($user)) $users[] = $user;
             }
-            //print_r($users);
+            // print_r($users); // uncomment this line to see all available ldap-login-users
         return is_array($users) ? $users : [];
     }
 
