@@ -70,6 +70,22 @@ class LDAP implements Service, AuthInterface
 
     public function authenticate($username, $password): bool
     {
+        // prevent anonymous binding
+        if(!isset($password) || empty($password)) return false;
+        if(!isset($username) || empty($username)) return false;
+
+        // remove (optional) domains from the username
+        if(!empty($this->ldap_userFieldMapping['username_RemoveDomains']) && is_array($this->ldap_userFieldMapping['username_RemoveDomains'])) {
+            $username = str_replace($this->ldap_userFieldMapping['username_RemoveDomains'], '', $username);
+        }
+
+        // add the domain to the username
+        if(!empty($this->ldap_userFieldMapping['username_AddDomain'])) {
+            if(strpos($username, $this->ldap_userFieldMapping['username_AddDomain']) === false) {
+                $username .= $this->ldap_userFieldMapping['username_AddDomain'];
+            }
+        }
+
         $all_users = $this->getUsers();
 
         foreach ($all_users as &$u) {
@@ -184,6 +200,11 @@ class LDAP implements Service, AuthInterface
                 $user['permissions']=$this->ldap_userFieldMapping['default_permissions'];
                 $user['userDN'] = $ldapResults[$item][$this->ldap_userFieldMapping['userDN']];
 
+                if(!empty($this->ldap_userFieldMapping['username_AddDomain'])){
+                    if(strpos($user['username'], $this->ldap_userFieldMapping['username_AddDomain']) === false)
+                    $user['username'] .= $this->ldap_userFieldMapping['username_AddDomain'];
+                }
+
                 if(is_array($this->ldap_userFieldMapping['admin_usernames']))
                 {
                     if(in_array($user['username'], $this->ldap_userFieldMapping['admin_usernames'])) $user['role'] = 'admin';
@@ -202,6 +223,7 @@ class LDAP implements Service, AuthInterface
 
                 if(is_array($user) && !empty($user)) $users[] = $user;
             }
+            // print_r($users); // uncomment this line to see all available ldap-login-users
         return is_array($users) ? $users : [];
     }
 

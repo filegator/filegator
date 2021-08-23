@@ -103,6 +103,8 @@ Replace your current Auth handler in `configuration.php` file like this:
                     'ldap_attributes' => ["uid","cn","dn"],
                     'ldap_userFieldMapping'=> [
                         'username' =>'uid',
+                        'username_AddDomain' =>'@example.com',
+                        'username_RemoveDomains' =>['@department1.example.com', '@department2.example.com'],
                         'name' =>'cn',
                         'userDN' =>'dn',
                         'default_permissions' => 'read|write|upload|download|batchdownload|zip',
