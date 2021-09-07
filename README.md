@@ -44,6 +44,11 @@ FileGator is a free, open-source project. It's an independent project with its o
         </a>
       </td>
       <td align="center" valign="middle">
+        <a href="https://www.savepage.io/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
+          <img title="Screenshot any website with our powerful API" width="177px" src="https://www.savepage.io/images/logo.svg">
+        </a>
+      </td>
+      <td align="center" valign="middle">
         <a href="https://www.getping.info/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
           <img title="Trigger an email, sms or slack notification with a simple GET request" width="177px" src="https://www.getping.info/img/logo.svg">
         </a>
