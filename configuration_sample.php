@@ -47,6 +47,7 @@ return [
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
                             "cookie_samesite" => "Lax",
+                            "cookie_secure" => null,
                         ], $handler);
                 },
             ],
