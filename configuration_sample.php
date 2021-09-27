@@ -72,6 +72,7 @@ return [
                 'csrf_key' => "123456", // randomize this
                 'ip_allowlist' => [],
                 'ip_denylist' => [],
+                'allow_insecure_overlays' => false,
             ],
         ],
         'Filegator\Services\View\ViewInterface' => [

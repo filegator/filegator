@@ -89,5 +89,11 @@ class Security implements Service
                 die;
             }
         }
+
+
+        if (empty($config['allow_insecure_overlays']) || !$config['allow_insecure_overlays']) {
+            $this->response->headers->set('X-Frame-Options', 'sameorigin');
+            $this->response->headers->set('Content-Security-Policy', 'frame-ancestors \'self\'');
+        }
     }
 }
