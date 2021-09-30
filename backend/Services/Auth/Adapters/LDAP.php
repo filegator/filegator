@@ -212,7 +212,7 @@ class LDAP implements Service, AuthInterface
 
                 // private repositories for each user?
                 if ($this->private_repos) {
-                    $user->setHomedir('/'.$user['username']);
+                    $user['homedir'] = '/'.$user['username'];
                 }
 
                 // ...but not for admins
