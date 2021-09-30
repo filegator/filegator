@@ -47,6 +47,8 @@ return [
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
                             "cookie_samesite" => "Lax",
+                            "cookie_secure" => null,
+                            "cookie_httponly" => true,
                         ], $handler);
                 },
             ],
@@ -72,6 +74,7 @@ return [
                 'csrf_key' => "123456", // randomize this
                 'ip_allowlist' => [],
                 'ip_denylist' => [],
+                'allow_insecure_overlays' => false,
             ],
         ],
         'Filegator\Services\View\ViewInterface' => [

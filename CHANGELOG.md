@@ -2,7 +2,21 @@
 
 ## Upcoming...
 
-* Slovenian translation added
+## 7.7.0 - 2021-09-27
+
+* Default cookie options added: cookie_httponly=true, cookie_secure=null
+* Clickjacking prevention with X-Frame-Options/Content-Security-Policy headers
+* Fixes #243, #239, #246, #251, #254, #257
+* Slovenian translation added, (Thanks megamiska.eu)
+* Dependency bumps
+* Docs update
+* Default logo update to vector
+
+Notes / Breaking Changes:
+
+The new default value of the cookie_secure option is null, which makes cookies secure when the request is using HTTPS and doesn't modify them when the request uses HTTP. The new behavior is a good balance between making your app "safe by default" and not breaking any existing app.
+
+If your filegator is used inside an iFrame, it may stop working after the upgrade. Set 'allow_insecure_overlays' to true to maintain compatibility. https://github.com/filegator/filegator/blob/63645f6e047eef828a96f913bd421f7018c94e05/configuration_sample.php#L75
 
 ## 7.6.0 - 2021-07-12
 
