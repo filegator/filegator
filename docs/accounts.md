@@ -18,7 +18,7 @@ There are 6 different user permissions admin can assign to each user:
 - Write (user can copy, move, rename, and delete files)
 - Upload (user can upload files to the repository)
 - Download (user can download files from the repository)
-- Bach Download (user can download multiple files and folders at once)
+- Batch Download (user can download multiple files and folders at once)
 - Zip (user can zip and unzip files)
 
 
