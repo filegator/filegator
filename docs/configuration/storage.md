@@ -56,7 +56,7 @@ Sample configuration:
 ```
 
 ## SFTP Adapter
-You must require additional library `composer require league/flysystem-sftp`
+You must require additional library `composer require league/flysystem-sftp:^1.0 -W`
 
 For more advanced options like using your private key or changing the document root see official [documentation](https://flysystem.thephpleague.com/v1/docs/adapter/sftp/).
 
@@ -108,7 +108,7 @@ Sample configuration:
 ```
 
 ## Amazon S3 Adapter (v3)
-You must require additional library `composer require league/flysystem-aws-s3-v3`
+You must require additional library `composer require league/flysystem-aws-s3-v3:^1.0 -W`
 
 See official [documentation](https://flysystem.thephpleague.com/v1/docs/adapter/aws-s3/).
 
@@ -138,7 +138,7 @@ Sample configuration:
 ```
 
 ## DigitalOcean Spaces
-You must require additional library `composer require league/flysystem-aws-s3-v3`
+You must require additional library `composer require league/flysystem-aws-s3-v3:^1.0 -W`
 
 The DigitalOcean Spaces API are compatible with those of S3.
 
@@ -170,7 +170,7 @@ Sample configuration:
 
 ```
 ## Microsoft Azure Blob Storage
-You must require additional library `composer require league/flysystem-azure-blob-storage`
+You must require additional library `composer require league/flysystem-azure-blob-storage:^1.0 -W`
 
 See official [documentation](https://flysystem.thephpleague.com/v1/docs/adapter/azure/).
 
