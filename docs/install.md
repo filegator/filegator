@@ -23,7 +23,7 @@ NOTE: For security reasons `/dist` is the ONLY folder you want to be exposed thr
 On a new server ([get $100 in server credits](https://m.do.co/c/93994ebda78d)) login as root and enter this into the shell:
 ```
 apt update
-apt install -y wget unzip php apache2 libapache2-mod-php php-zip
+apt install -y wget unzip php apache2 libapache2-mod-php php-zip php-mbstring php-dom php-xml
 
 cd /var/www/
 wget https://github.com/filegator/static/raw/master/builds/filegator_latest.zip
