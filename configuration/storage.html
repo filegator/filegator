@@ -133,7 +133,8 @@
 <p>Different storage adapters are provided through the awesome <a href="https://github.com/thephpleague/flysystem">Flysystem</a> library.</p>
 <p>You can use local filesystem (default), FTP, SFTP, Amazon S3, DigitalOcean Spaces, Microsoft Azure Blob, Dropbox and many others.</p>
 <p>Please check the Flysystem <a href="https://flysystem.thephpleague.com/v1/docs/">docs</a> for the exact setup required for each adapter.</p>
-<p>Note: Some adapters do not support folder operations or their support is limited.</p>
+<p>Notes: Some adapters do not support folder operations or their support is limited.
+Requiring additional libraries with <a href="https://getcomposer.org/download/">composer</a> requires root access.</p>
 <h2 id="default-local-disk-adapter">Default Local Disk Adapter</h2>
 <p>With default adapter you just need to configure where your <code>repository</code> folder is. This folder will serve as a root for everything else.</p>
 <pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
