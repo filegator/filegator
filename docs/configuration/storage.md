@@ -9,7 +9,8 @@ You can use local filesystem (default), FTP, SFTP, Amazon S3, DigitalOcean Space
 
 Please check the Flysystem [docs](https://flysystem.thephpleague.com/v1/docs/) for the exact setup required for each adapter.
 
-Note: Some adapters do not support folder operations or their support is limited.
+Notes: Some adapters do not support folder operations or their support is limited.
+Requiring additional libraries with [composer](https://getcomposer.org/download/) requires root access.
 
 ## Default Local Disk Adapter
 With default adapter you just need to configure where your `repository` folder is. This folder will serve as a root for everything else.
