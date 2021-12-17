@@ -168,7 +168,7 @@ class Filesystem implements Service
 
         while ($this->storage->has($destination)) {
             if ($overwrite) {
-                $this->deleteFile($destination);
+                $this->storage->delete($destination);
             } else {
                 $destination = $this->upcountName($destination);
             }
