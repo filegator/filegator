@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming...
+* Fix file deletion error when overwrite on upload #293 (Thanks iwiniwin)
 
 ## 7.7.0 - 2021-09-27
 

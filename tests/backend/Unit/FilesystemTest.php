@@ -292,6 +292,61 @@ class FilesystemTest extends TestCase
         $this->assertEquals('croissant', stream_get_contents($ret['stream']));
     }
 
+    public function testStoringFileWithTheSameNameUpcountsSecondFilenameUsingPathPrefix()
+    {
+        $this->storage->setPathPrefix('/john/');
+
+        // create dummy file
+        file_put_contents(TEST_FILE, 'lorem ipsum');
+
+        $resource = fopen(TEST_FILE, 'r');
+        $this->storage->store('/', 'singletone.txt', $resource);
+        fclose($resource);
+
+        // create another dummy file witht the same name but different content
+        file_put_contents(TEST_FILE, 'croissant');
+
+        $resource = fopen(TEST_FILE, 'r');
+        $this->storage->store('/', 'singletone.txt', $resource);
+        fclose($resource);
+
+        // first file is not overwritten
+        $ret = $this->storage->readStream('singletone.txt');
+        $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
+
+        // second file is also here but with upcounted name
+        $ret = $this->storage->readStream('singletone (1).txt');
+        $this->assertEquals('croissant', stream_get_contents($ret['stream']));
+    }
+
+    public function testStoringFileWithTheSameNameOverwritesOriginalFileUsingPathPrefix()
+    {
+        $this->storage->setPathPrefix('/john/');
+
+        // create dummy file
+        $string = 'lorem ipsum';
+        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+
+        // and store it
+        $this->storage->store('/', 'singletone.txt', $resource);
+        fclose($resource);
+
+        // first file contains lorem ipsum
+        $ret = $this->storage->readStream('singletone.txt');
+        $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
+
+        // create another dummy file
+        $string = 'croissant';
+        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+
+        // and store it with the same name
+        $this->storage->store('/', 'singletone.txt', $resource, true);
+        fclose($resource);
+
+        // first file is overwritten
+        $ret = $this->storage->readStream('singletone.txt');
+        $this->assertEquals('croissant', stream_get_contents($ret['stream']));
+    }
     public function testCreatingFileWithTheSameNameUpcountsFilenameRecursively()
     {
         $this->storage->createFile('/', 'test.txt');
