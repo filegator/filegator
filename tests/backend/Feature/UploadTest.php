@@ -156,6 +156,31 @@ class UploadTest extends TestCase
         ]);
     }
 
+    public function testUploadInvalidFile()
+    {
+        $this->signIn('john@example.com', 'john123');
+
+        $file = [
+            'tmp_name' => TEST_FILE,
+            'full_path' => 'something', // new in php 8.1
+            'name' => 'something',
+            'type' => 'application/octet-stream',
+            'size' => 12345,
+            'error' => 0,
+        ];
+
+        $files = ['file' => $file];
+        $data = [];
+
+        $this->sendRequest('GET', '/upload', $data, $files);
+
+        $this->assertStatus(204);
+
+        $this->sendRequest('POST', '/upload', $data, $files);
+
+        $this->assertStatus(422);
+    }
+
     public function testUploadFileBiggerThanAllowed()
     {
         $this->signIn('john@example.com', 'john123');

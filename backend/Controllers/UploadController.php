@@ -63,9 +63,19 @@ class UploadController
         $total_size = (int) $request->input('resumableTotalSize');
         $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
 
-        $file = $request->files->get('file');
+        $filebag = $request->files;
+        $file = $filebag->get('file');
 
         $overwrite_on_upload = (bool) $this->config->get('overwrite_on_upload', false);
+
+        // php 8.1 fix
+        // remove new key 'full_path' so it can preserve compatibility with symfony FileBag
+        // see https://php.watch/versions/8.1/$_FILES-full-path
+        if ($file && is_array($file) && array_key_exists('full_path', $file)) {
+            unset($file['full_path']);
+            $filebag->set('file', $file);
+            $file = $filebag->get('file');
+        }
 
         if (! $file || ! $file->isValid() || $file->getSize() > $this->config->get('frontend_config.upload_max_size')) {
             return $response->json('Bad file', 422);
