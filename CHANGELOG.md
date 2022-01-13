@@ -1,8 +1,12 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.7.1 - 2022-01-13
+
 * Fix file deletion error when overwrite on upload #293 (Thanks iwiniwin)
 * PHP 8.1 issue fixed, see #295 (Thanks bashgeek)
+* Small bug fixes
 
 ## 7.7.0 - 2021-09-27
 
