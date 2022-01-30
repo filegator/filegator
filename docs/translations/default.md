@@ -133,7 +133,7 @@ export default data
 
 Thanks to @yaniv1983 who provided these RTL tweaks for hebrew language in [#301](https://github.com/filegator/filegator/issues/301).
 
-To enable RTL support, simply add tihs to your configuration.php 'add_to_head' section:
+To enable RTL support, simply add this to your configuration.php 'add_to_head' section:
 
 ```
 <style>
