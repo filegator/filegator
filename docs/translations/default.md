@@ -128,3 +128,69 @@ const data = {
 export default data
 
 ```
+
+## RTL support
+
+Thanks to @yaniv1983 who provided these RTL tweaks for hebrew language in [#301](https://github.com/filegator/filegator/issues/301).
+
+To enable RTL support, simply add tihs to your configuration.php 'add_to_head' section:
+
+```
+<style>
+body {
+    direction: rtl;
+    color: #000000;
+}
+.search-btn[data-v-081c0a81] {
+    margin-left: 10px;
+    margin-right: unset;
+}
+#multi-actions a[data-v-081c0a81] {
+    margin: 0 0 15px 15px;
+}
+.dropdown .dropdown-menu .has-link a, a.dropdown-item, button.dropdown-item {
+    padding-left: 3rem;
+    padding-right: unset;
+    text-align: right;
+}
+table td:not([align]), table th:not([align]) {
+    text-align: right;
+}
+.b-table .table th .th-wrap .icon {
+    margin-left: 0;
+    margin-right: .5rem;
+    font-size: 1rem;
+}
+.b-table .table th .th-wrap.is-numeric {
+    flex-direction: unset;
+    text-align: right;
+}
+.progress-icon[data-v-07f55d0a] {
+    margin-right: 15px;
+    margin-left: unset;
+}
+.progress-items[data-v-07f55d0a] {
+    overflow-y: hidden;
+    margin-left: -100px;
+    padding-left: 100px;
+    max-height: 300px;
+    margin-right: unset;
+    padding-right: unset;
+}
+.navbar-burger {
+    margin-left: unset;
+    margin-right: auto;
+}
+@media screen and (min-width: 1024px) {
+.navbar-end {
+    justify-content: flex-end;
+    margin-right: auto;
+    margin-left: unset;
+}}
+@media (min-width: 1088px) {
+.logo img[data-v-cd57c856] {
+    max-height: 3.5rem !important;
+}}
+</style>
+```
+
