@@ -33,7 +33,7 @@
     "concurrently": "^4.1.2",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "resumablejs": "^1.1.0",
     "sass-loader": "^7.3.1",
     "vue": "^2.6.11",
