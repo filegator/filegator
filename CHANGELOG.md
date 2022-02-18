@@ -3,6 +3,7 @@
 ## Upcoming...
 * Hebrew translation with RTL added, see #301 (Thanks yaniv1983)
 * Romanian translation added, see #302 (Thanks enyedi)
+* Default error_reporting set to pre-php8 (Fixes #307)
 
 ## 7.7.1 - 2022-01-13
 
