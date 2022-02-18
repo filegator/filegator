@@ -1,6 +1,9 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.7.2 - 2022-02-18
+
 * Hebrew translation with RTL added, see #301 (Thanks yaniv1983)
 * Romanian translation added, see #302 (Thanks enyedi)
 * Default error_reporting set to pre-php8 (Fixes #307)
