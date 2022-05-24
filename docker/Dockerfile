@@ -1,6 +1,6 @@
 FROM php:7-apache-buster
 
-ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/
+ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/dist/
 
 RUN apt-get update > /dev/null && \
     # Install and enable php zip extension
