@@ -461,6 +461,18 @@ class FilesystemTest extends TestCase
         $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..']));
         $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['../']));
         $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/sub/../../']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..\\']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..\\\\']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..\\..\\']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['\\\\..']));
+        $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['\\..\\..']));
+        $this->assertEquals('/john/\\.', $this->invokeMethod($this->storage, 'applyPathPrefix', ['\\.\\...']));
+        $this->assertEquals('/john/\\.', $this->invokeMethod($this->storage, 'applyPathPrefix', ['\\.\\....']));
+        $this->assertEquals('/john/.\\.', $this->invokeMethod($this->storage, 'applyPathPrefix', ['.\\.\\...']));
+        $this->assertEquals('/john/.', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..\\.\\...']));
+        $this->assertEquals('/john/.', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..\\.\\...']));
+        $this->assertEquals('/john/.', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..\\.\\......']));
+        $this->assertEquals('/john/.\\', $this->invokeMethod($this->storage, 'applyPathPrefix', ['...\\.\\......\\']));
     }
 
     public function testStripPathPrefix()

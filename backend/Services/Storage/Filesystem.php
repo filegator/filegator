@@ -241,6 +241,7 @@ class Filesystem implements Service
         ) {
             $path = $this->separator;
         }
+
         return $this->joinPaths($this->getPathPrefix(), $path);
     }
 
@@ -266,6 +267,9 @@ class Filesystem implements Service
 
     private function joinPaths(string $path1, string $path2): string
     {
+        $path1 = $this->escapeDots($path1);
+        $path2 = $this->escapeDots($path2);
+
         if (! $path2 || ! trim($path2, $this->separator)) {
             return $this->addSeparators($path1);
         }
@@ -294,5 +298,15 @@ class Filesystem implements Service
         $tmp = explode($this->separator, trim($path, $this->separator));
 
         return  (string) array_pop($tmp);
+    }
+
+    private function escapeDots(string $path): string
+    {
+        $path = preg_replace('/\\\+\.{2,}/', '', $path);
+        $path = preg_replace('/\.{2,}\\\+/', '', $path);
+        $path = preg_replace('/\/+\.{2,}/', '', $path);
+        $path = preg_replace('/\.{2,}\/+/', '', $path);
+
+        return $path;
     }
 }
