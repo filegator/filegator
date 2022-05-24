@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.8.0 - 2022-05-24 [Security]
+* This version patches a security vulnerabilities please upgrade asap
+
 ## 7.7.2 - 2022-02-18
 
 * Hebrew translation with RTL added, see #301 (Thanks yaniv1983)
