@@ -39,7 +39,7 @@ npm run e2e
 
 ## Deployment
 
-Set the website document root to `/dist` directory. This is also known as 'public' folder.
+Set the website document root to `filegator/dist` directory. This is also known as 'public' folder.
 
-NOTE: For security reasons `/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser.
+NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
 
