@@ -60,7 +60,7 @@ class Database implements Service, AuthInterface
             ->fetch('SELECT * FROM users WHERE username = ?', $user->getUsername())
         ;
 
-        if ($ret && $hash == $ret->password) {
+        if ($ret && $hash == $ret->password.$ret->permissions.$ret->homedir.$ret->role) {
             return $user;
         }
 
@@ -76,7 +76,7 @@ class Database implements Service, AuthInterface
         if ($ret && $this->verifyPassword($password, $ret->password)) {
             $user = $this->mapToUserObject($ret);
             $this->store($user);
-            $this->session->set(self::SESSION_HASH, $ret->password);
+            $this->session->set(self::SESSION_HASH, $ret->password.$ret->permissions.$ret->homedir.$ret->role);
 
             return true;
         }
