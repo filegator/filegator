@@ -2,6 +2,10 @@
 
 ## Upcoming...
 
+## 7.8.1 - 2022-05-25
+* Database auth adapter session fix
+* Development mode warning added, see installation docs https://docs.filegator.io/install.html
+
 ## 7.8.0 - 2022-05-24 [Security]
 * This version patches a security vulnerabilities please upgrade asap
 
