@@ -31,7 +31,7 @@ class Vuejs implements Service, ViewInterface
 
     public function getIndexPage()
     {
-        $title = $this->config->get('frontend_config.app_name');
+        $title = APP_ENV == 'development' ? 'Development mode' : $this->config->get('frontend_config.app_name');
         $public_path = $this->config->get('public_path');
         $public_dir = $this->config->get('public_dir');
 
