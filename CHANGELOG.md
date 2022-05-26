@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming...
+* Arabic translations added
+* Brazilian Portuguese translations added
 
 ## 7.8.1 - 2022-05-25
 * Database auth adapter session fix

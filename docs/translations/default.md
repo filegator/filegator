@@ -33,6 +33,8 @@ Available languages:
 - ```slovenian```
 - ```hebrew```
 - ```romanian```
+- ```arabic```
+- ```portuguese_br``` (Brazilian Portuguese pt-BR)
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 
