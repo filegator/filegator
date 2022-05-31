@@ -58,7 +58,7 @@ class DownloadController
             if ($file['stream']) {
                 while (! feof($file['stream'])) {
                     echo fread($file['stream'], 1024 * 8);
-                    ob_flush();
+                    if (ob_get_level() > 0) {ob_flush();}
                     flush();
                 }
                 fclose($file['stream']);
@@ -150,7 +150,7 @@ class DownloadController
             if ($file['stream']) {
                 while (! feof($file['stream'])) {
                     echo fread($file['stream'], 1024 * 8);
-                    ob_flush();
+                    if (ob_get_level() > 0) {ob_flush();}
                     flush();
                 }
                 fclose($file['stream']);
