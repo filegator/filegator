@@ -111,7 +111,7 @@ Sample configuration:
 ## Amazon S3 Adapter (v3)
 You must require additional library `composer require league/flysystem-aws-s3-v3:^1.0 -W`
 
-See official [documentation](https://flysystem.thephpleague.com/docs/adapter/aws-s3-v3/).
+See official [documentation](https://flysystem.thephpleague.com/v1/docs/adapter/aws-s3-v3/).
 
 Sample configuration:
 
