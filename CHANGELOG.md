@@ -1,8 +1,11 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.8.2 - 2022-07-22
 * Arabic translations added
 * Brazilian Portuguese translations added
+* Output buffer flush fix
 
 ## 7.8.1 - 2022-05-25
 * Database auth adapter session fix
