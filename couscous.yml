@@ -35,9 +35,6 @@ menu:
                 development:
                     text: Development
                     relativeUrl: development.html
-                demo:
-                    text: Demo
-                    relativeUrl: demo.html
         config:
             name: Configuration
             items:
