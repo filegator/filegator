@@ -31,6 +31,13 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 - No database required
 - Framework free [™](https://www.youtube.com/watch?v=L5jI9I03q8E)
 
+## Demo with docker
+```
+docker build -t filegator https://raw.githubusercontent.com/filegator/filegator/master/Dockerfile
+docker run -p 8000:80 -d filegator
+visit: http://127.0.0.1:8000 login as admin/admin123
+```
+
 ## Limitations
 - Symlinks are not supported by the underlying [Flysystem](https://flysystem.thephpleague.com/v1/docs/adapter/local/)
 - File permission operations are not supported (chmod/chown)
