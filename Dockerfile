@@ -29,3 +29,7 @@ VOLUME /var/www/filegator/repository
 VOLUME /var/www/filegator/private
 
 WORKDIR "/var/www/filegator/"
+
+USER www-data
+
+CMD ["apache2-foreground"]
