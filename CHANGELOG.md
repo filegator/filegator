@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming...
+* Security fix, see #349
+* Persian translations added
 
 ## 7.8.2 - 2022-07-22
 * Arabic translations added
