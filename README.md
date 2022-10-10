@@ -75,8 +75,7 @@ FileGator is a free, open-source project. It's an independent project with its o
 
 ## Demo with docker
 ```
-docker build -t filegator https://raw.githubusercontent.com/filegator/filegator/master/Dockerfile
-docker run -p 8000:80 -d filegator
+docker run -p 8000:80 -d filegator/filegator
 visit: http://127.0.0.1:8000 login as admin/admin123
 ```
 
