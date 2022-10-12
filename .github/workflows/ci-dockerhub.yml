@@ -1,3 +1,7 @@
+# amd64 only:
+# docker buildx build --push --platform linux/amd64 --tag xxx/xxx:latest
+# multiplatform:
+# docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386 --tag xxx/xxx:latest
 name: ci-dockerhub
 
 on:
@@ -29,6 +33,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          platforms: linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386
+          platforms: linux/amd64
           push: true
           tags: filegator/filegator:latest, filegator/filegator:${{ github.ref_name }}

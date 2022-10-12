@@ -32,10 +32,11 @@ RUN rm -rf node_modules frontend tests docs .git*
 FROM php:7-apache-buster
 
 RUN apt-get update > /dev/null
-RUN apt-get install -y git libzip-dev
+RUN apt-get install -y git libzip-dev libldap2-dev
 
-RUN docker-php-ext-install zip
-RUN docker-php-ext-enable zip
+RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
+RUN docker-php-ext-install zip ldap
+RUN docker-php-ext-enable zip ldap
 
 COPY --from=builder /var/www/filegator /var/www/filegator
 RUN chown -R www-data:www-data /var/www/filegator/
