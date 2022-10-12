@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.8.4 - 2022-10-12
+* CI pipelines added
+
 ## 7.8.3 - 2022-10-10
 * Security fix, see #349
 * Persian translations added
