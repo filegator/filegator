@@ -1,0 +1,71 @@
+include:
+    - docs
+
+cname: docs.filegator.io
+
+branch: gh-pages
+
+title: FileGator - Documentation
+titleShort: FileGator
+subTitle: Documentation
+
+baseUrl: https://docs.filegator.io
+
+template:
+    directory: docs/template/
+
+github:
+    user: filegator
+    repo: filegator
+
+menu:
+    sections:
+        main:
+            name: Getting Started
+            items:
+                home:
+                    text: What is FileGator
+                    relativeUrl: index.html
+                install:
+                    text: Installation
+                    relativeUrl: install.html
+                account:
+                    text: Users
+                    relativeUrl: accounts.html
+                development:
+                    text: Development
+                    relativeUrl: development.html
+        config:
+            name: Configuration
+            items:
+                basic:
+                    text: Basic
+                    relativeUrl: configuration/basic.html
+                auth:
+                    text: Auth
+                    relativeUrl: configuration/auth.html
+                sessions:
+                    text: Session
+                    relativeUrl: configuration/session.html
+                storage:
+                    text: Storage
+                    relativeUrl: configuration/storage.html
+                logging:
+                    text: Logging
+                    relativeUrl: configuration/logging.html
+                security:
+                    text: Security
+                    relativeUrl: configuration/security.html
+                router:
+                    text: Router
+                    relativeUrl: configuration/router.html
+                tmpfs:
+                    text: Tmpfs
+                    relativeUrl: configuration/tmpfs.html
+
+        multilang:
+            name: Languages
+            items:
+                default:
+                    text: Translations
+                    relativeUrl: translations/default.html

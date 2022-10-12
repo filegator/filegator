@@ -1,0 +1,15 @@
+{
+  "data": {
+    "app_name": "FileGator",
+    "app_version": "7.0.0",
+    "language": "english",
+    "logo": "",
+    "upload_max_size": 104857600,
+    "upload_chunk_size": 1048576,
+    "upload_simultaneous": 3,
+    "default_archive_name": "archive.zip",
+    "editable": [".txt",".css",".js",".ts",".html",".php"],
+    "date_format": "YY/MM/DD hh:mm:ss",
+    "guest_redirection": ""
+  }
+}

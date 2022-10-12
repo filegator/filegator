@@ -1,0 +1,1 @@
+{"1":{"username":"admin","name":"Admin","role":"admin","homedir":"\/","permissions":"read|write|upload|download|batchdownload|zip","password":"$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq"},"2":{"username":"guest","name":"Guest","role":"guest","homedir":"\/","permissions":"","password":""}}

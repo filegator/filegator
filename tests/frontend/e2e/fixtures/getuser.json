@@ -1,0 +1,16 @@
+{
+  "data": {
+    "role": "guest",
+    "permissions": [
+      "read",
+      "write",
+      "upload",
+      "download",
+      "batchdownload",
+      "zip"
+    ],
+    "homedir": "\\/",
+    "username": "guest",
+    "name": "Guest"
+  }
+}

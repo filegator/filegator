@@ -1,0 +1,4 @@
+{
+  "pluginsFile": "tests/frontend/e2e/plugins/index.js",
+  "video": false
+}
