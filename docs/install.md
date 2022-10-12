@@ -3,7 +3,7 @@ currentMenu: install
 ---
 
 ## Docker
-You can use the [official docker image](https://hub.docker.com/r/filegator/filegator) based on [Dockerfile](https://github.com/filegator/filegator/blob/master/Dockerfile)
+You can use the [official docker image](https://hub.docker.com/r/filegator/filegator) based on [this Dockerfile](https://github.com/filegator/filegator/blob/master/Dockerfile)
 ```
 docker run -p 8000:80 -d filegator/filegator
 visit: http://127.0.0.1:8000 login as admin/admin123
@@ -60,13 +60,7 @@ Open your browser and go to http://your_server_ip_address
 - Become a backer or sponsor on [Patreon](https://www.patreon.com/alcalbg).
 
 
-## Upgrade
-
-Since version 7 is completely rewriten from scratch, there is no clear upgrade path from older versions.
-
-If you have an older version of FileGator please backup everything and install the script again.
-
-Upgrade instructions for non-developers:
+## Upgrade instructions
 
 - Backup everythig
 - Download the latest version
