@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>FileGator - Documentation</title>
+
+        <link rel="stylesheet" href="https://docs.filegator.io/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/highlight.tomorrow-night.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/main.css">
+    </head>
+    <body>
+
+        <header class="navbar navbar-default navbar-fixed-top">
+
+            <a class="navbar-brand" href="https://docs.filegator.io/">
+                FileGator
+                <small class="hidden-xs hidden-sm">
+                    Documentation
+                </small>
+            </a>
+
+            
+            <a href="https://github.com/filegator/filegator">
+                <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+
+            </a>
+            
+        </header>
+
+        <main class="container-fluid">
+            <div class="row">
+
+                
+                    <nav id="sidebar" class="col-sm-3 col-lg-2" role="navigation">
+
+                                                    <p class="text-muted">
+                                Getting Started
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/index.html">
+                                            What is FileGator
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/install.html">
+                                            Installation
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/accounts.html">
+                                            Users
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/development.html">
+                                            Development
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Configuration
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/basic.html">
+                                            Basic
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/auth.html">
+                                            Auth
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/session.html">
+                                            Session
+                                        </a>
+                                    </li>
+                                                                    <li class="active">
+                                        <a href="https://docs.filegator.io/configuration/storage.html">
+                                            Storage
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/logging.html">
+                                            Logging
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/security.html">
+                                            Security
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/router.html">
+                                            Router
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/tmpfs.html">
+                                            Tmpfs
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Languages
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/translations/default.html">
+                                            Translations
+                                        </a>
+                                    </li>
+                                                            </ul>
+                        
+                    </nav>
+
+                
+                <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
+                    <h2 id="adapters">Adapters</h2>
+<p>Different storage adapters are provided through the awesome <a href="https://github.com/thephpleague/flysystem">Flysystem</a> library.</p>
+<p>You can use local filesystem (default), FTP, SFTP, Amazon S3, DigitalOcean Spaces, Microsoft Azure Blob, Dropbox and many others.</p>
+<p>Please check the Flysystem <a href="https://flysystem.thephpleague.com/v1/docs/">docs</a> for the exact setup required for each adapter.</p>
+<p>Notes: Some adapters do not support folder operations or their support is limited.
+Requiring additional libraries with <a href="https://getcomposer.org/download/">composer</a> requires root access.</p>
+<h2 id="default-local-disk-adapter">Default Local Disk Adapter</h2>
+<p>With default adapter you just need to configure where your <code>repository</code> folder is. This folder will serve as a root for everything else.</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                  return new \League\Flysystem\Adapter\Local(
+                      __DIR__.'/repository'
+                      );
+                },
+            ],
+        ],
+</code></pre>
+<h2 id="ftp-adapter">FTP Adapter</h2>
+<p>See official <a href="https://flysystem.thephpleague.com/v1/docs/adapter/ftp/">documentation</a>.</p>
+<p>Sample configuration:</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                  return new \League\Flysystem\Adapter\Ftp([
+                      'host' =&gt; 'example.com',
+                      'username' =&gt; 'demo',
+                      'password' =&gt; 'password',
+                      'port' =&gt; 21,
+                      'timeout' =&gt; 10,
+                  ]);
+                },
+            ],
+        ],
+</code></pre>
+<h2 id="sftp-adapter">SFTP Adapter</h2>
+<p>You must require additional library <code>composer require league/flysystem-sftp:^1.0 -W</code></p>
+<p>For more advanced options like using your private key or changing the document root see official <a href="https://flysystem.thephpleague.com/v1/docs/adapter/sftp/">documentation</a>.</p>
+<p>Sample configuration:</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                  return new \League\Flysystem\Sftp\SftpAdapter([
+                      'host' =&gt; 'example.com',
+                      'port' =&gt; 22,
+                      'username' =&gt; 'demo',
+                      'password' =&gt; 'password',
+                      'timeout' =&gt; 10,
+                  ]);
+                },
+            ],
+        ],
+</code></pre>
+<h2 id="dropbox-adapter">Dropbox Adapter</h2>
+<p>You must require additional library <code>composer require spatie/flysystem-dropbox</code></p>
+<p>See official <a href="https://flysystem.thephpleague.com/v1/docs/adapter/dropbox/">documentation</a>.</p>
+<p>Sample configuration:</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [
+                    'case_sensitive' =&gt; false,
+                ],
+                'adapter' =&gt; function () {
+                  $authorizationToken = '1234';
+                  $client = new \Spatie\Dropbox\Client($authorizationToken);
+
+                  return new \Spatie\FlysystemDropbox\DropboxAdapter($client);
+                },
+            ],
+        ],
+</code></pre>
+<h2 id="amazon-s3-adapter-v3">Amazon S3 Adapter (v3)</h2>
+<p>You must require additional library <code>composer require league/flysystem-aws-s3-v3:^1.0 -W</code></p>
+<p>See official <a href="https://flysystem.thephpleague.com/v1/docs/adapter/aws-s3-v3/">documentation</a>.</p>
+<p>Sample configuration:</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                    $client = new \Aws\S3\S3Client([
+                        'credentials' =&gt; [
+                            'key' =&gt; '123456',
+                            'secret' =&gt; 'secret123456',
+                        ],
+                        'region' =&gt; 'us-east-1',
+                        'version' =&gt; 'latest',
+                    ]);
+
+                    return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
+                },
+            ],
+        ],
+</code></pre>
+<h2 id="digitalocean-spaces">DigitalOcean Spaces</h2>
+<p>You must require additional library <code>composer require league/flysystem-aws-s3-v3:^1.0 -W</code></p>
+<p>The DigitalOcean Spaces API are compatible with those of S3.</p>
+<p>See official <a href="https://flysystem.thephpleague.com/v1/docs/adapter/digitalocean-spaces/">documentation</a>.</p>
+<p>Sample configuration:</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                    $client = new \Aws\S3\S3Client([
+                        'credentials' =&gt; [
+                            'key' =&gt; '123456',
+                            'secret' =&gt; 'secret123456',
+                        ],
+                        'region' =&gt; 'us-east-1',
+                        'version' =&gt; 'latest',
+                        'endpoint' =&gt; 'https://nyc3.digitaloceanspaces.com',
+                    ]);
+
+                    return new \League\Flysystem\AwsS3v3\AwsS3Adapter($client, 'my-bucket-name');
+                },
+            ],
+        ],
+</code></pre>
+<h2 id="microsoft-azure-blob-storage">Microsoft Azure Blob Storage</h2>
+<p>You must require additional library <code>composer require league/flysystem-azure-blob-storage:^1.0 -W</code></p>
+<p>See official <a href="https://flysystem.thephpleague.com/v1/docs/adapter/azure/">documentation</a>.</p>
+<p>Sample configuration:</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [],
+                'adapter' =&gt; function () {
+                    $accountName = 'your_storage_account_name';
+                    $accountKey = '123456';
+                    $containerName = 'my_container';
+
+                    $client = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService(
+                        "DefaultEndpointsProtocol=https;AccountName=${accountName};AccountKey=${accountKey};"
+                    );
+
+                    return new \League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter($client, $containerName);
+                },
+            ],
+        ],</code></pre>
+<h2 id="replicate-adapter">Replicate Adapter</h2>
+<p>You must require additional library <code>composer require league/flysystem-replicate-adapter</code></p>
+<p>The ReplicateAdapter facilitates smooth transitions between adapters, allowing an application to stay functional and migrate its files from one adapter to another. The adapter takes two other adapters, a source and a replica. Every change is delegated to both adapters, while all the read operations are passed onto the source only.</p>
+<p>See official <a href="https://flysystem.thephpleague.com/v1/docs/adapter/replicate/">documentation</a>.</p>
+<p>Sample configuration:</p>
+<pre><code>        'Filegator\Services\Storage\Filesystem' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Storage\Filesystem',
+            'config' =&gt; [
+                'separator' =&gt; '/',
+                'config' =&gt; [
+                    'case_sensitive' =&gt; false,
+                ],
+                'adapter' =&gt; function () {
+                    $authorizationToken = '1234';
+                    $client = new \Spatie\Dropbox\Client($authorizationToken);
+
+                    $source = new \Spatie\FlysystemDropbox\DropboxAdapter($client);
+                    $replica = new \League\Flysystem\Adapter\Local(__DIR__.'/repository');
+
+                    return new League\Flysystem\Replicate\ReplicateAdapter($source, $replica);
+                },
+            ],
+        ],
+</code></pre>
+                </section>
+
+            </div>
+        </main>
+
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script src="//yandex.st/highlightjs/7.5/highlight.min.js"></script>
+
+        <script>
+            $(function() {
+                $("section>h1").wrap('<div class="page-header" />');
+                // Syntax highlighting
+                hljs.initHighlightingOnLoad();
+            });
+        </script>
+
+<!-- Ticksel analytics v1.0 -->
+<script type="text/javascript">
+  var _tcfg = _tcfg || [];
+  (function() {
+    _tcfg.push(["tags", "filegator-io,filegator-io-docs"]);
+    var u="https://a.interactive32.com/js/safetick.js"; _tcfg.push(["account_id", 8348834]);
+    var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0];
+    g.type="text/javascript"; g.async=true; g.src=u; g.setAttribute("crossorigin", "anonymous");
+    s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><img src="https://a.interactive32.com/beam?account_id=8348834&referrer=&tags=filegator-io,filegator-io-docs" style="border:0;" width="0" height="0" alt="" /></noscript>
+<!-- End Ticksel Code -->
+
+    </body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>FileGator - Documentation</title>
+
+        <link rel="stylesheet" href="https://docs.filegator.io/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/highlight.tomorrow-night.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/main.css">
+    </head>
+    <body>
+
+        <header class="navbar navbar-default navbar-fixed-top">
+
+            <a class="navbar-brand" href="https://docs.filegator.io/">
+                FileGator
+                <small class="hidden-xs hidden-sm">
+                    Documentation
+                </small>
+            </a>
+
+            
+            <a href="https://github.com/filegator/filegator">
+                <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+
+            </a>
+            
+        </header>
+
+        <main class="container-fluid">
+            <div class="row">
+
+                
+                    <nav id="sidebar" class="col-sm-3 col-lg-2" role="navigation">
+
+                                                    <p class="text-muted">
+                                Getting Started
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/index.html">
+                                            What is FileGator
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/install.html">
+                                            Installation
+                                        </a>
+                                    </li>
+                                                                    <li class="active">
+                                        <a href="https://docs.filegator.io/accounts.html">
+                                            Users
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/development.html">
+                                            Development
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Configuration
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/basic.html">
+                                            Basic
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/auth.html">
+                                            Auth
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/session.html">
+                                            Session
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/storage.html">
+                                            Storage
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/logging.html">
+                                            Logging
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/security.html">
+                                            Security
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/router.html">
+                                            Router
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/tmpfs.html">
+                                            Tmpfs
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Languages
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/translations/default.html">
+                                            Translations
+                                        </a>
+                                    </li>
+                                                            </ul>
+                        
+                    </nav>
+
+                
+                <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
+                    <h2 id="user-roles">User roles</h2>
+<p>There are 3 different user roles:</p>
+<ul>
+<li>Admin (for user and file management)</li>
+<li>User (regular, logged in user)</li>
+<li>Guest (anonymous, not logged in)</li>
+</ul>
+<h2 id="user-permissions">User permissions</h2>
+<p>There are 6 different user permissions admin can assign to each user:</p>
+<ul>
+<li>Read (user can browse and list files and folders)</li>
+<li>Write (user can copy, move, rename, and delete files)</li>
+<li>Upload (user can upload files to the repository)</li>
+<li>Download (user can download files from the repository)</li>
+<li>Batch Download (user can download multiple files and folders at once)</li>
+<li>Zip (user can zip and unzip files)</li>
+</ul>
+<p>Some permissions require others. For example, Batch Download requires Read permissions (so than user can list files and select them) as well as basic Download permissions.</p>
+<h2 id="guest-account">Guest account</h2>
+<p>Guest account is predefined account and it is disabled by default since no permissions is assigned.</p>
+<p>Admin can enable Guest account which will allow everyone to interact with the repository based on the Guest account permissions.</p>
+<h2 id="resetting-admins-password">Resetting Admin's password</h2>
+<p>If you forgot your admin password you can follow these steps to reset it:</p>
+<ul>
+<li>Backup your current users file <code>private/users.json</code> to a safe place</li>
+<li>Copy blank template <code>private/users.json.blank</code> over <code>private/users.json</code> or simply refresh your browser</li>
+<li>Login as admin with default credentials <code>admin/admin123</code></li>
+<li>Put your original users file back to <code>private/users.json</code> replacing the template</li>
+<li>Since you are now logged in as admin, simply go to users page and change your password</li>
+<li>Log out and try to login with the new password</li>
+</ul>
+<p>Note: If you're using database Auth adapter then simply run this query to set default password back to <code>admin123</code></p>
+<pre><code>UPDATE `users`
+SET `password` = '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq'
+WHERE `username` = 'admin';</code></pre>
+                </section>
+
+            </div>
+        </main>
+
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script src="//yandex.st/highlightjs/7.5/highlight.min.js"></script>
+
+        <script>
+            $(function() {
+                $("section>h1").wrap('<div class="page-header" />');
+                // Syntax highlighting
+                hljs.initHighlightingOnLoad();
+            });
+        </script>
+
+<!-- Ticksel analytics v1.0 -->
+<script type="text/javascript">
+  var _tcfg = _tcfg || [];
+  (function() {
+    _tcfg.push(["tags", "filegator-io,filegator-io-docs"]);
+    var u="https://a.interactive32.com/js/safetick.js"; _tcfg.push(["account_id", 8348834]);
+    var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0];
+    g.type="text/javascript"; g.async=true; g.src=u; g.setAttribute("crossorigin", "anonymous");
+    s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><img src="https://a.interactive32.com/beam?account_id=8348834&referrer=&tags=filegator-io,filegator-io-docs" style="border:0;" width="0" height="0" alt="" /></noscript>
+<!-- End Ticksel Code -->
+
+    </body>
+</html>

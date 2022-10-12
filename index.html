@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>FileGator - Documentation</title>
+
+        <link rel="stylesheet" href="https://docs.filegator.io/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/highlight.tomorrow-night.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/main.css">
+    </head>
+    <body>
+
+        <header class="navbar navbar-default navbar-fixed-top">
+
+            <a class="navbar-brand" href="https://docs.filegator.io/">
+                FileGator
+                <small class="hidden-xs hidden-sm">
+                    Documentation
+                </small>
+            </a>
+
+            
+            <a href="https://github.com/filegator/filegator">
+                <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+
+            </a>
+            
+        </header>
+
+        <main class="container-fluid">
+            <div class="row">
+
+                
+                    <nav id="sidebar" class="col-sm-3 col-lg-2" role="navigation">
+
+                                                    <p class="text-muted">
+                                Getting Started
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/index.html">
+                                            What is FileGator
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/install.html">
+                                            Installation
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/accounts.html">
+                                            Users
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/development.html">
+                                            Development
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Configuration
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/basic.html">
+                                            Basic
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/auth.html">
+                                            Auth
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/session.html">
+                                            Session
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/storage.html">
+                                            Storage
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/logging.html">
+                                            Logging
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/security.html">
+                                            Security
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/router.html">
+                                            Router
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/tmpfs.html">
+                                            Tmpfs
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Languages
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/translations/default.html">
+                                            Translations
+                                        </a>
+                                    </li>
+                                                            </ul>
+                        
+                    </nav>
+
+                
+                <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
+                    <h2 id="filegator">FileGator</h2>
+<p><a href="https://github.com/filegator/filegator/actions"><img src="https://github.com/filegator/filegator/workflows/PHP/badge.svg" alt="Build Status PHP"></a>
+<a href="https://github.com/filegator/filegator/actions"><img src="https://github.com/filegator/filegator/workflows/Node/badge.svg" alt="Build Status Node"></a>
+<a href="https://codecov.io/gh/filegator/filegator"><img src="https://codecov.io/gh/filegator/filegator/branch/master/graph/badge.svg" alt="Code Coverage"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a></p>
+<p><br></p>
+<p><a href="https://filegator.io">FileGator</a> is a free, <a href="https://github.com/filegator/filegator">open-source</a>, self-hosted web application for managing files and folders.</p>
+<p>You can manage files inside your local repository folder (on your server's hard drive) or connect to other storage adapters (see below).</p>
+<p>FileGator has multi-user support so you can have admins and other users managing the files with different access permissions, roles and home folders.</p>
+<p>All basic file operations are supported: copy, move, rename, create, delete, zip, unzip, download, upload.</p>
+<p>If allowed, users can download multiple files or folders at once.</p>
+<p>File upload supports drag&amp;drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server's configuration.</p>
+<h2 id="features-amp-goals">Features &amp; Goals</h2>
+<ul>
+<li>Multiple storage adapters (Local, FTP, Amazon S3, Dropbox, DO Spaces, Azure Blob and many others via <a href="https://github.com/thephpleague/flysystem">Flysystem</a>)</li>
+<li>Multiple auth adapters with roles and permissions (Store users in json file, database or use WordPress)</li>
+<li>Multiple session adapters (Native File, Pdo, Redis, MongoDB, Memcached and others via <a href="https://github.com/symfony/symfony/tree/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/Handler">Symfony</a>)</li>
+<li>Single page front-end (built with <a href="https://github.com/vuejs/vue">Vuejs</a>, <a href="https://github.com/jgthms/bulma">Bulma</a> and <a href="https://github.com/buefy/buefy">Buefy</a>)</li>
+<li>Chunked uploads (built with <a href="https://github.com/23/resumable.js">Resumable.js</a>)</li>
+<li>Zip and bulk download support</li>
+<li>Highly extensible, decoupled and tested code</li>
+<li>No database required</li>
+<li>Framework free <a href="https://www.youtube.com/watch?v=L5jI9I03q8E">™</a></li>
+</ul>
+<h2 id="demo-with-docker">Demo with docker</h2>
+<pre><code>docker run -p 8000:80 -d filegator/filegator
+visit: http://127.0.0.1:8000 login as admin/admin123</code></pre>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Symlinks are not supported by the underlying <a href="https://flysystem.thephpleague.com/v1/docs/adapter/local/">Flysystem</a></li>
+<li>File permission operations are not supported (chmod/chown)</li>
+</ul>
+<h2 id="why-open-source-on-github">Why Open Source on GitHub?</h2>
+<p>There are several reasons why we switched to open source model and GitHub.</p>
+<p>Basically, we wanted to increase:</p>
+<ul>
+<li>Code quality by bringing more developers on board</li>
+<li>Code auditability and visibility</li>
+<li>Security</li>
+<li>Project lifetime</li>
+</ul>
+<p>At the end, the more people who can see and test a set of code, the more likely any flaws will be caught and fixed quickly.</p>
+<h2 id="show-your-support">Show your support</h2>
+<ul>
+<li>Please star this repository on <a href="https://github.com/filegator/filegator/stargazers">GitHub</a> if this project helped you!</li>
+<li>Become a backer or sponsor on <a href="https://www.patreon.com/alcalbg">Patreon</a>.</li>
+</ul>
+<h2 id="license">License</h2>
+<p>Copyright (c) 2019 <a href="https://github.com/alcalbg">Milos Stojanovic</a>.</p>
+<p>This project is MIT licensed.</p>
+                </section>
+
+            </div>
+        </main>
+
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script src="//yandex.st/highlightjs/7.5/highlight.min.js"></script>
+
+        <script>
+            $(function() {
+                $("section>h1").wrap('<div class="page-header" />');
+                // Syntax highlighting
+                hljs.initHighlightingOnLoad();
+            });
+        </script>
+
+<!-- Ticksel analytics v1.0 -->
+<script type="text/javascript">
+  var _tcfg = _tcfg || [];
+  (function() {
+    _tcfg.push(["tags", "filegator-io,filegator-io-docs"]);
+    var u="https://a.interactive32.com/js/safetick.js"; _tcfg.push(["account_id", 8348834]);
+    var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0];
+    g.type="text/javascript"; g.async=true; g.src=u; g.setAttribute("crossorigin", "anonymous");
+    s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><img src="https://a.interactive32.com/beam?account_id=8348834&referrer=&tags=filegator-io,filegator-io-docs" style="border:0;" width="0" height="0" alt="" /></noscript>
+<!-- End Ticksel Code -->
+
+    </body>
+</html>

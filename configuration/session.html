@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>FileGator - Documentation</title>
+
+        <link rel="stylesheet" href="https://docs.filegator.io/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/highlight.tomorrow-night.css">
+        <link rel="stylesheet" href="https://docs.filegator.io/css/main.css">
+    </head>
+    <body>
+
+        <header class="navbar navbar-default navbar-fixed-top">
+
+            <a class="navbar-brand" href="https://docs.filegator.io/">
+                FileGator
+                <small class="hidden-xs hidden-sm">
+                    Documentation
+                </small>
+            </a>
+
+            
+            <a href="https://github.com/filegator/filegator">
+                <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+
+            </a>
+            
+        </header>
+
+        <main class="container-fluid">
+            <div class="row">
+
+                
+                    <nav id="sidebar" class="col-sm-3 col-lg-2" role="navigation">
+
+                                                    <p class="text-muted">
+                                Getting Started
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/index.html">
+                                            What is FileGator
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/install.html">
+                                            Installation
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/accounts.html">
+                                            Users
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/development.html">
+                                            Development
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Configuration
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/basic.html">
+                                            Basic
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/auth.html">
+                                            Auth
+                                        </a>
+                                    </li>
+                                                                    <li class="active">
+                                        <a href="https://docs.filegator.io/configuration/session.html">
+                                            Session
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/storage.html">
+                                            Storage
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/logging.html">
+                                            Logging
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/security.html">
+                                            Security
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/router.html">
+                                            Router
+                                        </a>
+                                    </li>
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/configuration/tmpfs.html">
+                                            Tmpfs
+                                        </a>
+                                    </li>
+                                                            </ul>
+                                                    <p class="text-muted">
+                                Languages
+                            </p>
+
+                            <ul class="nav nav-pills nav-stacked">
+                                                                    <li class="">
+                                        <a href="https://docs.filegator.io/translations/default.html">
+                                            Translations
+                                        </a>
+                                    </li>
+                                                            </ul>
+                        
+                    </nav>
+
+                
+                <section class="col-sm-offset-3 col-lg-offset-2 col-sm-9 col-lg-10">
+                    <h2 id="default-session-handler">Default Session handler</h2>
+<p>Session handling is provided through the Symfony's <a href="https://symfony.com/doc/4.4/components/http_foundation.html">HttpFoundation</a> component. Please check their docs for more info.</p>
+<p>Default session handler will user PHP's built in file storage. You can also specify your own <code>$save_path</code> to store session files.</p>
+<pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' =&gt; [
+                'handler' =&gt; function () {
+                    $save_path = null; // use default system path
+                    //$save_path = __DIR__.'/private/sessions';
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
+
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
+            ],
+        ],</code></pre>
+<h2 id="configuring-session-service-to-use-database">Configuring Session service to use database</h2>
+<p>First, create a table <code>sessions</code> with this sql:</p>
+<pre><code>CREATE TABLE `sessions` (
+      `sess_id` varbinary(128) NOT NULL,
+      `sess_data` blob NOT NULL,
+      `sess_lifetime` mediumint(9) NOT NULL,
+      `sess_time` int(10) unsigned NOT NULL,
+      PRIMARY KEY (`sess_id`)
+) CHARSET=utf8 COLLATE=utf8_bin;</code></pre>
+<p>Then, open <code>configuration.php</code> and update Session handler to:</p>
+<pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' =&gt; [
+                'handler' =&gt; function () {
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                            'mysql://root:password@localhost:3306/filegator'
+                            );
+
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
+            ],
+        ],
+</code></pre>
+<p>Don't forget to enter correct database details.</p>
+<h2 id="configuring-session-service-to-use-redis">Configuring Session service to use Redis</h2>
+<p>You must require additional <a href="https://github.com/nrk/predis/">predis</a> library <code>composer require predis/predis</code></p>
+<pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' =&gt; [
+                'handler' =&gt; function () {
+                    $predis = new \Predis\Client('tcp://127.0.0.1:6379');
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler($predis);
+
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([], $handler);
+                },
+            ],
+        ],</code></pre>
+<h2 id="tweaking-session-options">Tweaking session options</h2>
+<p>The underying <a href="https://github.com/symfony/symfony/blob/4.4/src/Symfony/Component/HttpFoundation/Session/Storage/NativeSessionStorage.php">session component</a> accepts array of options.
+For example you can pass <code>cookie_lifetime</code> parameter to extend default session lifetime:</p>
+<pre><code>        'Filegator\Services\Session\SessionStorageInterface' =&gt; [
+            'handler' =&gt; '\Filegator\Services\Session\Adapters\SessionStorage',
+            'config' =&gt; [
+                'handler' =&gt; function () {
+                    $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+                            'mysql://root:password@localhost:3306/filegator'
+                            );
+
+                    return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
+                            'cookie_lifetime' =&gt; 365 * 24 * 60 * 60, // one year
+                    ], $handler);
+                },
+            ],
+        ],
+</code></pre>
+                </section>
+
+            </div>
+        </main>
+
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script src="//yandex.st/highlightjs/7.5/highlight.min.js"></script>
+
+        <script>
+            $(function() {
+                $("section>h1").wrap('<div class="page-header" />');
+                // Syntax highlighting
+                hljs.initHighlightingOnLoad();
+            });
+        </script>
+
+<!-- Ticksel analytics v1.0 -->
+<script type="text/javascript">
+  var _tcfg = _tcfg || [];
+  (function() {
+    _tcfg.push(["tags", "filegator-io,filegator-io-docs"]);
+    var u="https://a.interactive32.com/js/safetick.js"; _tcfg.push(["account_id", 8348834]);
+    var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0];
+    g.type="text/javascript"; g.async=true; g.src=u; g.setAttribute("crossorigin", "anonymous");
+    s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><img src="https://a.interactive32.com/beam?account_id=8348834&referrer=&tags=filegator-io,filegator-io-docs" style="border:0;" width="0" height="0" alt="" /></noscript>
+<!-- End Ticksel Code -->
+
+    </body>
+</html>
