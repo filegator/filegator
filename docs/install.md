@@ -2,14 +2,16 @@
 currentMenu: install
 ---
 
+## Docker image
+You can use the [official docker image](https://hub.docker.com/r/filegator/filegator)
+
 ## Minimum Requirements
 - PHP 7.2.5+ (with php-zip extension)
-
 
 ## Download precompiled build
 Precompiled build is created for non-developers. In this version, the frontend (html, css and javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
 
-- Download: [latest release](https://github.com/filegator/static/raw/master/builds/filegator_latest.zip)
+- Download the [latest release](https://github.com/filegator/static/raw/master/builds/filegator_latest.zip)
 - Unzip files and upload them to your PHP server
 - Make sure your webserver can read and write to `filegator/repository/` and `filegator/private/` folders
 - Set the website document root to `filegator/dist/` directory. This is also known as 'public' folder
