@@ -2,8 +2,12 @@
 currentMenu: install
 ---
 
-## Docker image
-You can use the [official docker image](https://hub.docker.com/r/filegator/filegator)
+## Docker
+You can use the [official docker image](https://hub.docker.com/r/filegator/filegator) based on [Dockerfile](https://github.com/filegator/filegator/blob/master/Dockerfile)
+```
+docker run -p 8000:80 -d filegator/filegator
+visit: http://127.0.0.1:8000 login as admin/admin123
+```
 
 ## Minimum Requirements
 - PHP 7.2.5+ (with php-zip extension)
