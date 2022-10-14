@@ -35,6 +35,8 @@ Available languages:
 - ```romanian```
 - ```arabic``` (see https://docs.filegator.io/translations/default.html#rtl-support)
 - ```portuguese_br``` (brazilian portuguese pt-BR)
+- ```persian```
+- ```estonian```
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 

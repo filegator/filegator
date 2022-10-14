@@ -2,6 +2,8 @@
 
 ## Upcoming...
 
+* Estonian translations added, thanks @ihvz
+
 ## 7.8.4 - 2022-10-12
 * CI pipelines added
 

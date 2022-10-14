@@ -33,6 +33,7 @@ import romanian from '../translations/romanian'
 import arabic from '../translations/arabic'
 import portuguese_br from '../translations/portuguese_br'
 import persian from '../translations/persian'
+import estonian from '../translations/estonian'
 
 const funcs = {
   methods: {
@@ -74,6 +75,7 @@ const funcs = {
         'arabic': arabic,
         'portuguese_br': portuguese_br,
         'persian': persian,
+        'estonian': estonian,
       }
 
       let language = store.state.config.language
