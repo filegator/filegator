@@ -2,7 +2,12 @@
 
 ## Upcoming...
 
-* Estonian translations added, thanks @ihvz
+## 7.8.6 - 2022-10-17
+* Estonian translation added, thanks @ihvz
+* CI pipeline fix
+
+## 7.8.5 - 2022-10-12
+* Docker config updated
 
 ## 7.8.4 - 2022-10-12
 * CI pipelines added
