@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.8.7 - 2022-10-17
+* Dockerfile fix
+
 ## 7.8.6 - 2022-10-17
 * Estonian translation added, thanks @ihvz
 * CI pipeline fix
