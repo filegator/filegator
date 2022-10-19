@@ -4,7 +4,7 @@ const data = {
   'File size error': '{0} on liiga suur, palun laadige faile üles vähem kui {1}',
   'Upload failed': '{0} üleslaadimine nurjus',
   'Per page': '{0} Lehekülje kohta',
-  'Folder': 'Kausta',
+  'Folder': 'Kaust',
   'Login failed, please try again': 'Sisselogimine ebaõnnestus, proovige uuesti',
   'Already logged in': 'Juba sisse logitud.',
   'Please enter username and password': 'Palun sisestage kasutajanimi ja parool.',
