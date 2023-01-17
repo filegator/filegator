@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+<a href="https://demo.filegator.io"><img src="https://img.shields.io/badge/Live-Demo-brightgreen.svg?style=flat-square" alt="Live demo"></a>
 <a href="https://github.com/filegator/filegator/actions"><img src="https://github.com/filegator/filegator/workflows/PHP/badge.svg?branch=master" alt="Build Status PHP master"></a>
   <a href="https://github.com/filegator/filegator/actions"><img src="https://github.com/filegator/filegator/workflows/Node/badge.svg?branch=master" alt="Build Status Node master"></a>
 <a href="https://codecov.io/gh/filegator/filegator"><img src="https://codecov.io/gh/filegator/filegator/branch/master/graph/badge.svg" alt="Code Coverage"></a>
@@ -25,7 +26,7 @@ If allowed, users can download multiple files or folders at once.
 File upload supports drag&drop, progress bar, pause and resume. Upload is chunked so you should be able to upload large files regardless of your server configuration.
 
 <p align="center">
-<img src="https://filegator.io/img/animated.gif" alt="Screenshot">
+<a href="https://demo.filegator.io"><img src="https://filegator.io/img/animated.gif" alt="Screenshot"></a>
 </p>
 
 
@@ -73,7 +74,14 @@ FileGator is a free, open-source project. It's an independent project with its o
   </tbody>
 </table>
 
-## Demo with docker
+## Demo
+[https://demo.filegator.io](https://demo.filegator.io)
+
+This is read-only demo with guest account enabled
+- you can log in as `john/john` to see John's private files
+- or `jane/jane` as readonly + download user.
+
+Rut it with docker:
 ```
 docker run -p 8000:80 -d filegator/filegator
 visit: http://127.0.0.1:8000 login as admin/admin123
