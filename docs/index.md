@@ -31,7 +31,15 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 - No database required
 - Framework free [™](https://www.youtube.com/watch?v=L5jI9I03q8E)
 
-## Demo with docker
+## Demo
+[https://demo.filegator.io](https://demo.filegator.io)
+
+This is read-only demo with guest account enabled
+
+- you can log in as john/john to see John's private files
+- or jane/jane as readonly + download user.
+
+Rut it with docker
 ```
 docker run -p 8000:80 -d filegator/filegator
 visit: http://127.0.0.1:8000 login as admin/admin123
