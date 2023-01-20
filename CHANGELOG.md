@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming...
+* Added configurable lockout for incorrect login attempts (see configuration_sample.php)
 
 ## 7.8.7 - 2022-10-17
 * Dockerfile fix

@@ -52,7 +52,7 @@ class TestCase extends BaseTestCase
         return new App($config, $request, new FakeResponse(), new FakeStreamedResponse(), new Container());
     }
 
-    public function sendRequest($method, $uri, $data = null, $files = [])
+    public function sendRequest($method, $uri, $data = null, $files = [], $server = [])
     {
         $fakeRequest = Request::create(
             '?r='.$uri,
@@ -60,10 +60,10 @@ class TestCase extends BaseTestCase
             [],
             [],
             $files,
-            [
+            array_replace([
                 'CONTENT_TYPE' => 'application/json',
                 'HTTP_ACCEPT' => 'application/json',
-            ],
+            ], $server),
             json_encode($data)
         );
 

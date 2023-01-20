@@ -6,6 +6,8 @@ return [
     'overwrite_on_upload' => false,
     'timezone' => 'UTC', // https://www.php.net/manual/en/timezones.php
     'download_inline' => ['pdf'], // download inline in the browser, array of extensions, use * for all
+    'lockout_attempts' => 5, // max failed login attempts before ip lockout
+    'lockout_timeout' => 15, // ip lockout timeout in seconds
 
     'frontend_config' => [
         'app_name' => 'FileGator',

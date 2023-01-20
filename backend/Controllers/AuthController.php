@@ -10,9 +10,11 @@
 
 namespace Filegator\Controllers;
 
+use Filegator\Config\Config;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Tmpfs\TmpfsInterface;
 use Filegator\Services\Logger\LoggerInterface;
 use Rakit\Validation\Validator;
 
@@ -25,18 +27,35 @@ class AuthController
         $this->logger = $logger;
     }
 
-    public function login(Request $request, Response $response, AuthInterface $auth)
+    public function login(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config)
     {
         $username = $request->input('username');
         $password = $request->input('password');
+        $ip = $request->getClientIp();
 
         if ($auth->authenticate($username, $password)) {
-            $this->logger->log("Logged in {$username} from IP ".$request->getClientIp());
+            $this->logger->log("Logged in {$username} from IP ".$ip);
 
             return $response->json($auth->user());
         }
 
-        $this->logger->log("Login failed for {$username} from IP ".$request->getClientIp());
+        $this->logger->log("Login failed for {$username} from IP ".$ip);
+
+        $lockfile = md5($ip).'.lock';
+        $lockout_attempts = $config->get('lockout_attempts', 5);
+        $lockout_timeout = $config->get('lockout_timeout', 15);
+
+        foreach ($tmpfs->findAll($lockfile) as $flock) {
+            if (time() - $flock['time'] >= $lockout_timeout) $tmpfs->remove($flock['name']);
+        }
+
+        if ($tmpfs->exists($lockfile) && strlen($tmpfs->read($lockfile)) >= $lockout_attempts) {
+            $this->logger->log("Too many login attempts for {$username} from IP ".$ip);
+
+            return $response->json('Not Allowed', 429);
+        }
+
+        $tmpfs->write($lockfile, 'x', true);
 
         return $response->json('Login failed, please try again', 422);
     }
