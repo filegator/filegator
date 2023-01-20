@@ -41,35 +41,42 @@ class AuthTest extends TestCase
 
     public function testBruteForceLogin()
     {
+        // standard 422 bad response code
         $this->sendRequest('POST', '/login', [
-            'username' => 'fake',
-            'password' => 'fake',
+            'username' => 'bad',
+            'password' => 'bad',
         ], [], ['REMOTE_ADDR' => '10.10.10.10']);
-        $this->assertUnprocessable();
+        $this->assertStatus(422);
 
+        // too many requests should change the response code to 429
         for ($i = 0; $i < 20; $i++) {
             $this->sendRequest('POST', '/login', [
-                'username' => 'fake',
-                'password' => 'fake',
+                'username' => 'bad',
+                'password' => 'bad',
             ], [], ['REMOTE_ADDR' => '10.10.10.10']);
         }
         $this->assertStatus(429);
 
-        for ($i = 0; $i < 20; $i++) {
-            $this->sendRequest('POST', '/login', [
-                'username' => 'fake',
-                'password' => 'fake',
-            ], [], ['REMOTE_ADDR' => '2001:db8:3333:4444:5555:6666:7777:8888']);
-        }
+        // now even the good one from this ip should fail as 429
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '10.10.10.10']);
         $this->assertStatus(429);
 
-
-        // new ip should be ok
+        // another ip should fail as a standard 422 bad response (unaffected)
         $this->sendRequest('POST', '/login', [
-            'username' => 'fake',
-            'password' => 'fake',
-        ], [], ['REMOTE_ADDR' => '10.10.10.1']);
-        $this->assertUnprocessable();
+            'username' => 'bad',
+            'password' => 'bad',
+        ], [], ['REMOTE_ADDR' => '2001:db8:3333:4444:5555:6666:7777:8888']);
+        $this->assertStatus(422);
+
+        // another ip with valid credentials should be ok (unaffected)
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '20.20.20.20']);
+        $this->assertOk();
     }
 
     public function testAlreadyLoggedIn()

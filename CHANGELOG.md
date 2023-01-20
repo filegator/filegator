@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.9.1 - 2023-01-20
+* Lockout bugfix
+
 ## 7.9.0 - 2023-01-20
 * Added configurable lockout for incorrect login attempts (see configuration_sample.php)
 
