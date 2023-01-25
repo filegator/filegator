@@ -1,0 +1,38 @@
+################################################
+# simpler build, no ldap, sftp, s3...
+# build and deploy to docker hub with:
+# docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386 --tag filegator/filegator:vX.X.X-multiarch - < Dockerfile.multiarch
+################################################
+FROM php:7-apache-buster
+
+RUN apt-get update > /dev/null
+RUN apt-get install -y git libzip-dev wget unzip
+
+RUN docker-php-ext-install zip
+RUN docker-php-ext-enable zip
+
+RUN wget https://github.com/filegator/static/raw/master/builds/filegator_latest.zip
+RUN unzip filegator_latest.zip -d /var/www/
+RUN rm filegator_latest.zip
+
+RUN chown -R www-data:www-data /var/www/filegator/
+WORKDIR "/var/www/filegator/"
+RUN chmod -R g+w private/
+RUN chmod -R g+w repository/
+
+ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/dist/
+ENV APACHE_PORT=8080
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/docker-php.conf
+RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/ports.conf
+RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
+
+EXPOSE ${APACHE_PORT}
+
+VOLUME /var/www/filegator/repository
+VOLUME /var/www/filegator/private
+
+USER www-data
+
+CMD ["apache2-foreground"]
