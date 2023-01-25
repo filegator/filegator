@@ -5,8 +5,8 @@ currentMenu: install
 ## Docker
 You can use the [official docker image](https://hub.docker.com/r/filegator/filegator) based on [this Dockerfile](https://github.com/filegator/filegator/blob/master/Dockerfile)
 ```
-docker run -p 8000:80 -d filegator/filegator
-visit: http://127.0.0.1:8000 login as admin/admin123
+docker run -p 8080:8080 -d filegator/filegator
+visit: http://127.0.0.1:8080 login as admin/admin123
 ```
 
 ## Minimum Requirements

@@ -83,8 +83,8 @@ This is read-only demo with guest account enabled
 
 Rut it with docker:
 ```
-docker run -p 8000:80 -d filegator/filegator
-visit: http://127.0.0.1:8000 login as admin/admin123
+docker run -p 8080:8080 -d filegator/filegator
+visit: http://127.0.0.1:8080 login as admin/admin123
 ```
 
 

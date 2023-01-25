@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.9.2 - 2023-01-25
+* Docker update, port changed to 8080 (see #376)
+
 ## 7.9.1 - 2023-01-20
 * Lockout bugfix
 
