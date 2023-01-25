@@ -3,7 +3,13 @@
 ## Upcoming...
 
 ## 7.9.2 - 2023-01-25
-* Docker update, port changed to 8080 (see #376)
+* Docker update, container port changed from 80 to 8080 (see #376)
+
+Notes / Breaking Changes:
+
+This could be a breaking change for those who use docker or docker-compose.
+Please check your configuration (docker-compose.yml) and update container port to 8080
+
 
 ## 7.9.1 - 2023-01-20
 * Lockout bugfix
