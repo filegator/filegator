@@ -130,6 +130,7 @@
 <li>When uploading files, chunks are stored in the TMP folder before merging and moving to the final storage destination</li>
 <li>When creating and extracting archives (zip files)</li>
 <li>When downloading multiple files, they are copied into TMP folder before zipping</li>
+<li>To count and lock excessive login attempts</li>
 </ul>
 <p>Tmp files are usually removed immediately after the use. For expired files, configurable garbage collection is used:</p>
 <pre><code>        'Filegator\Services\Tmpfs\TmpfsInterface' =&gt; [
