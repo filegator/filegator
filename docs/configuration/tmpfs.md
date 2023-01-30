@@ -8,6 +8,7 @@ This service is responsible for managing temporary files. TMP files are created:
 - When uploading files, chunks are stored in the TMP folder before merging and moving to the final storage destination
 - When creating and extracting archives (zip files)
 - When downloading multiple files, they are copied into TMP folder before zipping
+- To count and lock excessive login attempts
 
 
 Tmp files are usually removed immediately after the use. For expired files, configurable garbage collection is used:
