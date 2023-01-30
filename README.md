@@ -81,12 +81,6 @@ This is read-only demo with guest account enabled
 - you can log in as `john/john` to see John's private files
 - or `jane/jane` as readonly + download user.
 
-Rut it with docker:
-```
-docker run -p 8080:8080 -d filegator/filegator
-visit: http://127.0.0.1:8080 login as admin/admin123
-```
-
 
 ## Typical use cases
 - share a folder with colleagues, your team, friends or family
@@ -117,6 +111,15 @@ visit: http://127.0.0.1:8080 login as admin/admin123
 ## Limitations
 - Symlinks are not supported by the underlying [Flysystem](https://flysystem.thephpleague.com/v1/docs/adapter/local/)
 - File permission operations are not supported (chmod/chown)
+
+## Docker
+Check out [the official docker image](https://hub.docker.com/r/filegator/filegator) with instructions on how to use it
+
+Docker quick start:
+```
+docker run -p 8080:8080 -d filegator/filegator
+visit: http://127.0.0.1:8080 login as admin/admin123
+```
 
 ## Minimum Requirements
 - PHP 7.2.5+ (with php-zip extension)
