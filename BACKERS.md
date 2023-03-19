@@ -33,3 +33,6 @@ FileGator is a free, open-source project. It's an independent project with its o
 </table>
 
 ## Backers
+
+- Tobias (Biast12) 🇩🇰  [https://twitter.com/Biast12](https://twitter.com/Biast12)
+
