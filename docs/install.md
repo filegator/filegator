@@ -62,7 +62,7 @@ Open your browser and go to http://your_server_ip_address
 
 ## Upgrade instructions
 
-- Backup everythig
+- Backup everything
 - Download the latest version
 - Replace all files and folders except `repository/` and `private/`
 
