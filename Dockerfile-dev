@@ -1,0 +1,32 @@
+FROM php:7-apache-buster
+
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get update > /dev/null
+RUN apt-get install -y zip unzip curl wget git libzip-dev libldap2-dev nodejs python2 libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN npm i -g yarn
+
+RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
+RUN docker-php-ext-install zip ldap
+RUN docker-php-ext-enable zip ldap
+
+RUN groupadd -r app -g 1000 && useradd -u 1000 -r -g app -m -d /var/www -s /bin/bash -c "App user" app
+RUN chown -R app: /var/www
+USER app
+WORKDIR "/var/www/filegator/"
+
+USER root
+
+ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/
+ENV APACHE_PORT=8081
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/docker-php.conf
+RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/ports.conf
+RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
+RUN a2enmod headers \
+    && sed -ri -e 's/^([ \t]*)(<\/VirtualHost>)/\1\tHeader set Access-Control-Allow-Origin "http\:\/\/localhost:8080"\n\tHeader set Access-Control-Allow-Credentials true\n\1\2/g' /etc/apache2/sites-available/*.conf
+
+EXPOSE ${APACHE_PORT}
+EXPOSE 8080
+CMD ["nohup", "bash", "-c", "./node_modules/.bin/vue-cli-service serve --port 8080 & apache2-foreground"]

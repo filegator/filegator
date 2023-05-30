@@ -1,0 +1,37 @@
+version: '2'
+name: filegator-dev
+services:
+  
+  filegator:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    restart: always
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ./:/var/www/filegator/
+    environment:
+      - APP_ENV=development
+      - APACHE_RUN_USER=app
+      - APACHE_RUN_GROUP=app
+  
+  # return new \League\Flysystem\Adapter\Ftp(['host' => 'ftp', 'username' => 'admin', 'password' => 'admin123', 'root' => '/home/admin/', 'port' => 21]);
+  # ftp:
+  #   image: delfer/alpine-ftp-server
+  #   ports:
+  #     - "21:21"
+  #     - "21000-21010:21000-21010"
+  #   environment:
+  #     - USERS=admin|admin123|/home/admin
+  
+  # npm run dc -- exec filegator su app -c "composer require league/flysystem-sftp:^1.0 -W"
+  # return new \League\Flysystem\Sftp\SftpAdapter(['host' => 'sftp', 'port' => 22, 'username' => 'admin', 'password' => 'admin123', 'timeout' => 10, 'root' => '/upload']);
+  # sftp:
+  #   image: atmoz/sftp
+  #   ports:
+  #     - "22:22"
+  #   command: admin:admin123:::upload
+  
+
