@@ -80,6 +80,7 @@ export default {
 
 .sidebox img {
   padding: 5px 0 5px 0;
+  cursor: pointer;
 }
 
 </style>
