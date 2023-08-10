@@ -47,7 +47,11 @@ class DownloadController
     public function download(Request $request, Response $response, StreamedResponse $streamedResponse)
     {
         try {
-            $file = $this->storage->readStream((string) base64_decode($request->input('path')));
+            if (empty($request->input('path'))) {
+                $file = $this->storage->readStream((string) $request->server->get("PATH_INFO"));
+            } else {
+                $file = $this->storage->readStream((string) base64_decode($request->input('path')));
+            }
         } catch (\Exception $e) {
             return $response->redirect('/');
         }
