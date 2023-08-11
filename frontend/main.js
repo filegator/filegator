@@ -18,7 +18,7 @@ Vue.config.productionTip = false
 Vue.config.baseURL = process.env.VUE_APP_API_ENDPOINT ? process.env.VUE_APP_API_ENDPOINT : window.location.origin+window.location.pathname+'?r='
 
 axios.defaults.withCredentials = true
-axios.defaults.baseURL = Vue.config.baseURL
+axios.defaults.baseURL = '/api/' //Vue.config.baseURL
 
 axios.defaults.headers['Content-Type'] = 'application/json'
 
@@ -29,7 +29,6 @@ Vue.use(Buefy, {
 Vue.use(VueLazyload, {
   preLoad: 1.3,
 })
-
 
 Vue.mixin(shared)
 
@@ -45,7 +44,10 @@ new Vue({
           .then((user) => {
             this.$store.commit('initialize')
             this.$store.commit('setUser', user)
-            this.$router.push('/').catch(() => {})
+            // todo: maybe catch if the directory doesn't exist?
+            api.changeDir({
+              to: window.location.pathname.replace('/#/','') // get a directory (if it exists) from the URL bar and go to it
+            }).then(() => this.$router.push('/').catch(() => {}))
           })
           .catch(() => {
             this.$notification.open({

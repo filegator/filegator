@@ -40,7 +40,11 @@ class Router implements Service
 
         if ($r = $this->request->query->get($config['query_param'])) {
             $this->request->query->remove($config['query_param']);
-            $uri = rawurldecode($r);
+            $uri = rawurldecode($r); // TODO: this is likely not used with my changes now?
+        } else {
+            if (!empty($this->request->server->get("PATH_INFO"))) {
+                $uri = $this->request->server->get("PATH_INFO"); // get the URL from the... URL funny enough!
+            }
         }
 
         $routes = require $config['routes_file'];
@@ -50,6 +54,7 @@ class Router implements Service
                 foreach ($routes as $params) {
                     if ($this->user->hasRole($params['roles']) && $this->user->hasPermissions($params['permissions'])) {
                         $r->addRoute($params['route'][0], $params['route'][1], $params['route'][2]);
+//                        error_log("Added route " . $params['route'][1] . "(" . $params['route'][0] . ")");
                     }
                 }
             }
@@ -57,6 +62,7 @@ class Router implements Service
 
         $routeInfo = $dispatcher->dispatch($http_method, $uri);
 
+        //TODO: remove this / make sure we do serve an error if it doesn't exist?
         $controller = '\Filegator\Controllers\ErrorController';
         $action = 'notFound';
         $params = [];
@@ -68,10 +74,14 @@ class Router implements Service
                 $action = $handler[1];
                 $params = $routeInfo[2];
 
-                if ($controller=="\Filegator\Controllers\ViewController" && !empty($this->request->server->get("PATH_INFO"))) {
-                    error_log("     LAURIE: OVERRIDING CONTROLLER");
-                    $controller = '\Filegator\Controllers\DownloadController';
-                    $action = "download";
+                if ($controller=="\Filegator\Controllers\ViewController") {
+                    if (!empty($this->request->server->get("PATH_INFO"))) {
+                        if (!str_starts_with($this->request->server->get("PATH_INFO"),"/api/")) {
+//                            error_log("     LAURIE: OVERRIDING CONTROLLER");
+//                            $controller = '\Filegator\Controllers\DownloadController';
+//                            $action = "download";
+                        }
+                    }
                 }
 
 
@@ -80,8 +90,21 @@ class Router implements Service
                 $action = 'methodNotAllowed';
 
                 break;
+            case FastRoute\Dispatcher::NOT_FOUND:
+                error_log("Couldn't find route for ". $uri . ", trying download");
+                $controller = '\Filegator\Controllers\DownloadController';
+                $action = "download";
+                break;
         }
 
+        error_log("Using controller:");
+        error_log($controller);
+        error_log("Action:");
+        error_log($action);
+//         error_log("Params:");
+//         error_log(print_r($params,true));
+        error_log("URL:"); # LAURIE: my idea is to find the URL bit in this function, then exclude all the normal gubins (probably exclusion list), and if it's not just a root / then try running a download operation
+        error_log($this->request->server->get("PATH_INFO"));
         $this->container->call([$controller, $action], $params);
     }
 }
