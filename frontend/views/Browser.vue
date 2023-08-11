@@ -114,10 +114,10 @@
                   <b-icon icon="ellipsis-h" size="is-small" />
                 </button>
 
-                <b-dropdown-item v-if="props.row.type == 'file' && can('download')" aria-role="listitem" @click="download(props.row)">
+                <b-dropdown-item v-if="props.row.type === 'file' && can('download')" aria-role="listitem" @click="download(props.row)">
                   <b-icon icon="download" size="is-small" /> {{ lang('Download') }}
                 </b-dropdown-item>
-                <b-dropdown-item v-if="props.row.type == 'file' && can(['download']) && hasPreview(props.row.path)" aria-role="listitem" @click="preview(props.row)">
+                <b-dropdown-item v-if="props.row.type === 'file' && can(['download']) && hasPreview(props.row.path)" aria-role="listitem" @click="preview(props.row)">
                   <b-icon icon="file-alt" size="is-small" /> {{ lang('View') }}
                 </b-dropdown-item>
                 <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="copy($event, props.row)">
@@ -138,8 +138,11 @@
                 <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="remove($event, props.row)">
                   <b-icon icon="trash-alt" size="is-small" /> {{ lang('Delete') }}
                 </b-dropdown-item>
-                <b-dropdown-item v-if="props.row.type == 'file' && can('download')" v-clipboard:copy="getDownloadLink(props.row.path)" aria-role="listitem">
+                <b-dropdown-item v-if="(props.row.type === 'file' || props.row.type === 'dir') && can('download')" v-clipboard:copy="getDownloadLink(props.row.path)" aria-role="listitem">
                   <b-icon icon="clipboard" size="is-small" /> {{ lang('Copy link') }}
+                </b-dropdown-item>
+                <b-dropdown-item v-if="(props.row.type === 'file' || props.row.type === 'dir') && can('download')" v-clipboard:copy="getDownloadLinkBase64(props.row.path)" aria-role="listitem">
+                  <b-icon icon="clipboard" size="is-small" /> {{ lang('Copy base64 link') }}
                 </b-dropdown-item>
               </b-dropdown>
             </b-table-column>

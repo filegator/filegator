@@ -1,4 +1,3 @@
-import Vue from 'vue'
 import moment from 'moment'
 import store from '../store.js'
 import api from '../api/api'
@@ -155,7 +154,10 @@ const funcs = {
       })
     },
     getDownloadLink(path) {
-      return Vue.config.baseURL+'/download&path='+encodeURIComponent(Base64.encode(path))
+      return window.location.origin+path
+    },
+    getDownloadLinkBase64(path) {
+      return window.location.origin+'/download?path='+encodeURIComponent(Base64.encode(path))
     },
     hasPreview(name) {
       return this.isText(name) || this.isImage(name)

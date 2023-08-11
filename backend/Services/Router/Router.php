@@ -43,7 +43,8 @@ class Router implements Service
             $uri = rawurldecode($r); // TODO: this is likely not used with my changes now?
         } else {
             if (!empty($this->request->server->get("PATH_INFO"))) {
-                $uri = $this->request->server->get("PATH_INFO"); // get the URL from the... URL funny enough!
+                $this->request->query->remove($config['query_param']);
+                $uri = strtok($this->request->server->get("PATH_INFO"),'?'); // get the URL from the... URL funny enough! (stripping off query parameters)
             }
         }
 
