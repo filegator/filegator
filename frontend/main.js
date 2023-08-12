@@ -32,7 +32,7 @@ Vue.use(VueLazyload, {
 
 Vue.mixin(shared)
 
-new Vue({
+var vue = new Vue({
   router,
   store,
   created: function() {
