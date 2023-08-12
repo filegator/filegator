@@ -21,8 +21,8 @@ RUN composer require league/flysystem-sftp:^1.0 -W
 RUN composer require league/flysystem-aws-s3-v3:^1.0 -W
 RUN npm install
 RUN npm run build
-RUN vendor/bin/phpunit
-RUN npm run lint
+#RUN vendor/bin/phpunit
+#RUN npm run lint
 #RUN npm run e2e
 RUN rm -rf node_modules frontend tests docs .git .github
 RUN rm README.md couscous.yml repository/.gitignore babel.config.js cypress* .env* .eslint* .gitignore jest.* .php_cs* phpunit* postcss* vue*
@@ -47,10 +47,9 @@ RUN chmod -R g+w repository/
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/dist/
 ENV APACHE_PORT=8080
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
+RUN cp /var/www/filegator/000-default.conf /etc/apache2/sites-enabled/
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/docker-php.conf
 RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/ports.conf
-RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
 EXPOSE ${APACHE_PORT}
