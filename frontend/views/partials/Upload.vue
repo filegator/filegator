@@ -52,7 +52,6 @@
 
 <script>
 import Resumable from 'resumablejs'
-import Vue from 'vue'
 import api from '../../api/api'
 import axios from 'axios'
 import _ from 'lodash'
