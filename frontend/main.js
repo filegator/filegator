@@ -47,7 +47,11 @@ window.vue = new Vue({
             this.$store.commit('setUser', user)
             // todo: maybe catch if the directory doesn't exist?
             console.log('Opened with directory: '+window.location.pathname.replace('/#/','')+', so changing to that.')
-            this.$router.push({ name: 'browser', query: { 'cd': window.location.pathname.replace('/#/','') }}).catch(() => {})
+            // this first route by itself doesn't work, for whatever reason, so go to the root
+            this.$router.push({name: 'browser', query: {'cd': "/"}}).catch(() => {}).then(()=>{
+              // now finally to where we want to go
+              this.$router.push({ name: 'browser', query: { 'cd': window.location.pathname.replace('/#/','') }}).catch(() => {})
+            })
           })
           .catch(() => {
             this.$notification.open({
