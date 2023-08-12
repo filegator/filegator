@@ -45,7 +45,7 @@ new Vue({
             this.$store.commit('initialize')
             this.$store.commit('setUser', user)
             // todo: maybe catch if the directory doesn't exist?
-            console.log('Opened with directory: '+window.location.pathname.replace('/#/','')+'', so changing to that.'')
+            console.log('Opened with directory: '+window.location.pathname.replace('/#/','')+', so changing to that.')
             api.changeDir({
               to: window.location.pathname.replace('/#/','') // get a directory (if it exists) from the URL bar and go to it
             }).then(() => this.$router.push('/').catch(() => {}))
