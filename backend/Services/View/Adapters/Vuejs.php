@@ -44,14 +44,14 @@ class Vuejs implements Service, ViewInterface
     <meta name="robots" content="noindex,nofollow">
     <title>'.$title.'</title>
     '.$this->add_to_head.'
-    <link href="'.$public_path.'/dist/css/app.css?'.@filemtime($public_dir.'/dist/css/app.css').'" rel=stylesheet>
-    <link href="'.$public_path.'/dist/css/chunk-vendors.css?'.@filemtime($public_dir.'/dist/css/chunk-vendors.css').'" rel=stylesheet>
+    <link href="'.$public_path.'/css/app.css?'.@filemtime($public_dir.'/css/app.css').'" rel=stylesheet>
+    <link href="'.$public_path.'/css/chunk-vendors.css?'.@filemtime($public_dir.'/css/chunk-vendors.css').'" rel=stylesheet>
   </head>
   <body>
     <noscript><strong>Please enable JavaScript to continue.</strong></noscript>
     <div id=app></div>
-    <script src="'.$public_path.'/dist/js/app.js?'.@filemtime($public_dir.'/dist//js/app.js').'"></script>
-    <script src="'.$public_path.'/dist/js/chunk-vendors.js?'.@filemtime($public_dir.'/dist//js/chunk-vendors.js').'"></script>
+    <script src="'.$public_path.'/js/app.js?'.@filemtime($public_dir.'/js/app.js').'"></script>
+    <script src="'.$public_path.'/js/chunk-vendors.js?'.@filemtime($public_dir.'/js/chunk-vendors.js').'"></script>
 
     '.$this->add_to_body.'
   </body>
