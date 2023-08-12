@@ -36,6 +36,7 @@ window.vue = new Vue({
   router,
   store,
   created: function() {
+      window.vueapi = api
 
     api.getConfig()
       .then(ret => {

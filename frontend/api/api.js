@@ -41,12 +41,21 @@ const api = {
     })
   },
   changeDir(params) {
+    console.log("Changing Dir to "+params)
     return new Promise((resolve, reject) => {
       axios.post('changedir', {
         to: params.to,
       })
-        .then(res => resolve(res.data.data))
-        .catch(error => reject(error))
+        .then(res => {
+          console.log("Got some data back from Changedir:")
+          console.log(res)
+          resolve(res.data.data)
+        })
+        .catch(error => {
+          console.log("Changedir got an error:")
+          console.log(error)
+          reject(error)
+        })
     })
   },
   getDir(params) {
