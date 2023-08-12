@@ -49,7 +49,12 @@ new Vue({
             api.changeDir({
               to: window.location.pathname.replace('/#/','') // get a directory (if it exists) from the URL bar and go to it
             }).then(() => this.$router.push('/').catch(() => {}))
-          })
+              api.changeDir({
+                  to: window.location.pathname.replace('/#/','') // get a directory (if it exists) from the URL bar and go to it
+              }).then(() => this.$router.push('/').catch(() => {}))
+              api.changeDir({
+                  to: window.location.pathname.replace('/#/','') // get a directory (if it exists) from the URL bar and go to it
+              }).then(() => this.$router.push('/').catch(() => {}))
           .catch(() => {
             this.$notification.open({
               message: this.lang('Something went wrong'),
