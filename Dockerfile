@@ -13,7 +13,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN docker-php-ext-install zip
 RUN docker-php-ext-enable zip
 
-RUN git clone https://github.com/filegator/filegator.git /var/www/filegator/
+RUN git clone https://github.com/Electronics/filegator.git /var/www/filegator/
 WORKDIR "/var/www/filegator/"
 RUN cp configuration_sample.php configuration.php
 RUN composer install
