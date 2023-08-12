@@ -49,7 +49,7 @@ class DownloadController
     {
         try {
             if (empty($request->input('path'))) {
-                $file = $this->storage->readStream((string) $request->server->get("PATH_INFO"));
+                $file = $this->storage->readStream((string) $request->server->get("REQUEST_URI"));
             } else {
                 $file = $this->storage->readStream((string) base64_decode($request->input('path')));
             }

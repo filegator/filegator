@@ -42,9 +42,9 @@ class Router implements Service
             $this->request->query->remove($config['query_param']);
             $uri = rawurldecode($r); // TODO: this is likely not used with my changes now?
         } else {
-            if (!empty($this->request->server->get("PATH_INFO"))) {
+            if (!empty($this->request->server->get("REQUEST_URI"))) {
                 $this->request->query->remove($config['query_param']);
-                $uri = strtok($this->request->server->get("PATH_INFO"),'?'); // get the URL from the... URL funny enough! (stripping off query parameters)
+                $uri = strtok($this->request->server->get("REQUEST_URI"),'?'); // get the URL from the... URL funny enough! (stripping off query parameters)
             }
         }
 
@@ -76,8 +76,8 @@ class Router implements Service
                 $params = $routeInfo[2];
 
                 if ($controller=="\Filegator\Controllers\ViewController") {
-                    if (!empty($this->request->server->get("PATH_INFO"))) {
-                        if (!str_starts_with($this->request->server->get("PATH_INFO"),"/api/")) {
+                    if (!empty($this->request->server->get("REQUEST_URI"))) {
+                        if (!str_starts_with($this->request->server->get("REQUEST_URI"),"/api/")) {
 //                            error_log("     LAURIE: OVERRIDING CONTROLLER");
 //                            $controller = '\Filegator\Controllers\DownloadController';
 //                            $action = "download";
@@ -105,7 +105,7 @@ class Router implements Service
 //         error_log("Params:");
 //         error_log(print_r($params,true));
         error_log("URL:"); # LAURIE: my idea is to find the URL bit in this function, then exclude all the normal gubins (probably exclusion list), and if it's not just a root / then try running a download operation
-        error_log($this->request->server->get("PATH_INFO"));
+        error_log($this->request->server->get("REQUEST_URI"));
         $this->container->call([$controller, $action], $params);
     }
 }
