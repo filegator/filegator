@@ -175,7 +175,7 @@ import Upload from './partials/Upload'
 import api from '../api/api'
 import VueClipboard from 'vue-clipboard2'
 import _ from 'lodash'
-import axios from "axios"
+import axios from 'axios'
 
 Vue.use(VueClipboard)
 
