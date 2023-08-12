@@ -175,6 +175,7 @@ import Upload from './partials/Upload'
 import api from '../api/api'
 import VueClipboard from 'vue-clipboard2'
 import _ from 'lodash'
+import axios from "axios";
 
 Vue.use(VueClipboard)
 
@@ -395,7 +396,7 @@ export default {
             message: this.lang('Your file is ready'),
             confirmText: this.lang('Download'),
             onConfirm: () => {
-              window.open(Vue.config.baseURL+'/batchdownload&uniqid='+ret.uniqid, '_blank')
+              window.open(axios.defaults.baseURL+'/batchdownload&uniqid='+ret.uniqid, '_blank')
             }
           })
         })

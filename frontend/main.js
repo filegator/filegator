@@ -15,7 +15,7 @@ import '@fortawesome/fontawesome-free/css/fontawesome.css'
 Vue.config.productionTip = false
 
 /* eslint-disable-next-line */
-Vue.config.baseURL = process.env.VUE_APP_API_ENDPOINT ? process.env.VUE_APP_API_ENDPOINT : window.location.origin+window.location.pathname+'?r='
+Vue.config.baseURL = process.env.VUE_APP_API_ENDPOINT ? process.env.VUE_APP_API_ENDPOINT : "/dist/"
 
 axios.defaults.withCredentials = true
 axios.defaults.baseURL = '/api/' //Vue.config.baseURL

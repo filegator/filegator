@@ -47,8 +47,7 @@ RUN chmod -R g+w repository/
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/dist/
 ENV APACHE_PORT=8080
-RUN cp /var/www/filegator/000-default.conf /etc/apache2/sites-enabled/
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/docker-php.conf
+RUN cp /var/www/filegator/docker-php.conf /etc/apache2/conf-available/docker-php.conf
 RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/ports.conf
 RUN a2enmod rewrite
 
