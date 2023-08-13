@@ -396,7 +396,7 @@ export default {
             message: this.lang('Your file is ready'),
             confirmText: this.lang('Download'),
             onConfirm: () => {
-              window.open(axios.defaults.baseURL+'/batchdownload&uniqid='+ret.uniqid, '_blank')
+              window.open(axios.defaults.baseURL+'batchdownload&uniqid='+ret.uniqid, '_blank')
             }
           })
         })
