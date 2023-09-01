@@ -48,11 +48,6 @@ FileGator is a free, open-source project. It's an independent project with its o
           <img title="VanillaVoice - Turn any Text into Human-Sounding Speech" width="200px" src="https://www.vanillavoice.com/logo.svg">
         </a>
       </td>
-      <td align="center" valign="middle">
-        <a href="https://www.savepage.io/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
-          <img title="Screenshot any website with our powerful API" width="200px" src="https://www.savepage.io/images/logo.svg">
-        </a>
-      </td>
     </tr>
   </tbody>
 </table>
