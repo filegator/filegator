@@ -2,6 +2,10 @@
 
 ## Upcoming...
 
+## 7.9.3 - 2023-10-13
+* Removed is_writable check for ../repository folder, fixes (see #423)
+* Make gallary images clickable (see #411)
+
 ## 7.9.2 - 2023-01-25
 * Docker update, container port changed from 80 to 8080 (see #376)
 
