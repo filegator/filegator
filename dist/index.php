@@ -21,11 +21,6 @@ if (! is_writable(__DIR__.'/../private/logs/')) {
     die;
 }
 
-if (! is_writable(__DIR__.'/../repository/')) {
-    echo 'Folder not writable: /repository/'."\n";
-    die;
-}
-
 if (! file_exists(__DIR__.'/../configuration.php')) {
     copy(__DIR__.'/../configuration_sample.php', __DIR__.'/../configuration.php');
 }
