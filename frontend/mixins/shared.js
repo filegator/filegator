@@ -2,7 +2,7 @@ import Vue from 'vue'
 import moment from 'moment'
 import store from '../store.js'
 import api from '../api/api'
-import { Base64 } from 'js-base64'
+// import { Base64 } from 'js-base64'
 import _ from 'lodash'
 
 import english from '../translations/english'
@@ -155,7 +155,7 @@ const funcs = {
       })
     },
     getDownloadLink(path) {
-      return Vue.config.baseURL+'/download&path='+encodeURIComponent(Base64.encode(path))
+      return Vue.config.publicURL+path
     },
     hasPreview(name) {
       return this.isText(name) || this.isImage(name)
