@@ -24,9 +24,9 @@ export default new Vuex.Store({
   getters: {
     hasPermissions: (state) => (permissions) => {
       if (_.isArray(permissions)) {
-        return _.intersection(state.user?.permissions, permissions).length == permissions.length
+        return _.intersection(state.user.permissions, permissions).length == permissions.length
       }
-      return _.find(state.user?.permissions, p => p == permissions) ? true : false
+      return _.find(state.user.permissions, p => p == permissions) ? true : false
     }
   },
   mutations: {
