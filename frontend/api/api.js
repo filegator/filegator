@@ -119,6 +119,17 @@ const api = {
         .catch(error => reject(error))
     })
   },
+  chmodItems(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('chmoditems', {
+        permissions: params.permissions,
+        items: params.items,
+        recursive: params.recursive,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
   removeItems(params) {
     return new Promise((resolve, reject) => {
       axios.post('deleteitems', {

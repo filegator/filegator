@@ -43,7 +43,7 @@ Sample configuration:
                 'separator' => '/',
                 'config' => [],
                 'adapter' => function () {
-                  return new \League\Flysystem\Adapter\Ftp([
+                  return new \Filegator\Services\Storage\Adapters\FilegatorFtp([
                       'host' => 'example.com',
                       'username' => 'demo',
                       'password' => 'password',

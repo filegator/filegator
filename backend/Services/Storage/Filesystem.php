@@ -12,6 +12,7 @@ namespace Filegator\Services\Storage;
 
 use Filegator\Services\Service;
 use League\Flysystem\Filesystem as Flysystem;
+use League\Flysystem\Util;
 
 class Filesystem implements Service
 {
@@ -176,6 +177,72 @@ class Filesystem implements Service
 
         return $this->storage->putStream($destination, $resource);
     }
+    
+    /**
+     * Change file permissions one item, with optional recursion
+     * 
+     * @param string $path
+     * @param int $permissions
+     * @param null|'all'|'folders'|'files' $recursive
+     * @return bool
+     * @throws \Exception
+     */
+    public function chmod(string $path, int $permissions, string $recursive = null)
+    {
+        $path = $this->applyPathPrefix($path);
+        $path = Util::normalizePath($path);
+        $adapter = $this->storage->getAdapter();
+        
+        $mainResult = $this->chmodItem($path, $permissions);
+        if ($recursive !== null) {
+            if (method_exists($adapter, 'setRecurseManually')) {
+                $adapter->setRecurseManually(true); // this is needed for ftp driver
+            }
+            $contents = $this->storage->listContents($path, true);
+            foreach ($contents as $item) {
+                try {
+                    if ($item['type'] == 'dir' && ($recursive == 'all' || $recursive == 'folders')) {
+                        $this->chmodItem($item['path'], $permissions);
+                    }
+                    if ($item['type'] == 'file' && ($recursive == 'all' || $recursive == 'files')) {
+                        $this->chmodItem($item['path'], $permissions);
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+        }
+        
+        return $mainResult;
+    }
+    /**
+     * Change file permissions for a single item
+     * 
+     * @param string $path
+     * @param int $permissions
+     * @return bool
+     * @throws \Exception
+     */
+    public function chmodItem(string $path, int $permissions)
+    {
+        $adapter = $this->storage->getAdapter();
+        
+        switch (get_class($adapter)) {
+            case 'League\Flysystem\Adapter\Local':
+                $absolutePath = $adapter->applyPathPrefix($path);
+                return chmod($absolutePath, octdec($permissions));
+                break;
+            case 'League\Flysystem\Sftp\SftpAdapter':
+                return $adapter->getConnection()->chmod($path, octdec($permissions));
+                break;
+            case 'Filegator\Services\Storage\Adapters\FilegatorFtp':
+                return ftp_chmod($adapter->getConnection(), octdec($permissions), $path) !== false;
+                break;
+            default:
+                throw new \Exception('Selected adapter does not support unix permissions');
+                break;
+        }
+    }
 
     public function setPathPrefix(string $path_prefix)
     {
@@ -204,15 +271,38 @@ class Filesystem implements Service
             $dirname = isset($entry['dirname']) ? $entry['dirname'] : $path;
             $size = isset($entry['size']) ? $entry['size'] : 0;
             $timestamp = isset($entry['timestamp']) ? $entry['timestamp'] : 0;
+            $permissions = $this->getPermissions($entry);
 
-            $collection->addFile($entry['type'], $userpath, $name, $size, $timestamp);
+            $collection->addFile($entry['type'], $userpath, $name, $size, $timestamp, $permissions);
         }
 
         if (! $recursive && $this->addSeparators($path) !== $this->separator) {
-            $collection->addFile('back', $this->getParent($path), '..', 0, 0);
+            $collection->addFile('back', $this->getParent($path), '..', 0, 0, -1);
         }
 
         return $collection;
+    }
+    
+    protected function getPermissions(array $entry): int
+    {
+        $adapter = $this->storage->getAdapter();
+        $path = $entry['path'];
+        
+        switch (get_class($adapter)) {
+            case 'League\Flysystem\Adapter\Local':
+                $path = $adapter->applyPathPrefix($path); // get the full path
+                $permissions = substr(sprintf('%o', fileperms($path)), -3);
+                return $permissions;
+                break;
+            case 'League\Flysystem\Sftp\SftpAdapter':
+                $stat = $adapter->getConnection()->stat($path);
+                return $stat && isset($stat['permissions']) ? substr(decoct($stat['permissions']), -3) : -1;
+                break;
+            case 'Filegator\Services\Storage\Adapters\FilegatorFtp':
+                return isset($entry['permissions']) ? $entry['permissions'] : -1;
+                break;
+        }
+        return -1;
     }
 
     protected function upcountCallback($matches)
