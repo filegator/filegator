@@ -17,6 +17,23 @@ npm install
 npm run build
 ```
 
+## Project setup for development (Docker compose version)
+
+You must have `git`, `docker` and `docker-compose-plugin` installed.
+
+```
+git clone https://github.com/filegator/filegator.git
+cd filegator
+cp configuration_sample.php configuration.php
+chmod -R 775 private/
+chmod -R 775 repository/
+npm run dc:up
+```
+
+If you need a shell inside (for composer for example) always make sure you run under the `app` user. `npm run dc -- exec filegator su app`
+
+Ftp and sftp images for testing are also available in `docker-compose-dev.yml` file.
+
 ## Compiles and hot-reloads
 
 The following command will launch backend and frontend on ports 8081 and 8080:
