@@ -24,7 +24,7 @@ class User implements \JsonSerializable
 
     protected $available_roles = ['guest', 'user', 'admin'];
 
-    protected $available_permissions = ['read', 'write', 'upload', 'download', 'batchdownload', 'zip'];
+    protected $available_permissions = ['read', 'write', 'upload', 'download', 'batchdownload', 'zip', 'chmod'];
 
     public function __construct()
     {

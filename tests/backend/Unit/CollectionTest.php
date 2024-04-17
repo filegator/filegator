@@ -89,17 +89,17 @@ class CollectionTest extends TestCase
     {
         $dir = new DirectoryCollection('/sub1/sub2');
 
-        $dir->addFile('back', '/sub1', '..', 0, 1558942228);
-        $dir->addFile('file', '/sub1/sub2/test.txt', 'test.txt', 30000, 1558942228);
-        $dir->addFile('file', '/sub1/sub2/test2.txt', 'test.txt', 30000, 1558942228);
-        $dir->addFile('dir', '/sub1/sub2/sub3', 'sub3', 0, 1558942228);
+        $dir->addFile('back', '/sub1', '..', 0, 1558942228, 644);
+        $dir->addFile('file', '/sub1/sub2/test.txt', 'test.txt', 30000, 1558942228, 644);
+        $dir->addFile('file', '/sub1/sub2/test2.txt', 'test.txt', 30000, 1558942228, 644);
+        $dir->addFile('dir', '/sub1/sub2/sub3', 'sub3', 0, 1558942228, 644);
 
         $json = json_encode($dir);
 
-        $this->assertEquals('{"location":"\/sub1\/sub2","files":[{"type":"back","path":"\/sub1","name":"..","size":0,"time":1558942228},{"type":"dir","path":"\/sub1\/sub2\/sub3","name":"sub3","size":0,"time":1558942228},{"type":"file","path":"\/sub1\/sub2\/test.txt","name":"test.txt","size":30000,"time":1558942228},{"type":"file","path":"\/sub1\/sub2\/test2.txt","name":"test.txt","size":30000,"time":1558942228}]}', $json);
+        $this->assertEquals('{"location":"\/sub1\/sub2","files":[{"type":"back","path":"\/sub1","name":"..","size":0,"time":1558942228,"permissions":644},{"type":"dir","path":"\/sub1\/sub2\/sub3","name":"sub3","size":0,"time":1558942228,"permissions":644},{"type":"file","path":"\/sub1\/sub2\/test.txt","name":"test.txt","size":30000,"time":1558942228,"permissions":644},{"type":"file","path":"\/sub1\/sub2\/test2.txt","name":"test.txt","size":30000,"time":1558942228,"permissions":644}]}', $json);
 
         $this->expectException(Exception::class);
-        $dir->addFile('badType', 'aaa', 'aa', 0, 1558942228);
+        $dir->addFile('badType', 'aaa', 'aa', 0, 1558942228, 644);
     }
 
     public function testUserCollection()
