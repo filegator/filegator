@@ -3,7 +3,7 @@
 ## Upcoming...
 
 ## 7.10.0 - 2024-04-17
-* Added chmod perm, modal to change, api with local/ftp/sftp (see #388, thanks AndreiTelteu)
+* Added chmod perm, modal to change, api with local/ftp/sftp (see #399, thanks AndreiTelteu)
 
 ## 7.9.3 - 2023-10-13
 * Removed is_writable check for ../repository folder, fixes (see #423)
