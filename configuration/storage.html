@@ -154,7 +154,7 @@ Requiring additional libraries with <a href="https://getcomposer.org/download/">
                 'separator' =&gt; '/',
                 'config' =&gt; [],
                 'adapter' =&gt; function () {
-                  return new \League\Flysystem\Adapter\Ftp([
+                  return new \Filegator\Services\Storage\Adapters\FilegatorFtp([
                       'host' =&gt; 'example.com',
                       'username' =&gt; 'demo',
                       'password' =&gt; 'password',
