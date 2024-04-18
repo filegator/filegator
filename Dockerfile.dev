@@ -1,0 +1,19 @@
+FROM php:7-buster
+
+RUN apt-get update > /dev/null
+RUN apt-get install -y nodejs npm libzip-dev libgtk2.0-0 libgtk-3-0 libgbm-dev libldap2-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+
+RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
+RUN docker-php-ext-install zip ldap
+RUN docker-php-ext-enable zip ldap
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR "/var/www/filegator/"
+
+COPY . .
+RUN composer install
+RUN npm i
+RUN cp -n configuration_sample.php configuration.php
+
+CMD ["nohup", "bash", "-c", "npm run serve"]

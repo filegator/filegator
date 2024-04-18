@@ -1,0 +1,12 @@
+services:
+  filegator:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080" # frontend port, see package.json
+      - "8081:8081" # backend port, see package.json and .env.local
+    volumes:
+      - ./frontend:/var/www/filegator/frontend
+      - ./backend:/var/www/filegator/backend
+      #- ./configuration.php:/var/www/filegator/frontend/configuration.php

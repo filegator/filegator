@@ -110,6 +110,19 @@ Precompiled build is created for non-developers. In this version, the frontend (
 
 [Download & install instructions](https://docs.filegator.io/install.html)
 
+## Project setup for development (Docker)
+
+```
+git clone https://github.com/filegator/filegator.git
+cd filegator
+docker compose -f docker-compose-dev.yml up
+```
+Once everything is ready visit: `http://localhost:8080`, Ctrl+c to stop.
+
+If you're tweaking dependencies then you must rebuild with:
+```
+docker compose -f docker-compose-dev.yml up --build
+```
 
 ## Project setup for development (Linux)
 
@@ -125,7 +138,6 @@ composer install --ignore-platform-reqs
 npm install
 npm run build
 ```
-
 
 ## Compiles and hot-reloads
 
