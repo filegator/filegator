@@ -88,7 +88,7 @@ This is read-only demo with guest account enabled
 
 ## Limitations
 - Symlinks are not supported by the underlying [Flysystem](https://flysystem.thephpleague.com/v1/docs/adapter/local/)
-- File permission operations are not supported (chmod/chown)
+- File ownership is not supported (chown)
 
 ## Docker
 Check out [the official docker image](https://hub.docker.com/r/filegator/filegator) with instructions on how to use it
