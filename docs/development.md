@@ -2,6 +2,20 @@
 currentMenu: development
 ---
 
+## Project setup for development (Docker)
+
+```
+git clone https://github.com/filegator/filegator.git
+cd filegator
+docker compose -f docker-compose-dev.yml up
+```
+Once everything is ready visit: [http://localhost:8080](http://localhost:8080) and login as admin/admin123, Ctrl+c to stop.
+
+If you're tweaking dependencies then you must rebuild with:
+```
+docker compose -f docker-compose-dev.yml up --build
+```
+
 ## Project setup for development (Linux)
 
 You must have `git`, `php`, `npm`, and `composer` installed.
