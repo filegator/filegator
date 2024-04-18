@@ -150,7 +150,7 @@ npm run build</code></pre>
 <pre><code>vendor/bin/phpunit
 vendor/bin/phpstan analyse ./backend
 npm run lint
-npm run e2e</code></pre>
+npm run test:e2e</code></pre>
 <h2 id="deployment">Deployment</h2>
 <p>Set the website document root to <code>filegator/dist</code> directory. This is also known as 'public' folder.</p>
 <p>NOTE: For security reasons <code>filegator/dist</code> is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser. If you run the script from the root folder, you will see the message <strong>'Development mode'</strong> as a security warning.</p>
