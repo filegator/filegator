@@ -7,6 +7,16 @@ services:
       - "8080:8080" # frontend port, see package.json
       - "8081:8081" # backend port, see package.json and .env.local
     volumes:
+      # mount code:
       - ./frontend:/var/www/filegator/frontend
       - ./backend:/var/www/filegator/backend
-      #- ./configuration.php:/var/www/filegator/frontend/configuration.php
+      # mount custom configuration (create configuration.php file first):
+      #- ./configuration.php:/var/www/filegator/configuration.php
+      # mount php dependencies locally:
+      #- ./vendor:/var/www/filegator/vendor
+      #- ./composer.json:/var/www/filegator/composer.json
+      #- ./composer.lock:/var/www/filegator/composer.lock
+      # mount node dependencies locally:
+      #- ./node_modules:/var/www/filegator/node_modules
+      #- ./package.json:/var/www/filegator/package.json
+      #- ./package-lock.json:/var/www/filegator/package-lock.json
