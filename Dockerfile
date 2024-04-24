@@ -1,7 +1,7 @@
 #################################
 # stage builder: build and test
 #################################
-FROM php:7-apache-buster AS builder
+FROM php:8.3-apache-bullseye AS builder
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 
@@ -30,7 +30,7 @@ RUN rm README.md couscous.yml repository/.gitignore babel.config.js cypress* .en
 #################################
 # stage production
 #################################
-FROM php:7-apache-buster
+FROM php:8.3-apache-bullseye
 
 RUN apt-get update > /dev/null
 RUN apt-get install -y git libzip-dev libldap2-dev
