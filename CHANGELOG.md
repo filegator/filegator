@@ -2,6 +2,10 @@
 
 ## Upcoming...
 
+## 7.10.1 - 2024-04-24
+* Update docker container from php7-apache-buster to php8.3-apache-bullseye
+* Dependency updates for PHP
+
 ## 7.10.0 - 2024-04-17
 * Added chmod perm, modal to change, api with local/ftp/sftp (see #399, thanks AndreiTelteu)
 
