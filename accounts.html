@@ -135,12 +135,12 @@
 <li>Batch Download (user can download multiple files and folders at once)</li>
 <li>Zip (user can zip and unzip files)</li>
 </ul>
-<p>Some permissions require others. For example, Batch Download requires Read permissions (so than user can list files and select them) as well as basic Download permissions.</p>
+<p>Some permissions require others. For example, Batch Download requires Read permissions (so that user can list files and select them) as well as basic Download permissions.</p>
 <h2 id="guest-account">Guest account</h2>
-<p>Guest account is predefined account and it is disabled by default since no permissions is assigned.</p>
+<p>Guest account is a predefined account and it is disabled by default since no permissions are assigned.</p>
 <p>Admin can enable Guest account which will allow everyone to interact with the repository based on the Guest account permissions.</p>
 <h2 id="resetting-admins-password">Resetting Admin's password</h2>
-<p>If you forgot your admin password you can follow these steps to reset it:</p>
+<p>If you forgot your admin password, follow these steps to reset it:</p>
 <ul>
 <li>Backup your current users file <code>private/users.json</code> to a safe place</li>
 <li>Copy blank template <code>private/users.json.blank</code> over <code>private/users.json</code> or simply refresh your browser</li>
@@ -149,7 +149,7 @@
 <li>Since you are now logged in as admin, simply go to users page and change your password</li>
 <li>Log out and try to login with the new password</li>
 </ul>
-<p>Note: If you're using database Auth adapter then simply run this query to set default password back to <code>admin123</code></p>
+<p>Note: If you're using database Auth adapter then simply run the SQL query below to set default password back to <code>admin123</code></p>
 <pre><code>UPDATE `users`
 SET `password` = '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq'
 WHERE `username` = 'admin';</code></pre>
