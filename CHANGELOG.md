@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.11.0 - 2024-10-28
 * Improved LDAP adapter, thanks @ahaenggli
 * Fix file permissions, thanks @yahesh
 
