@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming...
+* Improved LDAP adapter, thanks @ahaenggli
+* Fix file permissions, thanks @yahesh
 
 ## 7.10.1 - 2024-04-24
 * Update docker container from php7-apache-buster to php8.3-apache-bullseye
