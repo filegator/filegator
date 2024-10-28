@@ -32,8 +32,8 @@ class MonoLogger implements Service, LoggerInterface
         $handler->registerFatalHandler();
     }
 
-    public function log(string $message, int $level = Logger::INFO)
+    public function log(string $message, int $level = Logger::INFO, array $context = [])
     {
-        $this->logger->log($level, $message);
+        $this->logger->log($level, $message, $context);
     }
 }
