@@ -81,7 +81,7 @@ export default {
   },
   methods: {
     remove(user) {
-      this.$dialog.confirm({
+      this.$buefy.dialog.confirm({
         message: this.lang('Are you sure you want to do this?'),
         type: 'is-danger',
         cancelText: this.lang('Cancel'),
@@ -92,7 +92,7 @@ export default {
           })
             .then(() => {
               this.users = _.reject(this.users, u => u.username == user.username)
-              this.$toast.open({
+              this.$buefy.toast.open({
                 message: this.lang('Deleted'),
                 type: 'is-success',
               })
