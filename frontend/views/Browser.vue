@@ -322,7 +322,7 @@ export default {
       this.$refs['ref-single-action-button-'+row.path].click()
     },
     selectDir() {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
@@ -334,7 +334,7 @@ export default {
       })
     },
     copy(event, item) {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
@@ -359,7 +359,7 @@ export default {
       })
     },
     move(event, item) {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
@@ -409,7 +409,7 @@ export default {
       window.open(this.getDownloadLink(item.path), '_blank')
     },
     search() {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Search,
@@ -428,7 +428,7 @@ export default {
       if (this.isText(item.path)) {
         modal = Editor
       }
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         props: { item: item },
         hasModalCard: true,
@@ -496,7 +496,7 @@ export default {
       })
     },
     chmod(event, item) {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Permissions,

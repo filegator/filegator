@@ -106,7 +106,7 @@ export default {
       return _.join(array, ', ')
     },
     addUser() {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         props: { user: { role: 'user'}, action: 'add' },
         hasModalCard: true,
@@ -123,7 +123,7 @@ export default {
         this.handleError('Missing username')
         return
       }
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         props: { user: user, action: 'edit' },
         hasModalCard: true,
