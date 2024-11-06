@@ -150,7 +150,7 @@ export default {
     selectDir() {
       this.formErrors.homedir = ''
 
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
