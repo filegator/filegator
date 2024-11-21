@@ -116,7 +116,7 @@ See `docker-compose-dev.yml` for more informations about configurations and depe
 
 ## Project setup for development (Linux)
 
-You must have `git`, `php`, `npm`, and `composer` installed.
+You must have `git`, `php`, `node (v14)`, `npm`, and `composer` installed.
 
 ```
 git clone https://github.com/filegator/filegator.git

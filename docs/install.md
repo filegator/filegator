@@ -11,6 +11,7 @@ visit: http://127.0.0.1:8080 login as admin/admin123
 
 ## Minimum Requirements
 - PHP 7.2.5+ (with php-zip extension)
+- Node v12 or v14
 
 ## Download precompiled build
 Precompiled build is created for non-developers. In this version, the frontend (html, css and javascript) is compiled for you and the source code is removed so the final archive contains only minimum files.
