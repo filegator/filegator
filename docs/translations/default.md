@@ -37,6 +37,7 @@ Available languages:
 - ```portuguese_br``` (brazilian portuguese pt-BR)
 - ```persian```
 - ```estonian```
+- ```ukrainian```
 
 Please help us translating FileGator to your language by submitting a Pull Request on GitHub.
 

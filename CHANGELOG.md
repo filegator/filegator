@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.11.1 - 2024-11-27
+* Ukrainian translations added, thanks @jekasumy @jaapmarcus
+
 ## 7.11.0 - 2024-10-28
 * Improved LDAP adapter, thanks @ahaenggli
 * Fix file permissions, thanks @yahesh

@@ -28,7 +28,6 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 - Zip and bulk download support
 - Highly extensible, decoupled and tested code
 - No database required
-- Framework free [™](https://www.youtube.com/watch?v=L5jI9I03q8E)
 
 ## Demo
 [https://demo.filegator.io](https://demo.filegator.io)
