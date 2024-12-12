@@ -1,5 +1,6 @@
 services:
   filegator:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile.dev
