@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming...
+* Dependency updates (see #506)
 
 ## 7.11.1 - 2024-11-27
 * Ukrainian translations added, thanks @jekasumy @jaapmarcus
