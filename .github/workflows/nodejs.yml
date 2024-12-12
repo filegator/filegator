@@ -21,7 +21,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Cypress dependencies
-      run: sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+      run: sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libnotify-dev libnss3 libxss1 libxtst6 xauth xvfb
 
     - name: npm install, build, and test
       run: |
