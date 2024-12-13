@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: Dockerfile
+          file: Dockerfile.multiarch
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8,linux/386
           push: true
-          tags: filegator/filegator:multitest
+          tags: filegator/filegator:latest-multiarch, filegator/filegator:${{ github.ref_name }}-multiarch
