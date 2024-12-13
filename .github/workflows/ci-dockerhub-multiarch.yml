@@ -4,11 +4,15 @@
 # docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386 --tag xxx/xxx:latest .
 name: ci-dockerhub-multiarch
 
-on: [push, pull_request]
+on:
+  workflow_run:
+    workflows: ["ci-static2"]
+    types: [completed]
 
 jobs:
-  docker:
+  on-success:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       -
         name: Checkout
