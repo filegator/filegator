@@ -31,6 +31,6 @@ jobs:
         with:
           context: .
           file: Dockerfile.multiarch
-          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+          platforms: linux/arm/v7
           push: true
           tags: filegator/filegator:latest-multiarch, filegator/filegator:${{ github.ref_name }}-multiarch
