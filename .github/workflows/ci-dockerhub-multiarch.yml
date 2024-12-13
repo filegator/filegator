@@ -5,14 +5,13 @@
 name: ci-dockerhub-multiarch
 
 on:
-  workflow_run:
-    workflows: ["ci-static2"]
-    types: [completed]
+  push:
+    tags:
+      - v*
 
 jobs:
-  on-success:
+  docker:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       -
         name: Checkout
