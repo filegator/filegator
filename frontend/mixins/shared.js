@@ -118,14 +118,14 @@ const funcs = {
         .then((user) => {
           if (user.username !== store.state.user.username) {
             this.$store.commit('destroyUser', user)
-            this.$toast.open({
+            this.$buefy.toast.open({
               message: this.lang('Please log in'),
               type: 'is-danger',
             })
           }
         })
         .catch(() => {
-          this.$toast.open({
+          this.$buefy.toast.open({
             message: this.lang('Please log in'),
             type: 'is-danger',
           })
@@ -135,14 +135,14 @@ const funcs = {
       this.checkUser()
 
       if (typeof error == 'string') {
-        this.$toast.open({
+        this.$buefy.toast.open({
           message: this.lang(error),
           type: 'is-danger',
           duration: 5000,
         })
         return
       } else if (error && error.response && error.response.data && error.response.data.data) {
-        this.$toast.open({
+        this.$buefy.toast.open({
           message: this.lang(error.response.data.data),
           type: 'is-danger',
           duration: 5000,
@@ -150,7 +150,7 @@ const funcs = {
         return
       }
 
-      this.$toast.open({
+      this.$buefy.toast.open({
         message: this.lang('Unknown error'),
         type: 'is-danger',
         duration: 5000,
