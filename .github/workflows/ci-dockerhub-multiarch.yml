@@ -4,7 +4,10 @@
 # docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386 --tag xxx/xxx:latest .
 name: ci-dockerhub-multiarch
 
-on: [push, pull_request]
+on:
+  workflow_run:
+    workflows: ['ci-static-test']
+    types: [completed]
 
 jobs:
   docker:
