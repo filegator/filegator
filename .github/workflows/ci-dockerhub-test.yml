@@ -4,6 +4,8 @@
 # docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386 --tag xxx/xxx:latest .
 name: ci-dockerhub
 
+on: [push, pull_request]
+
 jobs:
   docker:
     runs-on: ubuntu-latest
