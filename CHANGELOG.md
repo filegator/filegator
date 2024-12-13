@@ -4,6 +4,7 @@
 * Dependency updates (see #506)
 * Min PHP version set to 8.1
 * Added support for NodeJS up to v22
+* Dark theme added using prefers-color-scheme (see #499)
 
 ## 7.11.1 - 2024-11-27
 * Ukrainian translations added, thanks @jekasumy @jaapmarcus
