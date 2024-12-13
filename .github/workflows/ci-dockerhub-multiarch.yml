@@ -8,6 +8,7 @@ on:
   workflow_run:
     workflows: ['ci-static-test']
     types: [completed]
+    branches: [multiarch-ci-test]
 
 jobs:
   docker:
