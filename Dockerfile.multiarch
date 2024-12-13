@@ -1,9 +1,9 @@
 ################################################
-# simpler build, no ldap, sftp, s3...
+# simpler build from static files, no ldap, sftp, s3...
 # build and deploy to docker hub with:
 # docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386 --tag filegator/filegator:vX.X.X-multiarch - < Dockerfile.multiarch
 ################################################
-FROM php:7-apache-buster
+FROM php:8.3-apache-bullseye
 
 RUN apt-get update > /dev/null
 RUN apt-get install -y git libzip-dev wget unzip
