@@ -4,11 +4,7 @@
 # docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64,linux/386 --tag xxx/xxx:latest .
 name: ci-dockerhub-multiarch
 
-on:
-  workflow_run:
-    workflows: ['ci-static-test']
-    types: [completed]
-    branches: [multiarch-ci-test]
+on: [push, pull_request]
 
 jobs:
   docker:
@@ -35,6 +31,6 @@ jobs:
         with:
           context: .
           file: Dockerfile.multiarch
-          platforms: linux/arm/v7
+          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8,linux/386
           push: true
           tags: filegator/filegator:latest-multiarch, filegator/filegator:${{ github.ref_name }}-multiarch
