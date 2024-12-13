@@ -39,7 +39,7 @@
 
 ###### standard build ######
 #################################
-# stage builder: build and test
+# stage builder: build and test (no ldap for multiarch)
 #################################
 FROM php:8.3-apache-bullseye AS builder
 
@@ -73,11 +73,10 @@ RUN rm README.md couscous.yml repository/.gitignore babel.config.js cypress* .en
 FROM php:8.3-apache-bullseye
 
 RUN apt-get update > /dev/null
-RUN apt-get install -y git libzip-dev libldap2-dev
+RUN apt-get install -y git libzip-dev
 
-RUN docker-php-ext-configure ldap --with-libdir=lib/arm/
-RUN docker-php-ext-install zip ldap
-RUN docker-php-ext-enable zip ldap
+RUN docker-php-ext-install zip
+RUN docker-php-ext-enable zip
 
 COPY --from=builder /var/www/filegator /var/www/filegator
 RUN chown -R www-data:www-data /var/www/filegator/
