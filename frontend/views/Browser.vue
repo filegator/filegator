@@ -100,6 +100,10 @@
               </a>
             </b-table-column>
 
+            <b-table-column :label="lang('Permissions')" field="data.permissions" sortable width="150">
+              {{ props.row.permissions !== -1 ? props.row.permissions + ' [' + convertToSymbolic(props.row.permissions, props.row.type) + ']' : lang('N/A') }}
+            </b-table-column>
+
             <b-table-column :label="lang('Size')" :custom-sort="sortBySize" field="data.size" sortable numeric width="150">
               {{ props.row.type == 'back' || props.row.type == 'dir' ? lang('Folder') : formatBytes(props.row.size) }}
             </b-table-column>
@@ -250,6 +254,15 @@ export default {
       this.showAllEntries = !this.showAllEntries
       this.loadFiles()
       this.checked = []
+    },
+    convertToSymbolic(permissions, type) {
+      if (permissions === -1) return ''
+        const symbols = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx']
+        const owner = symbols[Math.floor(permissions / 100) % 10]
+        const group = symbols[Math.floor(permissions / 10) % 10]
+        const others = symbols[permissions % 10]
+        const prefix = type === 'dir' ? 'd' : '-'
+      return `${prefix}${owner}${group}${others}`
     },
     filterEntries(files){
       var filter_entries = this.$store.state.config.filter_entries
