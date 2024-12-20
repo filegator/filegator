@@ -100,7 +100,7 @@
               </a>
             </b-table-column>
 
-            <b-table-column :label="lang('Permissions')" field="data.permissions" sortable width="150">
+            <b-table-column v-if="can(['write', 'chmod'])" :label="lang('Permissions')" field="data.permissions" sortable width="150">
               {{ props.row.permissions !== -1 ? props.row.permissions + ' [' + convertToSymbolic(props.row.permissions, props.row.type) + ']' : lang('N/A') }}
             </b-table-column>
 
