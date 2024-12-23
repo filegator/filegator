@@ -100,8 +100,10 @@
               </a>
             </b-table-column>
 
-            <b-table-column v-if="can(['write', 'chmod'])" :label="lang('Permissions')" field="data.permissions" sortable width="150">
-              {{ props.row.permissions !== -1 ? props.row.permissions + ' [' + convertToSymbolic(props.row.permissions, props.row.type) + ']' : lang('N/A') }}
+            <b-table-column v-if="can(['write', 'chmod'])" :label="lang('Permissions')" field="data.permissions" sortable width="170">
+            <span @click="togglePermissionsView" :title="showSymbolic ? lang('Hide symbolic format') : lang('Show symbolic format')" style="font-family: monospace;cursor: pointer;">
+              {{ formatPermissions(props.row.permissions, props.row.type) }}
+            </span>
             </b-table-column>
 
             <b-table-column :label="lang('Size')" :custom-sort="sortBySize" field="data.size" sortable numeric width="150">
@@ -197,6 +199,7 @@ export default {
       files: [],
       hasFilteredEntries: false,
       showAllEntries: false,
+      showSymbolic: false,
     }
   },
   computed: {
@@ -255,6 +258,18 @@ export default {
       this.loadFiles()
       this.checked = []
     },
+    togglePermissionsView() {
+    this.showSymbolic = !this.showSymbolic
+  },
+  formatPermissions(permissions, type) {
+    if (permissions === -1) return this.lang('N/A')
+    const numeric = permissions.toString()
+    if (this.showSymbolic) {
+      const symbolic = this.convertToSymbolic(permissions, type)
+      return `${numeric} [${symbolic}]`
+    }
+    return numeric
+  },
     convertToSymbolic(permissions, type) {
       if (permissions === -1) return ''
         const symbols = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx']
