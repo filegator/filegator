@@ -75,6 +75,8 @@ const data = {
   'Download permission': '下载',
   'Guest': '游客',
   'Show hidden': '显示隐藏',
+  'Show symbolic format': '显示符号格式',
+  'Hide symbolic format': '隐藏符号格式',
 }
 
 export default data

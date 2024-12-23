@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'Letöltés engedélyezés',
   'Guest': 'Vendég',
   'Show hidden': 'Rejtett megjelenítése',
+  'Show symbolic format': 'Szimbólum formátum megjelenítése',
+  'Hide symbolic format': 'Szimbólum formátum elrejtése',
 }
 
 export default data

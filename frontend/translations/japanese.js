@@ -71,6 +71,8 @@ const data = {
   'Deleted': '削除しました。',
   'Your file is ready': 'ファイルの準備ができました。',
   'View': '表示',
+  'Show symbolic format': 'シンボリック形式を表示',
+  'Hide symbolic format': 'シンボリック形式を非表示',
 }
 
 export default data

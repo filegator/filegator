@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'Descărcare',
   'Guest': 'Oaspete',
   'Show hidden': 'Arată ascunse',
+  'Show symbolic format': 'Afișează formatul simbolic',
+  'Hide symbolic format': 'Ascunde formatul simbolic',
 }
 
 export default data

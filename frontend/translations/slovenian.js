@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'Prenos',
   'Guest': 'Gost',
   'Show hidden': 'Prikaži skrito',
+  'Show symbolic format': 'Prikaži simbolični format',
+  'Hide symbolic format': 'Skrij simbolični format',
 }
 
 export default data

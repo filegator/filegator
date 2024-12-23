@@ -74,7 +74,9 @@ const data = {
   'Search': 'Pesquisar',
   'Download permission': 'Transferir',
   'Guest': 'Convidado',
-  'Show hidden': 'Mostrar ocultos'
+  'Show hidden': 'Mostrar ocultos',
+  'Show symbolic format': 'Mostrar formato simbólico',
+  'Hide symbolic format': 'Ocultar formato simbólico',
 }
 
 export default data

@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'دانلود',
   'Guest': 'مهمان',
   'Show hidden': 'نمایش مخفی ها',
+  'Show symbolic format': 'نمایش قالب نمادین',
+  'Hide symbolic format': 'پنهان کردن قالب نمادین',
 }
 
 export default data

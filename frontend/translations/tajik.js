@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'Зеркашии иҷозатҳо',
   'Guest': 'Меҳмон',
   'Show hidden': 'Пинҳонро нишон додан',
+  'Show symbolic format': 'Намоиши формати рамзӣ',
+  'Hide symbolic format': 'Пинҳон кардани формати рамзӣ',
 }
 
 export default data

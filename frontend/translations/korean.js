@@ -75,6 +75,8 @@ const data = {
   'Download permission': '다운로드',
   'Guest': '방문자',
   'Show hidden': '숨김 표시',
+  'Show symbolic format': '기호 형식 표시',
+  'Hide symbolic format': '기호 형식 숨기기',
 }
 
 export default data
