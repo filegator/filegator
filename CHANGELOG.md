@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming...
+* Added a column to display chmod permissions (see #522)
 
 ## 7.12.0 - 2024-12-13
 * Dependency updates (see #506)

@@ -100,7 +100,7 @@
               </a>
             </b-table-column>
 
-            <b-table-column v-if="can(['write', 'chmod'])" :label="lang('Permissions')" field="data.permissions" sortable width="170">
+            <b-table-column v-if="can(['write', 'chmod'])" :label="lang('Permissions')" field="data.permissions" sortable width="130">
             <span @click="togglePermissionsView" :title="showSymbolic ? lang('Hide symbolic format') : lang('Show symbolic format')" style="font-family: monospace;cursor: pointer;">
               {{ formatPermissions(props.row.permissions, props.row.type) }}
             </span>
@@ -262,11 +262,11 @@ export default {
     this.showSymbolic = !this.showSymbolic
   },
   formatPermissions(permissions, type) {
-    if (permissions === -1) return this.lang('N/A')
+    if (permissions === -1) return
     const numeric = permissions.toString()
     if (this.showSymbolic) {
       const symbolic = this.convertToSymbolic(permissions, type)
-      return `${numeric} [${symbolic}]`
+      return `[${symbolic}]`
     }
     return numeric
   },
