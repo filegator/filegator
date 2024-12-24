@@ -72,6 +72,8 @@ const data = {
   'Your file is ready': 'O teu arquivo está listo',
   'View': 'Ver',
   'Show hidden': 'Amosar oculto',
+  'Show symbolic format': 'Mostrar formato simbólico',
+  'Hide symbolic format': 'Ocultar formato simbólico',
 }
 
 export default data

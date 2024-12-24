@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'İndir',
   'Guest': 'Misafir',
   'Show hidden': 'Gizlenenleri göster',
+  'Show symbolic format': 'Sembolik biçimi göster',
+  'Hide symbolic format': 'Sembolik biçimi gizle',
 }
 
 export default data

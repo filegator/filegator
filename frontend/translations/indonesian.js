@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'Unduh',
   'Guest': 'Tamu',
   'Show hidden': 'Tampilkan berkas tersembunyi',
+  'Show symbolic format': 'Tampilkan format simbolik',
+  'Hide symbolic format': 'Sembunyikan format simbolik',
 }
 
 export default data

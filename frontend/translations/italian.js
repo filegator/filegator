@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'Scarica',
   'Guest': 'Guest',
   'Show hidden': 'Mostra nascosto',
+  'Show symbolic format': 'Mostra formato simbolico',
+  'Hide symbolic format': 'Nascondi formato simbolico',
 }
 
 export default data

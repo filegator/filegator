@@ -75,6 +75,8 @@ const data = {
   'Download permission': 'Lae alla',
   'Guest': 'Külaline',
   'Show hidden': 'Kuva peidetud',
+  'Show symbolic format': 'Kuva sümboolne formaat',
+  'Hide symbolic format': 'Peida sümboolne formaat',
 }
 
 export default data
