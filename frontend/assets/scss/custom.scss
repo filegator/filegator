@@ -1,0 +1,43 @@
+html, body, #wrapper, #inner, .container {
+	height: 100%;
+}
+
+.container {
+	margin: 0 auto;
+}
+
+.is-justify-between {
+	justify-content: space-between;
+}
+
+.is-justify-start {
+	justify-content: flex-start;
+}
+
+.is-justify-end {
+	justify-content: flex-end;
+}
+
+.upload-draggable {
+	display: flex!important;
+	flex-direction: column;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.upload input[type=file] {
+	z-index: -10;
+}
+
+.modal-card-foot {
+	justify-content: flex-end;
+}
+
+@media all and (max-width: 1088px) {
+	.container {
+		padding: 20px;
+	}
+}
