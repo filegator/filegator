@@ -58,7 +58,11 @@
 	.input:hover {
 		border-color: var(--color-primary-a20);
 	}
-
+	
+	.input::placeholder {
+	    	color: var(--color-surface-a50);
+	}
+	
 	.table td, .table th {
 		border-bottom: 1px solid var(--color-surface-a0);
 	}
