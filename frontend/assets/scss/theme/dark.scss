@@ -115,9 +115,10 @@
 		color: var(--color-text);
 	}
 
-	a:hover {
-		color: var(--color-primary-a20);
-	}
+        a:hover,
+        .breadcrumb a:hover {
+                color: var(--color-primary-a20);
+        }
 
 	#bottom-info {
 		color: var(--color-surface-a50);
