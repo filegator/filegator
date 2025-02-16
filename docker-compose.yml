@@ -1,14 +1,51 @@
-version: '2'
+version: '3'
+
 services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/acme.json:/acme.json
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.email=admin@sovereigntitleok.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # Redirect HTTP to HTTPS
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+    networks:
+      - traefik-public
+
   filegator:
     build: .
     image: filegator:latest
     restart: always
-    ports:
-      - "8081:8080"
+    expose:
+      - "8080"
     volumes:
       - repository:/var/www/filegator/repository
       - private:/var/www/filegator/private
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.filegator.rule=Host(`cloud.sovereigntitleok.com`)"
+      - "traefik.http.routers.filegator.entrypoints=websecure"
+      - "traefik.http.routers.filegator.tls.certresolver=myresolver"
+      - "traefik.http.services.filegator.loadbalancer.server.port=8080"
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: false
 
 volumes:
   repository:
