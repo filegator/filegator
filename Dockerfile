@@ -53,6 +53,15 @@ RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/ports.conf
 RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
+# Configure PHP for large file uploads
+RUN { \
+    echo 'upload_max_filesize = 1024G'; \
+    echo 'post_max_size = 1024G'; \
+    echo 'memory_limit = 4G'; \
+    echo 'max_execution_time = 3600'; \
+    echo 'max_input_time = 3600'; \
+} > /usr/local/etc/php/conf.d/uploads.ini
+
 EXPOSE ${APACHE_PORT}
 
 VOLUME /var/www/filegator/repository
