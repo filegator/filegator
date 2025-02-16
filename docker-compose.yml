@@ -5,7 +5,7 @@ services:
     image: filegator:latest
     restart: always
     ports:
-      - "8081:8081"
+      - "8081:8080"
     volumes:
       - repository:/var/www/filegator/repository
       - private:/var/www/filegator/private
