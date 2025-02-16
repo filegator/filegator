@@ -46,11 +46,9 @@ RUN chmod -R g+w private/
 RUN chmod -R g+w repository/
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/dist/
-ENV APACHE_PORT=8080
+ENV APACHE_PORT=80
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/docker-php.conf
-RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/ports.conf
-RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
 # Configure PHP for large file uploads

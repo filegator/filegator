@@ -29,8 +29,6 @@ services:
     build: .
     image: filegator:latest
     restart: always
-    expose:
-      - "8080"
     volumes:
       - repository:/var/www/filegator/repository
       - private:/var/www/filegator/private
@@ -39,7 +37,7 @@ services:
       - "traefik.http.routers.filegator.rule=Host(`cloud.sovereigntitleok.com`)"
       - "traefik.http.routers.filegator.entrypoints=websecure"
       - "traefik.http.routers.filegator.tls.certresolver=myresolver"
-      - "traefik.http.services.filegator.loadbalancer.server.port=8080"
+      - "traefik.http.services.filegator.loadbalancer.server.port=80"
     networks:
       - traefik-public
 
