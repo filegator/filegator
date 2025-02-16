@@ -1,5 +1,9 @@
 version: '3'
 
+networks:
+  web:
+    external: false
+
 services:
   traefik:
     image: traefik:v2.10
@@ -12,8 +16,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/acme.json:/acme.json
     command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=web"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.email=admin@sovereigntitleok.com"
@@ -23,28 +30,39 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
     networks:
-      - traefik-public
+      - web
 
   filegator:
     build: .
     image: filegator:latest
     restart: always
     volumes:
-      - repository:/var/www/filegator/repository
-      - private:/var/www/filegator/private
+      - filegator_repository:/var/www/filegator/repository
+      - filegator_private:/var/www/filegator/private
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=web"
       - "traefik.http.routers.filegator.rule=Host(`cloud.sovereigntitleok.com`)"
       - "traefik.http.routers.filegator.entrypoints=websecure"
       - "traefik.http.routers.filegator.tls.certresolver=myresolver"
       - "traefik.http.services.filegator.loadbalancer.server.port=80"
     networks:
-      - traefik-public
-
-networks:
-  traefik-public:
-    external: false
+      - web
 
 volumes:
-  repository:
-  private:
+  # External volumes are not managed by docker-compose
+  # This prevents accidental data loss when using 'docker-compose down -v'
+  filegator_repository:
+    external: true
+  filegator_private:
+    external: true
