@@ -8,8 +8,8 @@
 
     <Upload v-if="can('upload')" v-show="dropZone == false" :files="files" :drop-zone="dropZone" />
 
-    <b-upload v-if="dropZone && ! isLoading" multiple drag-drop>
-      <b class="drop-info">{{ lang('Drop files to upload') }}</b>
+    <b-upload v-if="dropZone && ! isLoading" multiple directory webkitdirectory drag-drop>
+      <b class="drop-info">{{ lang('Drop files or folders to upload') }}</b>
     </b-upload>
 
     <div v-if="!dropZone" class="container">
@@ -37,7 +37,7 @@
         <section id="multi-actions" class="is-flex is-justify-between">
           <div>
             <b-field v-if="can('upload') && ! checked.length" class="file is-inline-block">
-              <b-upload multiple native @input="files = $event">
+              <b-upload multiple directory webkitdirectory native @input="files = $event">
                 <a v-if="! checked.length" class="is-inline-block">
                   <b-icon icon="upload" size="is-small" /> {{ lang('Add files') }}
                 </a>
