@@ -23,6 +23,7 @@ return [
         'guest_redirection' => '', // useful for external auth adapters
         'search_simultaneous' => 5,
         'filter_entries' => [],
+        'pagination' => ['', 5, 10, 15],
     ],
 
     'services' => [
