@@ -36,6 +36,11 @@ html, body, #wrapper, #inner, .container {
 	justify-content: flex-end;
 }
 
+.image-lazy {
+	min-height: 200px;
+	object-fit: cover;
+}
+
 @media all and (max-width: 1088px) {
 	.container {
 		padding: 20px;
