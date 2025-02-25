@@ -3,6 +3,7 @@
 ## Upcoming...
 * Added a column to display chmod permissions (see #522)
 * Extract app theme SCSS to external files (see #524)
+* Configurable pagination (see #533)
 
 ## 7.12.0 - 2024-12-13
 * Dependency updates (see #506)
