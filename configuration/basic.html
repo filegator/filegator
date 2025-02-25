@@ -141,6 +141,10 @@
         // neither of above =&gt; it is a file and could be in every folder, example: '.htaccess'
         // both of above =&gt; full folder path has to match, example: '/homes/web/filegator/.npm/'
         'filter_entries' =&gt; ['Recycle.bin/', 'File System Information/', '.DS_Store', '@eaDir/', '#recycle/'],
+
+        // Use '' for the unlimited pagination and integers for the items per page. The first item is used as the
+        // default pagination and the choices are ordered by the order in the array.
+        'pagination' =&gt; ['', 5, 10, 15],
     ],</code></pre>
 <h2 id="additional-html">Additional HTML</h2>
 <p>You can add additional html to the head and body like this:</p>
