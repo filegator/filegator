@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.13.0 - 2024-02-25
 * Added a column to display chmod permissions (see #522)
 * Extract app theme SCSS to external files (see #524)
 * Configurable pagination (see #533)
