@@ -31,6 +31,10 @@ Note: if you've made a mistake in configuration file (forgot to close a quote?) 
         // neither of above => it is a file and could be in every folder, example: '.htaccess'
         // both of above => full folder path has to match, example: '/homes/web/filegator/.npm/'
         'filter_entries' => ['Recycle.bin/', 'File System Information/', '.DS_Store', '@eaDir/', '#recycle/'],
+
+        // Use '' for the unlimited pagination and integers for the items per page. The first item is used as the
+        // default pagination and the choices are ordered by the order in the array.
+        'pagination' => ['', 5, 10, 15],
     ],
 ```
 

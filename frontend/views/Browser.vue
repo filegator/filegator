@@ -191,7 +191,7 @@ export default {
   data() {
     return {
       dropZone: false,
-      perPage: '',
+      perPage: this.$store.state.config.pagination[0],
       currentPage: 1,
       checked: [],
       isLoading: false,

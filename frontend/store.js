@@ -8,7 +8,9 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     initialized: false,
-    config: [],
+    config: {
+      pagination: ['', 5, 10, 15],
+    },
     user: {
       role: 'guest',
       permissions: [],
@@ -50,7 +52,7 @@ export default new Vuex.Store({
       }
     },
     setConfig(state, data) {
-      state.config = data
+      state.config = {...state.config, ...data}
     },
     setUser(state, data) {
       state.user = data

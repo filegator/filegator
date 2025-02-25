@@ -65,7 +65,7 @@ export default {
   components: { Menu, Pagination },
   data() {
     return {
-      perPage: '',
+      perPage: this.$store.state.config.pagination[0],
       currentPage: 1,
       isLoading: false,
       defaultSort: ['name', 'desc'],
