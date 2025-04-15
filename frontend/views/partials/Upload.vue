@@ -93,7 +93,7 @@ export default {
       chunkSize: this.$store.state.config.upload_chunk_size,
       maxFileSize: this.$store.state.config.upload_max_size,
       maxFileSizeErrorCallback: (file) => {
-        this.$notification.open({
+        this.$buefy.notification.open({
           message: this.lang('File size error', file.name, this.formatBytes(this.$store.state.config.upload_max_size)),
           type: 'is-danger',
           queue: false,
@@ -103,7 +103,7 @@ export default {
     })
 
     if (!this.resumable.support) {
-      this.$dialog.alert({
+      this.$buefy.dialog.alert({
         type: 'is-danger',
         message: this.lang('Browser not supported.'),
       })
@@ -148,7 +148,7 @@ export default {
   methods: {
     closeWindow() {
       if (this.activeUploads) {
-        this.$dialog.confirm({
+        this.$buefy.dialog.confirm({
           message: this.lang('Are you sure you want to stop all uploads?'),
           type: 'is-danger',
           cancelText: this.lang('Cancel'),
