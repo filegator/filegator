@@ -16,9 +16,11 @@ use Filegator\Kernel\Response;
 use Filegator\Kernel\StreamedResponse;
 use Filegator\Services\Archiver\ArchiverInterface;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Logger\LoggerInterface;
 use Filegator\Services\Session\SessionStorageInterface as Session;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\TmpfsInterface;
+use Monolog\Logger;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\Mime\MimeTypes;
 
@@ -32,11 +34,12 @@ class DownloadController
 
     protected $storage;
 
-    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage)
+    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage, LoggerInterface $logger)
     {
         $this->session = $session;
         $this->config = $config;
         $this->auth = $auth;
+        $this->logger = $logger;
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
 
@@ -110,6 +113,10 @@ class DownloadController
         }
         // @codeCoverageIgnoreEnd
 
+        if ($this->config->get('log_downloads')) {
+            $this->logger->log("User download started", Logger::INFO, ['type' => 'file', 'filepath' => base64_decode($request->input('path')), 'filename' => $file['filename']]);
+        }
+
         // close session so we can continue streaming, note: dev is single-threaded
         $this->session->save();
 
@@ -126,6 +133,9 @@ class DownloadController
         $this->session->save();
 
         foreach ($items as $item) {
+            if ($this->config->get('log_downloads')) {
+                $this->logger->log("User download started", Logger::INFO, ['type' => $item->type, 'filepath' => $item->path]);
+            }
             if ($item->type == 'dir') {
                 $archiver->addDirectoryFromStorage($item->path);
             }
