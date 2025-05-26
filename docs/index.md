@@ -49,6 +49,7 @@ visit: http://127.0.0.1:8080 login as admin/admin123
 ## Limitations
 - Symlinks are not supported by the underlying [Flysystem](https://flysystem.thephpleague.com/v1/docs/adapter/local/)
 - File ownership is not supported (chown)
+- Too many files in the same directory can negatively impact performance
 
 ## Why Open Source on GitHub?
 
