@@ -34,7 +34,7 @@ class AuthController
         $ip = $request->getClientIp();
 
         $lockout_attempts = $config->get('lockout_attempts', 5);
-        $lockout_timeout_seconds = $config->get('lockout_timeout', 15) * 60;
+        $lockout_timeout_seconds = $config->get('lockout_timeout', 15);
         $lockfile = md5($ip) . '.lock';
 
         // Check if IP is currently locked
