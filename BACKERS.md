@@ -14,11 +14,6 @@ FileGator is a free, open-source project. It's an independent project with its o
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://www.getping.info/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
-          <img title="Trigger an email, sms or slack notification with a simple GET request" width="177px" src="https://www.getping.info/img/logo.svg">
-        </a>
-      </td>
-      <td align="center" valign="middle">
         <a href="https://correctme.app/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
           <img title="Free Online Grammar and Spell Checker" width="177px" src="https://correctme.app/logo.png">
         </a>
