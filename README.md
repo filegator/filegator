@@ -43,11 +43,6 @@ FileGator is a free, open-source project. It's an independent project with its o
           <img title="Preview Web Links with our Free API service. Get JSON Response for any URL" width="200px" src="https://www.linkpreview.net/images/logo-dark.png">
         </a>
       </td>
-      <td align="center" valign="middle">
-        <a href="https://www.vanillavoice.com/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
-          <img title="VanillaVoice - Turn any Text into Human-Sounding Speech" width="200px" src="https://www.vanillavoice.com/logo.svg">
-        </a>
-      </td>
     </tr>
   </tbody>
 </table>
