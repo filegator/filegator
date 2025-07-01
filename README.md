@@ -43,6 +43,16 @@ FileGator is a free, open-source project. It's an independent project with its o
           <img title="Preview Web Links with our Free API service. Get JSON Response for any URL" width="200px" src="https://www.linkpreview.net/images/logo-dark.png">
         </a>
       </td>
+      <td align="center" valign="middle">
+        <a href="https://correctme.app/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
+          <img title="Free Online Grammar and Spell Checker" width="177px" src="https://correctme.app/logo.png">
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://interactive32.com/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
+          <img title="Modern approach to software development" width="177px" src="https://interactive32.com/images/logo.png">
+        </a>
+      </td>
     </tr>
   </tbody>
 </table>
