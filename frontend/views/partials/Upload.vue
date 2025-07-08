@@ -90,6 +90,7 @@ export default {
       withCredentials: true,
       simultaneousUploads: this.$store.state.config.upload_simultaneous,
       minFileSize: 0,
+      minFileSize: this.$store.state.config.upload_min_size,
       chunkSize: this.$store.state.config.upload_chunk_size,
       fileType: this.$store.state.config.upload_allowed_file_types,
       maxFileSize: this.$store.state.config.upload_max_size,
