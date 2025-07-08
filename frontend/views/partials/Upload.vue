@@ -92,6 +92,7 @@ export default {
       minFileSize: this.$store.state.config.upload_min_size,
       chunkSize: this.$store.state.config.upload_chunk_size,
       fileType: this.$store.state.config.upload_allowed_file_types,
+      maxFiles: this.$store.state.config.upload_max_files ?? undefined,
       maxFileSize: this.$store.state.config.upload_max_size,
       maxFileSizeErrorCallback: (file) => {
         this.$notification.open({
