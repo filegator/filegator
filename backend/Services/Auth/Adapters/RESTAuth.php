@@ -7,6 +7,7 @@ use Filegator\Services\Auth\User;
 use Filegator\Services\Auth\UsersCollection;
 use Filegator\Services\Service;
 use Filegator\Services\Session\SessionStorageInterface as Session;
+use Filegator\Services\Logger\LoggerInterface;
 
 class RESTAuth implements Service, AuthInterface
 {
@@ -15,10 +16,12 @@ class RESTAuth implements Service, AuthInterface
 
     protected $session;
     protected $config;
+    protected $logger;
 
-    public function __construct(Session $session)
+    public function __construct(Session $session, LoggerInterface $logger)
     {
         $this->session = $session;
+        $this->logger = $logger;
     }
 
     public function init(array $config = [])
@@ -34,50 +37,51 @@ class RESTAuth implements Service, AuthInterface
     }
 
     public function authenticate($username, $password): bool
-        {
-            $url = $this->config['url'];
+    {
+        $url = $this->config['url'];
+        
+        $this->logger->log("RESTAuth: Attempting authentication for user: $username");
 
-            // Use file_put_contents for immediate debugging
-            file_put_contents('/tmp/filegator_debug.log', date('Y-m-d H:i:s') . " - Auth attempt for: $username\n", FILE_APPEND);
+        $data = [
+            'username' => $username,
+            'password' => $password
+        ];
 
-            $data = [
-                'username' => $username,
-                'password' => $password
-            ];
+        $options = [
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-Type: application/json',
+                'content' => json_encode($data),
+                'ignore_errors' => true,
+                'timeout' => 10
+            ]
+        ];
 
-            $options = [
-                'http' => [
-                    'method' => 'POST',
-                    'header' => 'Content-Type: application/json',
-                    'content' => json_encode($data),
-                    'ignore_errors' => true,
-                    'timeout' => 10
-                ]
-            ];
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
 
-            $context = stream_context_create($options);
-            $response = file_get_contents($url, false, $context);
+        $this->logger->log("RESTAuth: API response received: " . ($response ? 'SUCCESS' : 'FAILED'));
 
-            file_put_contents('/tmp/filegator_debug.log', date('Y-m-d H:i:s') . " - Response: " . var_export($response, true) . "\n", FILE_APPEND);
-
-            if ($response === false) {
-                file_put_contents('/tmp/filegator_debug.log', date('Y-m-d H:i:s') . " - Connection failed\n", FILE_APPEND);
-                return false;
-            }
-
-            $result = json_decode($response, true);
-
-            if (!$result || !isset($result['success']) || !$result['success']) {
-                file_put_contents('/tmp/filegator_debug.log', date('Y-m-d H:i:s') . " - Auth failed: " . json_encode($result) . "\n", FILE_APPEND);
-                return false;
-            }
-
-            $user = $this->createUser($result['user']);
-            $this->store($user);
-            $this->session->set(self::SESSION_USER_DATA, $result['user']);
-
-            return true;
+        if ($response === false) {
+            $this->logger->log("RESTAuth: Connection to $url failed");
+            return false;
         }
+
+        $result = json_decode($response, true);
+
+        if (!$result || !isset($result['success']) || !$result['success']) {
+            $this->logger->log("RESTAuth: Authentication failed for $username - " . json_encode($result));
+            return false;
+        }
+
+        $this->logger->log("RESTAuth: Authentication successful for $username");
+        
+        $user = $this->createUser($result['user']);
+        $this->store($user);
+        $this->session->set(self::SESSION_USER_DATA, $result['user']);
+
+        return true;
+    }
 
 
     public function forget()
