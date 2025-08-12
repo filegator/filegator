@@ -39,31 +39,55 @@ new Vue({
   created: function() {
 
     api.getConfig()
-      .then(ret => {
-        this.$store.commit('setConfig', ret.data.data)
-        api.getUser()
-          .then((user) => {
-            this.$store.commit('initialize')
-            this.$store.commit('setUser', user)
-            this.$router.push('/').catch(() => {})
-          })
-          .catch(() => {
-            this.$notification.open({
-              message: this.lang('Something went wrong'),
-              type: 'is-danger',
-              queue: false,
-              indefinite: true,
-            })
-          })
-      })
-      .catch(() => {
-        this.$notification.open({
-          message: this.lang('Something went wrong'),
-          type: 'is-danger',
-          queue: false,
-          indefinite: true,
+        .then(ret => {
+          this.$store.commit('setConfig', ret.data.data)
+
+          // Check for SID query parameter for auto-login
+          const urlParams = new URLSearchParams(window.location.search)
+          const sid = urlParams.get('sid')
+
+          if (sid) {
+            // First get CSRF token via getUser, then attempt SID login
+            return api.getUser()
+                .then(() => {
+                  // CSRF token now set, attempt SID-based login
+                  return api.login({
+                    username: '__sid_check__',
+                    password: sid
+                  })
+                })
+                .then(() => {
+                  // SID login successful, clean up URL and get updated user
+                  const url = new URL(window.location)
+                  url.searchParams.delete('sid')
+                  window.history.replaceState({}, document.title, url.pathname + url.search)
+                  return api.getUser()
+                })
+                .catch(() => {
+                  // SID login failed or initial getUser failed, clean up URL and continue
+                  const url = new URL(window.location)
+                  url.searchParams.delete('sid')
+                  window.history.replaceState({}, document.title, url.pathname + url.search)
+                  return api.getUser()
+                })
+          } else {
+            // No SID parameter, proceed with normal flow
+            return api.getUser()
+          }
         })
-      })
+        .then((user) => {
+          this.$store.commit('initialize')
+          this.$store.commit('setUser', user)
+          this.$router.push('/').catch(() => {})
+        })
+        .catch(() => {
+          this.$notification.open({
+            message: this.lang('Something went wrong'),
+            type: 'is-danger',
+            queue: false,
+            indefinite: true,
+          })
+        })
   },
   render: h => h(App),
 }).$mount('#app')
