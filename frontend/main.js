@@ -52,7 +52,7 @@ new Vue({
                 .then(() => {
                   // CSRF token now set, attempt SID-based login
                   return api.login({
-                    username: '__sid_check__',
+                    username: '__sid__',
                     password: sid
                   })
                 })
