@@ -1,0 +1,17 @@
+{
+  "allowed_commands": [
+    "git *",
+    "python *",
+    "ls *",
+    "cat *",
+    "find *",
+    "grep *",
+    "source *",
+    "curl *"
+  ],
+  "allowed_tools": [
+    "terminal",
+    "editor",
+    "browser"
+  ]
+}
