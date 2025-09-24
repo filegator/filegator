@@ -80,7 +80,14 @@ new Vue({
                   const url = new URL(window.location)
                   url.searchParams.delete('sid')
                   window.history.replaceState({}, document.title, url.pathname + url.search)
-                  return api.getUser()
+
+                  // Still handle doc parameter even if SID login failed
+                  return api.getUser().then((user) => {
+                    if (user && user.role !== 'guest') {
+                      return this.handleDocParameter(doc).then(() => user)
+                    }
+                    return user
+                  })
                 })
           } else {
             // No SID parameter, proceed with normal flow
