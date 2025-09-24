@@ -50,9 +50,50 @@ class FileController
     {
         $path = $request->input('to', $this->separator);
 
-        $this->session->set(self::SESSION_CWD, $path);
+        // Find the nearest existing directory
+        $validPath = $this->findNearestExistingDirectory($path);
 
-        return $response->json($this->storage->getDirectoryCollection($path));
+        $this->session->set(self::SESSION_CWD, $validPath);
+
+        return $response->json($this->storage->getDirectoryCollection($validPath));
+    }
+
+    private function findNearestExistingDirectory(string $path): string
+    {
+        // Start with the requested path
+        $currentPath = $path;
+
+        // Keep trying until we find a valid directory or reach root
+        while ($currentPath !== $this->separator) {
+            try {
+                // Try to get directory contents to check if path exists
+                $this->storage->getDirectoryCollection($currentPath);
+                // If we get here without exception, the path exists
+                return $currentPath;
+            } catch (\Exception $e) {
+                // Path doesn't exist, try parent directory
+                $currentPath = $this->getParentPath($currentPath);
+            }
+        }
+
+        // If all else fails, return root directory
+        return $this->separator;
+    }
+
+    private function getParentPath(string $path): string
+    {
+        if (!$path || $path === $this->separator || !trim($path, $this->separator)) {
+            return $this->separator;
+        }
+
+        $tmp = explode($this->separator, trim($path, $this->separator));
+        array_pop($tmp);
+
+        if (empty($tmp)) {
+            return $this->separator;
+        }
+
+        return $this->separator . implode($this->separator, $tmp);
     }
 
     public function getDirectory(Request $request, Response $response)

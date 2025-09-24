@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+error_reporting(E_ALL & ~E_DEPRECATED);
 
 if (version_compare(PHP_VERSION, '7.2.5', '<')) {
     echo 'Minimum requirement is PHP 7.2.5 You are using: '.PHP_VERSION."\n";

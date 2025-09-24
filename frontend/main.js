@@ -45,6 +45,12 @@ new Vue({
           // Check for SID query parameter for auto-login
           const urlParams = new URLSearchParams(window.location.search)
           const sid = urlParams.get('sid')
+          const doc = urlParams.get('doc')
+
+          // Log doc parameter if present
+          if (doc) {
+            console.log('Doc parameter:', doc)
+          }
 
           if (sid) {
             // First get CSRF token via getUser, then attempt SID login
@@ -57,10 +63,16 @@ new Vue({
                   })
                 })
                 .then(() => {
-                  // SID login successful, clean up URL and get updated user
+                  // SID login successful, clean up URL
                   const url = new URL(window.location)
                   url.searchParams.delete('sid')
                   window.history.replaceState({}, document.title, url.pathname + url.search)
+
+                  // Handle doc parameter if present
+                  return this.handleDocParameter(doc)
+                })
+                .then(() => {
+                  // Get updated user after potential directory change
                   return api.getUser()
                 })
                 .catch(() => {
@@ -73,6 +85,13 @@ new Vue({
           } else {
             // No SID parameter, proceed with normal flow
             return api.getUser()
+                .then((user) => {
+                  // Handle doc parameter if present and user is logged in
+                  if (user && user.role !== 'guest') {
+                    return this.handleDocParameter(doc).then(() => user)
+                  }
+                  return user
+                })
           }
         })
         .then((user) => {
@@ -88,6 +107,48 @@ new Vue({
             indefinite: true,
           })
         })
+  },
+  methods: {
+    handleDocParameter(doc) {
+      return new Promise((resolve) => {
+        if (!doc) {
+          resolve()
+          return
+        }
+
+        try {
+          // URL decode the doc parameter
+          const decodedPath = decodeURIComponent(doc)
+          console.log('Navigating to decoded path:', decodedPath)
+
+          // Call the changeDir API
+          api.changeDir({ to: decodedPath })
+            .then(() => {
+              console.log('Successfully navigated to:', decodedPath)
+              // Clean up URL parameter
+              const url = new URL(window.location)
+              url.searchParams.delete('doc')
+              window.history.replaceState({}, document.title, url.pathname + url.search)
+              resolve()
+            })
+            .catch((error) => {
+              console.log('Failed to navigate to path, backend should handle fallback:', error)
+              // Clean up URL parameter even on failure
+              const url = new URL(window.location)
+              url.searchParams.delete('doc')
+              window.history.replaceState({}, document.title, url.pathname + url.search)
+              resolve()
+            })
+        } catch (error) {
+          console.log('Failed to decode doc parameter, ignoring:', error)
+          // Clean up URL parameter on decode failure
+          const url = new URL(window.location)
+          url.searchParams.delete('doc')
+          window.history.replaceState({}, document.title, url.pathname + url.search)
+          resolve()
+        }
+      })
+    }
   },
   render: h => h(App),
 }).$mount('#app')
