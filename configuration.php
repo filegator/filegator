@@ -106,7 +106,7 @@ return [
         'Filegator\Services\Auth\AuthInterface' => [
             'handler' => '\Filegator\Services\Auth\Adapters\RESTAuth',
             'config' => [
-                'url' => 'http://localhost:5001/filegator-auth',
+                'url' => 'https://mein.corgatec.de/pyfwd/filegator-auth',
             ],
         ],
         'Filegator\Services\Router\Router' => [
