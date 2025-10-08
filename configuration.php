@@ -14,7 +14,7 @@ return [
         'app_version' => APP_VERSION,
         'language' => 'english',
         'logo' => 'https://filegator.io/filegator_logo.svg',
-        'upload_max_size' => 100 * 1024 * 1024, // 100MB
+        'upload_max_size' => 500 * 1024 * 1024, // 500MB
         'upload_chunk_size' => 1 * 1024 * 1024, // 1MB
         'upload_simultaneous' => 3,
         'default_archive_name' => 'archive.zip',
