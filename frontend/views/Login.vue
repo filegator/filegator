@@ -8,9 +8,6 @@
       <div class="column is-narrow">
         <form @submit.prevent="login">
           <div class="box">
-            <div class="has-text-centered">
-              <img :src="$store.state.config.logo" class="logo">
-            </div>
             <br>
             <b-field :label="lang('Username')">
               <b-input v-model="username" name="username" required @input="error = ''" ref="username" />

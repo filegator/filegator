@@ -1,9 +1,6 @@
 <template>
   <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
-      <a class="navbar-item logo" @click="$router.push('/').catch(() => {})">
-        <img :src="this.$store.state.config.logo">
-      </a>
 
       <a :class="[navbarActive ? 'is-active' : '', 'navbar-burger burger']" role="button" aria-label="menu" aria-expanded="false" @click="navbarActive = !navbarActive">
         <span aria-hidden="true" />
