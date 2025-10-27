@@ -12,11 +12,11 @@
         </template>
       </section>
       <footer class="modal-card-foot">
-        <button v-if="can('write')" class="button" type="button" @click="saveFile()">
-          {{ lang('Save') }}
-        </button>
         <button class="button" type="button" @click="$parent.close()">
           {{ lang('Close') }}
+        </button>
+        <button v-if="can('write')" class="button is-primary" type="button" @click="saveFile()">
+          {{ lang('Save') }}
         </button>
       </footer>
     </div>
