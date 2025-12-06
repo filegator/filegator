@@ -133,6 +133,22 @@ class AdminController
             'lockout_timeout' => $config->get('lockout_timeout'),
         ];
 
+        $publicDir = $config->get('public_dir');
+        $cssFile = $publicDir.'/css/custom.css';
+        $jsFile = $publicDir.'/js/custom.js';
+        $css = '';
+        $js = '';
+        if (is_file($cssFile) && is_readable($cssFile)) {
+            $c = @file_get_contents($cssFile);
+            if ($c !== false) { $css = $c; }
+        }
+        if (is_file($jsFile) && is_readable($jsFile)) {
+            $j = @file_get_contents($jsFile);
+            if ($j !== false) { $js = $j; }
+        }
+        $frontend['custom_css'] = $css;
+        $frontend['custom_js'] = $js;
+
         return $response->json([
             'frontend_config' => $frontend,
             'root_config' => $root,
@@ -224,6 +240,15 @@ class AdminController
                 $val = (int) $incoming[$intKey];
                 $updated = $this->replaceConfigValueSegment($updated, $intKey, (string)$val);
             }
+        }
+
+        // write custom CSS/JS to public files
+        $publicDir = dirname(__DIR__, 2).'/dist';
+        if (isset($incoming['custom_css'])) {
+            @file_put_contents($publicDir.'/css/custom.css', (string)$incoming['custom_css']);
+        }
+        if (isset($incoming['custom_js'])) {
+            @file_put_contents($publicDir.'/js/custom.js', (string)$incoming['custom_js']);
         }
 
         foreach ([
@@ -332,6 +357,19 @@ class AdminController
         }
 
         $config = include $path;
+        $publicDir = dirname(__DIR__, 2).'/dist';
+        $css = '';
+        $js = '';
+        if (is_file($publicDir.'/css/custom.css') && is_readable($publicDir.'/css/custom.css')) {
+            $c = @file_get_contents($publicDir.'/css/custom.css');
+            if ($c !== false) { $css = $c; }
+        }
+        if (is_file($publicDir.'/js/custom.js') && is_readable($publicDir.'/js/custom.js')) {
+            $j = @file_get_contents($publicDir.'/js/custom.js');
+            if ($j !== false) { $js = $j; }
+        }
+        $config['frontend_config']['custom_css'] = $css;
+        $config['frontend_config']['custom_js'] = $js;
         return $response->json($config['frontend_config']);
     }
 }

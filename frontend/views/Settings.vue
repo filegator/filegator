@@ -118,6 +118,21 @@
       </div>
     </div>
 
+    <div class="columns">
+      <div class="column">
+        <b-field :label="lang('Custom CSS')" :message="lang('Injected last to override existing styles')">
+          <b-input type="textarea" v-model="form.fc.custom_css" rows="6" />
+        </b-field>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column">
+        <b-field :label="lang('Custom JS')" :message="lang('Runs after app scripts load')">
+          <b-input type="textarea" v-model="form.fc.custom_js" rows="6" />
+        </b-field>
+      </div>
+    </div>
+
     <div class="buttons">
       <b-button type="is-primary" @click="save">{{ lang('Save') }}</b-button>
       <b-button @click="reset">{{ lang('Reset') }}</b-button>
@@ -150,6 +165,8 @@ export default {
           search_direct_download: false,
           filter_entries: [],
           pagination: [],
+          custom_css: '',
+          custom_js: '',
         },
         root: {
           overwrite_on_upload: false,

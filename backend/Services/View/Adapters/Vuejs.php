@@ -38,6 +38,26 @@ class Vuejs implements Service, ViewInterface
         $public_dir = $this->config->get('public_dir');
         $language = $this->config->get('frontend_config.language');
         $isRtl = in_array($language, ['arabic', 'hebrew', 'persian'], true);
+        $addHead = (string) $this->add_to_head;
+        $addBody = (string) $this->add_to_body;
+        $headExtra = '';
+        $bodyExtra = '';
+        if ($addHead !== '') {
+            if (preg_match('/\.css(\?|$)/i', $addHead)) {
+                $href = preg_match('/^(https?:)?\//', $addHead) ? $addHead : $public_path.$addHead.'?'.@filemtime($public_dir.'/'.$addHead);
+                $headExtra = '<link href="'.$href.'" rel=stylesheet>';
+            } else {
+                $headExtra = $addHead;
+            }
+        }
+        if ($addBody !== '') {
+            if (preg_match('/\.js(\?|$)/i', $addBody)) {
+                $src = preg_match('/^(https?:)?\//', $addBody) ? $addBody : $public_path.$addBody.'?'.@filemtime($public_dir.'/'.$addBody);
+                $bodyExtra = '<script src="'.$src.'"></script>';
+            } else {
+                $bodyExtra = $addBody;
+            }
+        }
 
         return '<!DOCTYPE html>
 <html lang=en dir='.($isRtl ? 'rtl' : 'ltr').'>
@@ -47,7 +67,7 @@ class Vuejs implements Service, ViewInterface
     <meta name=viewport content="width=device-width,initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <title>'.$title.'</title>
-    '.$this->add_to_head.'
+    '.$headExtra.'
     <link href="'.$public_path.'css/app.css?'.@filemtime($public_dir.'/css/app.css').'" rel=stylesheet>
     <link href="'.$public_path.'css/chunk-vendors.css?'.@filemtime($public_dir.'/css/chunk-vendors.css').'" rel=stylesheet>
   </head>
@@ -57,7 +77,7 @@ class Vuejs implements Service, ViewInterface
     <script src="'.$public_path.'js/app.js?'.@filemtime($public_dir.'/js/app.js').'"></script>
     <script src="'.$public_path.'js/chunk-vendors.js?'.@filemtime($public_dir.'/js/chunk-vendors.js').'"></script>
 
-    '.$this->add_to_body.'
+    '.$bodyExtra.'
   </body>
 </html>
 ';
