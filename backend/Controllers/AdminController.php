@@ -16,6 +16,7 @@ use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Auth\User;
 use Filegator\Services\Storage\Filesystem;
 use Rakit\Validation\Validator;
+use Filegator\Config\Config;
 
 class AdminController
 {
@@ -119,5 +120,218 @@ class AdminController
         }
 
         return $response->json($this->auth->delete($user));
+    }
+
+    public function getFrontendSettings(Response $response, Config $config)
+    {
+        $frontend = $config->get('frontend_config');
+        $root = [
+            'overwrite_on_upload' => $config->get('overwrite_on_upload'),
+            'timezone' => $config->get('timezone'),
+            'download_inline' => $config->get('download_inline'),
+            'lockout_attempts' => $config->get('lockout_attempts'),
+            'lockout_timeout' => $config->get('lockout_timeout'),
+        ];
+
+        return $response->json([
+            'frontend_config' => $frontend,
+            'root_config' => $root,
+        ]);
+    }
+
+    private function replaceConfigValueSegment(string $text, string $key, string $literal): string
+    {
+        $pattern = "/('".preg_quote($key, '/')."'\s*=>\s*)/";
+        if (preg_match($pattern, $text, $m, PREG_OFFSET_CAPTURE)) {
+            $start = $m[0][1] + strlen($m[0][0]);
+            $len = strlen($text);
+            $i = $start;
+            $depthParen = 0;
+            $depthBracket = 0;
+            $inSingle = false;
+            $inDouble = false;
+            $prev = '';
+            while ($i < $len) {
+                $ch = $text[$i];
+                if (!$inSingle && !$inDouble) {
+                    if ($ch === '(') { $depthParen++; }
+                    elseif ($ch === ')') { if ($depthParen > 0) { $depthParen--; } }
+                    elseif ($ch === '[') { $depthBracket++; }
+                    elseif ($ch === ']') { if ($depthBracket > 0) { $depthBracket--; } }
+                    elseif ($ch === ',' && $depthParen === 0 && $depthBracket === 0) {
+                        $before = substr($text, 0, $start);
+                        $after = substr($text, $i);
+                        return $before.$literal.$after;
+                    }
+                }
+                if ($ch === "'" && !$inDouble) {
+                    $inSingle = ($prev === '\\') ? $inSingle : !$inSingle;
+                } elseif ($ch === '"' && !$inSingle) {
+                    $inDouble = ($prev === '\\') ? $inDouble : !$inDouble;
+                }
+                $prev = $ch;
+                $i++;
+            }
+        }
+        return $text;
+    }
+
+    public function updateFrontendSettings(Request $request, Response $response)
+    {
+        $path = dirname(__DIR__, 2).'/configuration.php';
+
+        if (! is_file($path) || ! is_readable($path)) {
+            return $response->json('Configuration file not found', 422);
+        }
+
+        $incoming = $request->input('frontend_config', []);
+        $incomingRoot = $request->input('root_config', []);
+
+        if (is_object($incoming)) { $incoming = (array) $incoming; }
+        if (is_object($incomingRoot)) { $incomingRoot = (array) $incomingRoot; }
+
+        if (! is_array($incoming) || ! is_array($incomingRoot)) {
+            return $response->json('Invalid payload', 422);
+        }
+
+        $contents = file_get_contents($path);
+        if ($contents === false) {
+            return $response->json('Failed to read configuration', 422);
+        }
+
+        $updated = $contents;
+
+        if (isset($incoming['app_name'])) {
+            $val = str_replace(['`', "'"], ['', "\\'"], $incoming['app_name']);
+            $updated = $this->replaceConfigValueSegment($updated, 'app_name', "'".$val."'");
+        }
+
+        if (isset($incoming['language'])) {
+            $val = str_replace(['`', "'"], ['', "\\'"], $incoming['language']);
+            $updated = $this->replaceConfigValueSegment($updated, 'language', "'".$val."'");
+        }
+
+        if (isset($incoming['logo'])) {
+            $val = str_replace(['`', "'"], ['', "\\'"], $incoming['logo']);
+            $updated = $this->replaceConfigValueSegment($updated, 'logo', "'".$val."'");
+        }
+
+        foreach ([
+            'upload_max_size', 'upload_chunk_size', 'upload_simultaneous',
+            'search_simultaneous'
+        ] as $intKey) {
+            if (isset($incoming[$intKey])) {
+                $val = (int) $incoming[$intKey];
+                $updated = $this->replaceConfigValueSegment($updated, $intKey, (string)$val);
+            }
+        }
+
+        foreach ([
+            'default_archive_name', 'date_format', 'guest_redirection'
+        ] as $strKey) {
+            if (isset($incoming[$strKey])) {
+                $val = str_replace(['`', "'"], ['', "\\'"], $incoming[$strKey]);
+                $updated = $this->replaceConfigValueSegment($updated, $strKey, "'".$val."'");
+            }
+        }
+
+        foreach ([
+            'search_direct_download'
+        ] as $boolKey) {
+            if (isset($incoming[$boolKey])) {
+                $val = $incoming[$boolKey] ? 'true' : 'false';
+                $updated = $this->replaceConfigValueSegment($updated, $boolKey, $val);
+            }
+        }
+
+        // array-type keys: editable, filter_entries, pagination
+        foreach ([
+            'editable', 'filter_entries', 'pagination'
+        ] as $arrKey) {
+            if (isset($incoming[$arrKey])) {
+                $arrVal = $incoming[$arrKey];
+                if (is_string($arrVal)) {
+                    $items = array_map('trim', explode(',', $arrVal));
+                } elseif (is_array($arrVal)) {
+                    $items = $arrVal;
+                } else {
+                    $items = [];
+                }
+                $phpArray = '[';
+                $first = true;
+                foreach ($items as $it) {
+                    if (! $first) { $phpArray .= ', '; }
+                    $first = false;
+                    if (is_numeric($it)) {
+                        $phpArray .= (int) $it;
+                    } else {
+                        $phpArray .= "'".str_replace("'", "\\'", $it)."'";
+                    }
+                }
+                $phpArray .= ']';
+
+                $updated = $this->replaceConfigValueSegment($updated, $arrKey, $phpArray);
+            }
+        }
+
+        // root_config replacements
+        if (isset($incomingRoot['overwrite_on_upload'])) {
+            $val = $incomingRoot['overwrite_on_upload'] ? 'true' : 'false';
+            $updated = $this->replaceConfigValueSegment($updated, 'overwrite_on_upload', $val);
+        }
+
+        if (isset($incomingRoot['timezone'])) {
+            $val = str_replace(['`', "'"], ['', "\\'"], $incomingRoot['timezone']);
+            $updated = $this->replaceConfigValueSegment($updated, 'timezone', "'".$val."'");
+        }
+
+        // if (isset($incomingRoot['lockout_attempts'])) {
+        //     $updated = preg_replace(
+        //         "/('lockout_attempts'\s*=>\s*)\d+/",
+        //         "$1".$incomingRoot['lockout_attempts'],
+        //         $updated,
+        //         1
+        //     );
+        // }
+
+        // if (isset($incomingRoot['lockout_timeout'])) {
+        //     $updated = preg_replace(
+        //         "/('lockout_timeout'\s*=>\s*)\d+/",
+        //         "$1".$incomingRoot['lockout_timeout'],
+        //         $updated,
+        //         1
+        //     );
+        // }
+
+        if (isset($incomingRoot['download_inline'])) {
+            $arrVal = $incomingRoot['download_inline'];
+            if (is_string($arrVal)) {
+                $items = array_map('trim', explode(',', $arrVal));
+            } elseif (is_array($arrVal)) {
+                $items = $arrVal;
+            } else {
+                $items = [];
+            }
+            $phpArray = '[';
+            $first = true;
+            foreach ($items as $it) {
+                if (! $first) { $phpArray .= ', '; }
+                $first = false;
+                $phpArray .= "'".str_replace("'", "\\'", $it)."'";
+            }
+            $phpArray .= ']';
+            $updated = $this->replaceConfigValueSegment($updated, 'download_inline', $phpArray);
+        }
+
+        if ($updated === null) {
+            return $response->json('Failed to update configuration', 422);
+        }
+
+                if (@file_put_contents($path, $updated) === false) {
+            return $response->json('Failed to write configuration', 422);
+        }
+
+        $config = include $path;
+        return $response->json($config['frontend_config']);
     }
 }

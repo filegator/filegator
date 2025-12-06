@@ -36,9 +36,11 @@ class Vuejs implements Service, ViewInterface
         $title = APP_ENV == 'development' ? 'Development mode' : $this->config->get('frontend_config.app_name');
         $public_path = $this->config->get('public_path');
         $public_dir = $this->config->get('public_dir');
+        $language = $this->config->get('frontend_config.language');
+        $isRtl = in_array($language, ['arabic', 'hebrew', 'persian'], true);
 
         return '<!DOCTYPE html>
-<html lang=en>
+<html lang=en dir='.($isRtl ? 'rtl' : 'ltr').'>
   <head>
     <meta charset=utf-8>
     <meta http-equiv=X-UA-Compatible content="IE=edge">
