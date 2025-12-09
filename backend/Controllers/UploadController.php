@@ -14,6 +14,7 @@ use Filegator\Config\Config;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Hooks\HooksInterface;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\TmpfsInterface;
 
@@ -27,11 +28,14 @@ class UploadController
 
     protected $tmpfs;
 
-    public function __construct(Config $config, AuthInterface $auth, Filesystem $storage, TmpfsInterface $tmpfs)
+    protected $hooks;
+
+    public function __construct(Config $config, AuthInterface $auth, Filesystem $storage, TmpfsInterface $tmpfs, HooksInterface $hooks = null)
     {
         $this->config = $config;
         $this->auth = $auth;
         $this->tmpfs = $tmpfs;
+        $this->hooks = $hooks;
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
 
@@ -121,6 +125,18 @@ class UploadController
             $this->tmpfs->remove($file_name);
             foreach ($this->tmpfs->findAll($prefix.'*') as $expired_chunk) {
                 $this->tmpfs->remove($expired_chunk['name']);
+            }
+
+            // Trigger onUpload hook when file upload completes
+            if ($res && $this->hooks) {
+                $user = $this->auth->user() ?: $this->auth->getGuest();
+                $this->hooks->trigger('onUpload', [
+                    'file_path' => $destination,
+                    'file_name' => $file_name,
+                    'file_size' => $total_size,
+                    'user' => $user ? $user->getUsername() : 'guest',
+                    'home_dir' => $user ? $user->getHomeDir() : '/',
+                ]);
             }
 
             return $res ? $response->json('Stored') : $response->json('Error storing file');
