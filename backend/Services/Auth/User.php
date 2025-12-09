@@ -22,6 +22,10 @@ class User implements \JsonSerializable
 
     protected $name = '';
 
+    protected $ip_allowlist = [];
+
+    protected $ip_denylist = [];
+
     protected $available_roles = ['guest', 'user', 'admin'];
 
     protected $available_permissions = ['read', 'write', 'upload', 'download', 'batchdownload', 'zip', 'chmod'];
@@ -125,6 +129,26 @@ class User implements \JsonSerializable
         return $encoded ? implode('|', $this->permissions) : $this->permissions;
     }
 
+    public function setIpAllowlist(array $ip_allowlist)
+    {
+        $this->ip_allowlist = $ip_allowlist;
+    }
+
+    public function getIpAllowlist(): array
+    {
+        return $this->ip_allowlist;
+    }
+
+    public function setIpDenylist(array $ip_denylist)
+    {
+        $this->ip_denylist = $ip_denylist;
+    }
+
+    public function getIpDenylist(): array
+    {
+        return $this->ip_denylist;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -133,6 +157,8 @@ class User implements \JsonSerializable
             'homedir' => $this->getHomeDir(),
             'username' => $this->getUsername(),
             'name' => $this->getName(),
+            'ip_allowlist' => $this->getIpAllowlist(),
+            'ip_denylist' => $this->getIpDenylist(),
         ];
     }
 

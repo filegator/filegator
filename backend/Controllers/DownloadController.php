@@ -16,6 +16,7 @@ use Filegator\Kernel\Response;
 use Filegator\Kernel\StreamedResponse;
 use Filegator\Services\Archiver\ArchiverInterface;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\PathACL\PathACLInterface;
 use Filegator\Services\Session\SessionStorageInterface as Session;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\TmpfsInterface;
@@ -32,11 +33,14 @@ class DownloadController
 
     protected $storage;
 
-    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage)
+    protected $pathacl;
+
+    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage, PathACLInterface $pathacl = null)
     {
         $this->session = $session;
         $this->config = $config;
         $this->auth = $auth;
+        $this->pathacl = $pathacl;
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
 
@@ -44,10 +48,51 @@ class DownloadController
         $this->storage->setPathPrefix($user->getHomeDir());
     }
 
+    /**
+     * Check PathACL permission for the current user and path
+     *
+     * @param Request $request HTTP request object
+     * @param string $path File/folder path
+     * @param string $permission Permission to check
+     * @return bool True if allowed
+     */
+    protected function checkPathACL(Request $request, string $path, string $permission): bool
+    {
+        // If PathACL is not injected or not enabled, allow (fall back to global permissions)
+        if (!$this->pathacl || !$this->pathacl->isEnabled()) {
+            return true;
+        }
+
+        $user = $this->auth->user() ?: $this->auth->getGuest();
+        $clientIp = $request->getClientIp();
+
+        return $this->pathacl->checkPermission($user, $clientIp, $path, $permission);
+    }
+
+    /**
+     * Return 403 Forbidden response with error message
+     *
+     * @param Response $response Response object
+     * @param string $message Error message
+     * @return Response
+     */
+    protected function forbidden(Response $response, string $message = 'Access denied by path ACL'): Response
+    {
+        $response->setStatusCode(403);
+        return $response->json(['error' => $message]);
+    }
+
     public function download(Request $request, Response $response, StreamedResponse $streamedResponse)
     {
+        $path = (string) base64_decode($request->input('path'));
+
+        // Check PathACL permission for download
+        if (!$this->checkPathACL($request, $path, 'download')) {
+            return $this->forbidden($response, 'Access denied: cannot download this file');
+        }
+
         try {
-            $file = $this->storage->readStream((string) base64_decode($request->input('path')));
+            $file = $this->storage->readStream($path);
         } catch (\Exception $e) {
             return $response->redirect('/');
         }
@@ -119,6 +164,13 @@ class DownloadController
     public function batchDownloadCreate(Request $request, Response $response, ArchiverInterface $archiver)
     {
         $items = $request->input('items', []);
+
+        // Check PathACL permission for each item before creating archive
+        foreach ($items as $item) {
+            if (!$this->checkPathACL($request, $item->path, 'download')) {
+                return $this->forbidden($response, 'Access denied: cannot download item ' . $item->path);
+            }
+        }
 
         $uniqid = $archiver->createArchive($this->storage);
 

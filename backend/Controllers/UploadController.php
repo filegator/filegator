@@ -15,6 +15,7 @@ use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Hooks\HooksInterface;
+use Filegator\Services\PathACL\PathACLInterface;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\TmpfsInterface;
 
@@ -30,17 +31,54 @@ class UploadController
 
     protected $hooks;
 
-    public function __construct(Config $config, AuthInterface $auth, Filesystem $storage, TmpfsInterface $tmpfs, HooksInterface $hooks = null)
+    protected $pathacl;
+
+    public function __construct(Config $config, AuthInterface $auth, Filesystem $storage, TmpfsInterface $tmpfs, HooksInterface $hooks = null, PathACLInterface $pathacl = null)
     {
         $this->config = $config;
         $this->auth = $auth;
         $this->tmpfs = $tmpfs;
         $this->hooks = $hooks;
+        $this->pathacl = $pathacl;
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
 
         $this->storage = $storage;
         $this->storage->setPathPrefix($user->getHomeDir());
+    }
+
+    /**
+     * Check PathACL permission for the current user and path
+     *
+     * @param Request $request HTTP request object
+     * @param string $path File/folder path
+     * @param string $permission Permission to check
+     * @return bool True if allowed
+     */
+    protected function checkPathACL(Request $request, string $path, string $permission): bool
+    {
+        // If PathACL is not injected or not enabled, allow (fall back to global permissions)
+        if (!$this->pathacl || !$this->pathacl->isEnabled()) {
+            return true;
+        }
+
+        $user = $this->auth->user() ?: $this->auth->getGuest();
+        $clientIp = $request->getClientIp();
+
+        return $this->pathacl->checkPermission($user, $clientIp, $path, $permission);
+    }
+
+    /**
+     * Return 403 Forbidden response with error message
+     *
+     * @param Response $response Response object
+     * @param string $message Error message
+     * @return Response
+     */
+    protected function forbidden(Response $response, string $message = 'Access denied by path ACL'): Response
+    {
+        $response->setStatusCode(403);
+        return $response->json(['error' => $message]);
     }
 
     public function chunkCheck(Request $request, Response $response)
@@ -66,6 +104,13 @@ class UploadController
         $total_chunks = (int) $request->input('resumableTotalChunks');
         $total_size = (int) $request->input('resumableTotalSize');
         $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
+
+        // Check PathACL permission for upload (check on first chunk only)
+        if ($chunk_number == 1) {
+            if (!$this->checkPathACL($request, $destination, 'upload')) {
+                return $this->forbidden($response, 'Access denied: cannot upload to this directory');
+            }
+        }
 
         $filebag = $request->files;
         $file = $filebag->get('file');

@@ -105,6 +105,16 @@ class JsonFile implements Service, AuthInterface
                 $u['homedir'] = $user->getHomeDir();
                 $u['permissions'] = $user->getPermissions(true);
 
+                // Save IP restrictions if set
+                $ip_allowlist = $user->getIpAllowlist();
+                $ip_denylist = $user->getIpDenylist();
+                if (!empty($ip_allowlist)) {
+                    $u['ip_allowlist'] = $ip_allowlist;
+                }
+                if (!empty($ip_denylist)) {
+                    $u['ip_denylist'] = $ip_denylist;
+                }
+
                 if ($password) {
                     $u['password'] = $this->hashPassword($password);
                 }
@@ -126,7 +136,7 @@ class JsonFile implements Service, AuthInterface
 
         $all_users = $this->getUsers();
 
-        $all_users[] = [
+        $newUser = [
             'username' => $user->getUsername(),
             'name' => $user->getName(),
             'role' => $user->getRole(),
@@ -134,6 +144,18 @@ class JsonFile implements Service, AuthInterface
             'permissions' => $user->getPermissions(true),
             'password' => $this->hashPassword($password),
         ];
+
+        // Add IP restrictions if set
+        $ip_allowlist = $user->getIpAllowlist();
+        $ip_denylist = $user->getIpDenylist();
+        if (!empty($ip_allowlist)) {
+            $newUser['ip_allowlist'] = $ip_allowlist;
+        }
+        if (!empty($ip_denylist)) {
+            $newUser['ip_denylist'] = $ip_denylist;
+        }
+
+        $all_users[] = $newUser;
 
         $this->saveUsers($all_users);
 
@@ -198,6 +220,14 @@ class JsonFile implements Service, AuthInterface
         $new->setRole($user['role']);
         $new->setHomedir($user['homedir']);
         $new->setPermissions($user['permissions'], true);
+
+        // Load IP restrictions if present
+        if (isset($user['ip_allowlist']) && is_array($user['ip_allowlist'])) {
+            $new->setIpAllowlist($user['ip_allowlist']);
+        }
+        if (isset($user['ip_denylist']) && is_array($user['ip_denylist'])) {
+            $new->setIpDenylist($user['ip_denylist']);
+        }
 
         return $new;
     }

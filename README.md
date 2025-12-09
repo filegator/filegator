@@ -82,6 +82,8 @@ This is read-only demo with guest account enabled
 
 For plugin event hooks documentation, see [docs/hooks](docs/hooks/index.md).
 
+For path-based ACL (IP and folder permissions) documentation, see [docs/path-acl](docs/path-acl/index.md).
+
 
 ## Features & Goals
 - Multiple storage adapters (Local, FTP, Amazon S3, Dropbox, DO Spaces, Azure Blob and many others via [Flysystem](https://github.com/thephpleague/flysystem))
@@ -91,6 +93,7 @@ For plugin event hooks documentation, see [docs/hooks](docs/hooks/index.md).
 - Chunked uploads (built with [Resumable.js](https://github.com/23/resumable.js))
 - Zip and bulk download support
 - Plugin event hooks (trigger custom scripts on upload, download, delete and other file operations)
+- Path-based ACL with IP restrictions (control folder access by user, source IP, and path)
 - Highly extensible, decoupled and tested code
 - No database required
 

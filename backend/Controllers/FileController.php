@@ -15,6 +15,7 @@ use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Archiver\ArchiverInterface;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\PathACL\PathACLInterface;
 use Filegator\Services\Session\SessionStorageInterface as Session;
 use Filegator\Services\Storage\Filesystem;
 
@@ -32,11 +33,14 @@ class FileController
 
     protected $separator;
 
-    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage)
+    protected $pathacl;
+
+    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage, PathACLInterface $pathacl = null)
     {
         $this->session = $session;
         $this->config = $config;
         $this->auth = $auth;
+        $this->pathacl = $pathacl;
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
 
@@ -44,6 +48,40 @@ class FileController
         $this->storage->setPathPrefix($user->getHomeDir());
 
         $this->separator = $this->storage->getSeparator();
+    }
+
+    /**
+     * Check PathACL permission for the current user and path
+     *
+     * @param Request $request HTTP request object
+     * @param string $path File/folder path
+     * @param string $permission Permission to check
+     * @return bool True if allowed
+     */
+    protected function checkPathACL(Request $request, string $path, string $permission): bool
+    {
+        // If PathACL is not injected or not enabled, allow (fall back to global permissions)
+        if (!$this->pathacl || !$this->pathacl->isEnabled()) {
+            return true;
+        }
+
+        $user = $this->auth->user() ?: $this->auth->getGuest();
+        $clientIp = $request->getClientIp();
+
+        return $this->pathacl->checkPermission($user, $clientIp, $path, $permission);
+    }
+
+    /**
+     * Return 403 Forbidden response with error message
+     *
+     * @param Response $response Response object
+     * @param string $message Error message
+     * @return Response
+     */
+    protected function forbidden(Response $response, string $message = 'Access denied by path ACL'): Response
+    {
+        $response->setStatusCode(403);
+        return $response->json(['error' => $message]);
     }
 
     public function changeDirectory(Request $request, Response $response)
@@ -59,6 +97,11 @@ class FileController
     {
         $path = $request->input('dir', $this->session->get(self::SESSION_CWD, $this->separator));
 
+        // Check PathACL permission
+        if (!$this->checkPathACL($request, $path, 'read')) {
+            return $this->forbidden($response, 'Access denied: cannot read this directory');
+        }
+
         $content = $this->storage->getDirectoryCollection($path);
 
         return $response->json($content);
@@ -69,6 +112,11 @@ class FileController
         $type = $request->input('type', 'file');
         $name = $request->input('name');
         $path = $this->session->get(self::SESSION_CWD, $this->separator);
+
+        // Check PathACL permission
+        if (!$this->checkPathACL($request, $path, 'write')) {
+            return $this->forbidden($response, 'Access denied: cannot create items in this directory');
+        }
 
         if ($type == 'dir') {
             $this->storage->createDir($path, $request->input('name'));
@@ -85,7 +133,17 @@ class FileController
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
 
+        // Check PathACL permission for destination
+        if (!$this->checkPathACL($request, $destination, 'write')) {
+            return $this->forbidden($response, 'Access denied: cannot write to destination directory');
+        }
+
         foreach ($items as $item) {
+            // Check PathACL permission for each source item
+            if (!$this->checkPathACL($request, $item->path, 'read')) {
+                return $this->forbidden($response, 'Access denied: cannot read source item ' . $item->path);
+            }
+
             if ($item->type == 'dir') {
                 $this->storage->copyDir($item->path, $destination);
             }
@@ -102,7 +160,17 @@ class FileController
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
 
+        // Check PathACL permission for destination
+        if (!$this->checkPathACL($request, $destination, 'write')) {
+            return $this->forbidden($response, 'Access denied: cannot write to destination directory');
+        }
+
         foreach ($items as $item) {
+            // Check PathACL permission for each source item (need write to move/delete)
+            if (!$this->checkPathACL($request, $item->path, 'write')) {
+                return $this->forbidden($response, 'Access denied: cannot move item ' . $item->path);
+            }
+
             $full_destination = trim($destination, $this->separator)
                     .$this->separator
                     .ltrim($item->name, $this->separator);
@@ -118,9 +186,19 @@ class FileController
         $destination = $request->input('destination', $this->separator);
         $name = $request->input('name', $this->config->get('frontend_config.default_archive_name'));
 
+        // Check PathACL permission for destination
+        if (!$this->checkPathACL($request, $destination, 'zip')) {
+            return $this->forbidden($response, 'Access denied: cannot create zip in this directory');
+        }
+
         $archiver->createArchive($this->storage);
 
         foreach ($items as $item) {
+            // Check PathACL permission for each item to be zipped
+            if (!$this->checkPathACL($request, $item->path, 'read')) {
+                return $this->forbidden($response, 'Access denied: cannot read item ' . $item->path);
+            }
+
             if ($item->type == 'dir') {
                 $archiver->addDirectoryFromStorage($item->path);
             }
@@ -139,6 +217,16 @@ class FileController
         $source = $request->input('item');
         $destination = $request->input('destination', $this->separator);
 
+        // Check PathACL permission for source (need read)
+        if (!$this->checkPathACL($request, $source, 'read')) {
+            return $this->forbidden($response, 'Access denied: cannot read archive file');
+        }
+
+        // Check PathACL permission for destination (need write)
+        if (!$this->checkPathACL($request, $destination, 'write')) {
+            return $this->forbidden($response, 'Access denied: cannot extract to destination directory');
+        }
+
         $archiver->uncompress($source, $destination, $this->storage);
 
         return $response->json('Done');
@@ -152,6 +240,11 @@ class FileController
         $recursive = $request->input('recursive', null);
 
         foreach ($items as $item) {
+            // Check PathACL permission for chmod operation
+            if (!$this->checkPathACL($request, $item->path, 'chmod')) {
+                return $this->forbidden($response, 'Access denied: cannot change permissions for ' . $item->path);
+            }
+
             $this->storage->chmod($item->path, $permissions, $recursive);
         }
 
@@ -164,6 +257,14 @@ class FileController
         $from = $request->input('from');
         $to = $request->input('to');
 
+        // Build full source path
+        $sourcePath = trim($destination, $this->separator) . $this->separator . ltrim($from, $this->separator);
+
+        // Check PathACL permission for rename (need write)
+        if (!$this->checkPathACL($request, $sourcePath, 'write')) {
+            return $this->forbidden($response, 'Access denied: cannot rename item in this directory');
+        }
+
         $this->storage->rename($destination, $from, $to);
 
         return $response->json('Done');
@@ -174,6 +275,11 @@ class FileController
         $items = $request->input('items', []);
 
         foreach ($items as $item) {
+            // Check PathACL permission for delete (need write)
+            if (!$this->checkPathACL($request, $item->path, 'write')) {
+                return $this->forbidden($response, 'Access denied: cannot delete item ' . $item->path);
+            }
+
             if ($item->type == 'dir') {
                 $this->storage->deleteDir($item->path);
             }
@@ -191,6 +297,14 @@ class FileController
 
         $name = $request->input('name');
         $content = $request->input('content');
+
+        // Build full file path
+        $filePath = $path . $this->separator . $name;
+
+        // Check PathACL permission for write
+        if (!$this->checkPathACL($request, $filePath, 'write')) {
+            return $this->forbidden($response, 'Access denied: cannot save content to this file');
+        }
 
         $stream = tmpfile();
         fwrite($stream, $content);
