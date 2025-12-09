@@ -428,7 +428,7 @@ echo ".env" >> /var/www/filegator/.gitignore
 │  File: report.pdf                              │
 └────────┬───────────────────────────────────────┘
          │
-         │ 2. Hook: trend_micro_scan.php
+         │ 2. Hook: 02_scan_upload.php
          │    Detects file in /upload
          │    Calls Trend Micro API
          │

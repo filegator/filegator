@@ -2,7 +2,7 @@
 
 This directory contains the Trend Micro Vision One File Security scanning hook for FileGator.
 
-## Hook: trend_micro_scan.php
+## Hook: 02_scan_upload.php
 
 ### Purpose
 
@@ -120,11 +120,11 @@ ADMIN_EMAIL=admin@example.com
 
 ### 1. Copy Hook File
 
-Copy `trend_micro_scan.php` to your FileGator hooks directory:
+Copy `02_scan_upload.php` to your FileGator hooks directory:
 
 ```bash
-cp trend_micro_scan.php /path/to/filegator/private/hooks/onUpload/
-chmod 644 /path/to/filegator/private/hooks/onUpload/trend_micro_scan.php
+cp 02_scan_upload.php /path/to/filegator/private/hooks/onUpload/
+chmod 644 /path/to/filegator/private/hooks/onUpload/02_scan_upload.php
 ```
 
 ### 2. Update Configuration
@@ -406,7 +406,7 @@ Trend Micro API has rate limits (60-second windows). The hook:
 ### Hook Not Triggering
 
 **Check:**
-1. Hook file is in correct location: `/private/hooks/onUpload/trend_micro_scan.php`
+1. Hook file is in correct location: `/private/hooks/onUpload/02_scan_upload.php`
 2. File permissions are correct: `644`
 3. Hooks are enabled in `configuration.php`
 4. File is uploaded to `/upload` directory (not other directories)

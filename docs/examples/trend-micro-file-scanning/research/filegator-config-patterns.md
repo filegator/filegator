@@ -441,7 +441,7 @@ Based on FileGator patterns, here's the recommended approach:
 
 ```php
 <?php
-// In private/hooks/onUpload/trend_micro_scan.php
+// In private/hooks/onUpload/02_scan_upload.php
 
 // Load configuration
 $configFile = dirname(__DIR__) . '/config.php';
