@@ -56,14 +56,27 @@ sudo yum install php-curl php-json php-mbstring php-fileinfo
 
 ### 3. Trend Micro Vision One Account
 
-1. **Create Account**: Sign up at [Trend Micro Cloud One](https://cloudone.trendmicro.com/)
+> **Official Documentation**: https://automation.trendmicro.com/xdr/api-v3#tag/File-Security
+
+1. **Create Account**: Sign up at [Trend Micro Vision One](https://portal.xdr.trendmicro.com/)
 2. **Enable File Security**: Navigate to File Security service
 3. **Generate API Key**:
    - Go to Administration > API Keys
    - Click "New" to create a new API key
-   - Select "File Security" scope
+   - Select role with "Run file scan via SDK" permission
    - Copy the API key (you won't see it again)
-4. **Note Your Region**: Check which region your account uses (us-1, eu-1, sg-1, or au-1)
+4. **Note Your Region**: Your API key is tied to a specific region. Check your portal URL to determine your region:
+
+   | Region | Portal URL | API Endpoint |
+   |--------|------------|--------------|
+   | `us` | `portal.xdr.trendmicro.com` | `api.xdr.trendmicro.com` |
+   | `eu` | `portal.eu.xdr.trendmicro.com` | `api.eu.xdr.trendmicro.com` |
+   | `jp` | `portal.jp.xdr.trendmicro.com` | `api.xdr.trendmicro.co.jp` |
+   | `sg` | `portal.sg.xdr.trendmicro.com` | `api.sg.xdr.trendmicro.com` |
+   | `au` | `portal.au.xdr.trendmicro.com` | `api.au.xdr.trendmicro.com` |
+   | `in` | `portal.in.xdr.trendmicro.com` | `api.in.xdr.trendmicro.com` |
+
+   > **Reference**: [Regional Domains Documentation](https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains)
 
 ### 4. Network Configuration
 
@@ -96,13 +109,33 @@ ip addr show
 ```bash
 cd /path/to/filegator/docs/examples/trend-micro-file-scanning
 
+# Basic installation (US region - default)
 php install.php \
   --gateway-ip=192.168.1.100 \
-  --internal-network=192.168.1.0/24 \
+  --api-key=YOUR_TREND_MICRO_API_KEY \
+  --admin-email=admin@example.com
+
+# Installation with specific region (e.g., Europe)
+php install.php \
+  --gateway-ip=192.168.1.100 \
   --api-key=YOUR_TREND_MICRO_API_KEY \
   --admin-email=admin@example.com \
-  --filegator-path=/var/www/filegator
+  --region=eu
+
+# Full installation with all options (Singapore region)
+php install.php \
+  --gateway-ip=192.168.1.100 \
+  --api-key=YOUR_TREND_MICRO_API_KEY \
+  --admin-email=admin@example.com \
+  --region=sg \
+  --filegator-path=/var/www/filegator \
+  --smtp-host=smtp.gmail.com \
+  --smtp-port=587 \
+  --smtp-user=alerts@example.com \
+  --smtp-pass=app-password
 ```
+
+**Available Regions**: `us` (default), `eu`, `jp`, `sg`, `au`, `in`
 
 **What This Does**:
 1. Creates required directories (`/upload`, `/scanned`, `/download`)
@@ -115,32 +148,40 @@ php install.php \
 **Installation Output Example**:
 
 ```
-Trend Micro File Scanning Example - Installer
-==============================================
+╔══════════════════════════════════════════════════════════════╗
+║   Trend Micro File Scanning - FileGator Integration         ║
+║   Installation Wizard                                        ║
+╚══════════════════════════════════════════════════════════════╝
 
-Configuration:
---------------
-FileGator Path:    /var/www/filegator
-Gateway IP:        192.168.1.100
-Internal Network:  192.168.1.0/24
-Admin Email:       admin@example.com
-TM Region:         us-1
+Configuration Summary:
+------------------------------------------------------------
+FileGator Path:           /var/www/filegator
+Gateway IP:               192.168.1.100
+Admin Email:              admin@example.com
+Vision One Region:        eu
+API URL:                  https://api.eu.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file
+SMTP Host:                localhost
+------------------------------------------------------------
 
-[OK] Environment validation passed
+[Step] Creating directories
+  Created: /repository/upload
+  Created: /repository/scanned
+  Created: /repository/download
 
-Creating directories...
-  Created: /var/www/filegator/repository/upload
-  Created: /var/www/filegator/repository/scanned
-  Created: /var/www/filegator/repository/download
-
-Installing hook scripts...
+[Step] Installing hook scripts
   Installed: 01_move_from_download.php
   Installed: 02_scan_upload.php
 
-Testing Trend Micro API connectivity...
-  [OK] API connection successful
+[Step] Installing hooks configuration
+  Created: hooks/config.php
 
-Installation completed!
+[Step] Installing ACL configuration
+  Created: acl_config.php
+  Gateway IP: 192.168.1.100
+
+============================================================
+Installation completed successfully!
+============================================================
 ```
 
 ---
@@ -328,9 +369,12 @@ tail -f /var/log/nginx/access.log
 Create `.env` file in FileGator root:
 
 ```bash
-# Trend Micro Configuration
+# Trend Micro Vision One File Security
+# API Documentation: https://automation.trendmicro.com/xdr/api-v3#tag/File-Security
+# Regional Domains: https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains
 TREND_MICRO_API_KEY=your-api-key-here
-TREND_MICRO_REGION=us-1
+TREND_MICRO_REGION=us
+TREND_MICRO_API_URL=https://api.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file
 
 # Email Configuration for Malware Alerts
 ADMIN_EMAIL=security@yourcompany.com
@@ -367,8 +411,9 @@ echo ".env" >> /var/www/filegator/.gitignore
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `TREND_MICRO_API_KEY` | Your TM API key | Yes | - |
-| `TREND_MICRO_REGION` | API region | No | us-1 |
+| `TREND_MICRO_API_KEY` | Your Vision One API key | Yes | - |
+| `TREND_MICRO_REGION` | API region: us, eu, jp, sg, au, in | No | us |
+| `TREND_MICRO_API_URL` | Override API URL (advanced) | No | Auto-generated from region |
 | `ADMIN_EMAIL` | Security alert recipient | Yes | - |
 | `SMTP_HOST` | SMTP server address | No | localhost |
 | `SMTP_PORT` | SMTP port | No | 587 |
@@ -1107,10 +1152,15 @@ Update ACL rules to include new users:
 
 ## Additional Resources
 
-### Documentation
+### Trend Micro Vision One Documentation
 
-- [Trend Micro Cloud One File Security](https://cloudone.trendmicro.com/docs/file-storage-security/)
-- [Trend Micro API Reference](https://cloudone.trendmicro.com/docs/file-storage-security/api-reference/)
+- [File Security API Reference](https://automation.trendmicro.com/xdr/api-v3#tag/File-Security) - Complete API documentation
+- [Vision One File Security Overview](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-file-security-intro-origin) - Product overview
+- [API Key Setup Guide](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-api-keys) - How to create API keys
+- [Node.js SDK](https://github.com/trendmicro/tm-v1-fs-nodejs-sdk) - Official SDK for reference
+
+### FileGator Documentation
+
 - [FileGator Documentation](https://docs.filegator.io/)
 - [FileGator Hooks Guide](https://docs.filegator.io/hooks.html)
 - [FileGator ACL Guide](https://docs.filegator.io/acl.html)

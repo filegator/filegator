@@ -261,12 +261,25 @@ try {
  */
 function scanFileWithTrendMicro($filePath, $fileName, $apiKey, $config) {
     // Get region and build endpoint
-    $region = $config['region'] ?? getenv('TREND_MICRO_REGION') ?: 'us-east-1';
+    // Vision One regions: us, eu, jp, sg, au, in
+    // Reference: https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains
+    $region = $config['region'] ?? getenv('TREND_MICRO_REGION') ?: 'us';
     $apiUrl = $config['api_url'] ?? getenv('TREND_MICRO_API_URL') ?: '';
+
+    // Vision One regional API domains
+    $regionDomains = [
+        'us' => 'api.xdr.trendmicro.com',
+        'eu' => 'api.eu.xdr.trendmicro.com',
+        'jp' => 'api.xdr.trendmicro.co.jp',
+        'sg' => 'api.sg.xdr.trendmicro.com',
+        'au' => 'api.au.xdr.trendmicro.com',
+        'in' => 'api.in.xdr.trendmicro.com',
+    ];
 
     // If no custom URL, build from region
     if (empty($apiUrl)) {
-        $apiUrl = "https://antimalware.{$region}.cloudone.trendmicro.com:443";
+        $domain = $regionDomains[$region] ?? $regionDomains['us'];
+        $apiUrl = "https://{$domain}/v3.0/sandbox/fileSecurity/file";
     }
 
     $scanTimeout = $config['scan_timeout'] ?? 60;

@@ -55,15 +55,18 @@ return [
         // Store API key in environment variable (not in this file)
         'api_key' => getenv('TREND_MICRO_API_KEY') ?: '',
 
-        // API region: us-1, eu-1, sg-1, au-1
-        'region' => getenv('TREND_MICRO_REGION') ?: 'us-1',
+        // Vision One region: us, eu, jp, sg, au, in
+        // Reference: https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains
+        'region' => getenv('TREND_MICRO_REGION') ?: 'us',
 
-        // API endpoints by region
+        // Vision One API endpoints by region
         'endpoints' => [
-            'us-1' => 'https://filesecurity.api.trendmicro.com/v1',
-            'eu-1' => 'https://filesecurity.eu-1.api.trendmicro.com/v1',
-            'sg-1' => 'https://filesecurity.sg-1.api.trendmicro.com/v1',
-            'au-1' => 'https://filesecurity.au-1.api.trendmicro.com/v1',
+            'us' => 'https://api.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'eu' => 'https://api.eu.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'jp' => 'https://api.xdr.trendmicro.co.jp/v3.0/sandbox/fileSecurity/file',
+            'sg' => 'https://api.sg.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'au' => 'https://api.au.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'in' => 'https://api.in.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
         ],
 
         // Scan settings

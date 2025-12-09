@@ -2,6 +2,13 @@
 
 This directory contains the Trend Micro Vision One File Security scanning hook for FileGator.
 
+## Official Trend Micro Documentation
+
+- **File Security API**: https://automation.trendmicro.com/xdr/api-v3#tag/File-Security
+- **Vision One File Security Overview**: https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-file-security-intro-origin
+- **SDK Documentation**: https://github.com/trendmicro/tm-v1-fs-nodejs-sdk
+- **API Key Setup**: https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-api-keys
+
 ## Hook: 02_scan_upload.php
 
 ### Purpose
@@ -59,7 +66,7 @@ Configuration is loaded from `/private/hooks/config.php` under the `trend_micro`
 'trend_micro' => [
     'enabled' => true,
     'api_key' => getenv('TREND_MICRO_API_KEY') ?: '',
-    'region' => 'us-east-1',
+    'region' => 'us',
 ],
 ```
 
@@ -70,7 +77,7 @@ Set these environment variables for secure credential management:
 ```bash
 # Required
 TREND_MICRO_API_KEY=your-api-key-here
-TREND_MICRO_REGION=us-east-1
+TREND_MICRO_REGION=us
 
 # Optional
 TREND_MICRO_API_URL=https://custom-endpoint.com
@@ -79,13 +86,18 @@ ADMIN_EMAIL=admin@example.com
 
 ### Supported Regions
 
-- `us-east-1` - US East (Virginia)
-- `eu-central-1` - Europe (Frankfurt)
-- `ap-northeast-1` - Asia Pacific (Tokyo)
-- `ap-southeast-1` - Asia Pacific (Singapore)
-- `ap-southeast-2` - Asia Pacific (Sydney)
-- `ap-south-1` - Asia Pacific (Mumbai)
-- `me-central-1` - Middle East (UAE)
+Determine your region from your Vision One portal URL (e.g., `portal.eu.xdr.trendmicro.com` = `eu`):
+
+| Region | Portal URL | API Endpoint |
+|--------|------------|--------------|
+| `us` | `portal.xdr.trendmicro.com` | `api.xdr.trendmicro.com` |
+| `eu` | `portal.eu.xdr.trendmicro.com` | `api.eu.xdr.trendmicro.com` |
+| `jp` | `portal.jp.xdr.trendmicro.com` | `api.xdr.trendmicro.co.jp` |
+| `sg` | `portal.sg.xdr.trendmicro.com` | `api.sg.xdr.trendmicro.com` |
+| `au` | `portal.au.xdr.trendmicro.com` | `api.au.xdr.trendmicro.com` |
+| `in` | `portal.in.xdr.trendmicro.com` | `api.in.xdr.trendmicro.com` |
+
+> **Reference**: [Regional Domains Documentation](https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains)
 
 ### Full Configuration Options
 
@@ -96,7 +108,7 @@ ADMIN_EMAIL=admin@example.com
 
     // API credentials
     'api_key' => getenv('TREND_MICRO_API_KEY') ?: '',
-    'region' => getenv('TREND_MICRO_REGION') ?: 'us-east-1',
+    'region' => getenv('TREND_MICRO_REGION') ?: 'us',
     'api_url' => getenv('TREND_MICRO_API_URL') ?: '',
 
     // Scan settings
@@ -138,21 +150,21 @@ Configure environment variables in your web server or PHP-FPM configuration:
 **Apache (.htaccess or httpd.conf)**:
 ```apache
 SetEnv TREND_MICRO_API_KEY "your-api-key-here"
-SetEnv TREND_MICRO_REGION "us-east-1"
+SetEnv TREND_MICRO_REGION "us"
 SetEnv ADMIN_EMAIL "admin@example.com"
 ```
 
 **Nginx (fastcgi_params)**:
 ```nginx
 fastcgi_param TREND_MICRO_API_KEY "your-api-key-here";
-fastcgi_param TREND_MICRO_REGION "us-east-1";
+fastcgi_param TREND_MICRO_REGION "us";
 fastcgi_param ADMIN_EMAIL "admin@example.com";
 ```
 
 **PHP-FPM (pool.d/www.conf)**:
 ```ini
 env[TREND_MICRO_API_KEY] = "your-api-key-here"
-env[TREND_MICRO_REGION] = "us-east-1"
+env[TREND_MICRO_REGION] = "us"
 env[ADMIN_EMAIL] = "admin@example.com"
 ```
 
@@ -182,19 +194,39 @@ Update `/private/hooks/config.php`:
 
 The hook uses API key authentication with the Trend Micro Vision One File Security API.
 
+> **Official Documentation**: For complete API details, see the [Trend Micro File Security API Reference](https://automation.trendmicro.com/xdr/api-v3#tag/File-Security).
+
 **How to obtain API key:**
-1. Log into Trend Vision One console
+1. Log into [Trend Vision One console](https://portal.xdr.trendmicro.com/)
 2. Navigate to **Administration** > **API Keys**
 3. Click **Add API Key**
 4. Select role with "Run file scan via SDK" permission
 5. Set an expiry time (recommended: 1 year)
 6. Copy the generated API key
 
+> **Important**: Match your API key region to the `--region` parameter when installing.
+
+### API Endpoint Format
+
+The API URL is constructed based on the selected Vision One region:
+
+```
+https://api.{region}.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file
+```
+
+**Example endpoints by region:**
+| Region | Endpoint |
+|--------|----------|
+| `us` | `https://api.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file` |
+| `eu` | `https://api.eu.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file` |
+| `jp` | `https://api.xdr.trendmicro.co.jp/v3.0/sandbox/fileSecurity/file` |
+| `sg` | `https://api.sg.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file` |
+
 ### API Request Format
 
 ```http
-POST https://antimalware.{region}.cloudone.trendmicro.com:443/scan
-Authorization: ApiKey {your-api-key}
+POST https://api.{region}.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file
+Authorization: Bearer {your-api-key}
 Content-Type: application/octet-stream
 Content-Length: {file-size}
 
