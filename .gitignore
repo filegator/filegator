@@ -32,12 +32,17 @@ tags
 *.sw*
 
 # Claude Flow generated files
+Claude.md
+.claude/
+.claudeignore
+.claude-flow/
+claude-flow-config.json
+claude-flow-history.json
 .claude/settings.local.json
 .mcp.json
 claude-flow.config.json
 .swarm/
 .hive-mind/
-.claude-flow/
 memory/
 coordination/
 memory/claude-flow-data.json
@@ -48,6 +53,8 @@ memory/agents/*
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
+.env
+.env.local
 *.db
 *.db-journal
 *.db-wal
