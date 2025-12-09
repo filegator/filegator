@@ -296,4 +296,52 @@ return [
         'verify_mime' => true,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Trend Micro Vision One File Security
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for Trend Micro Vision One File Security API integration.
+    | Scans uploaded files for malware using Trend Micro's cloud scanning service.
+    |
+    | API Key: Obtain from Trend Vision One console under Administration > API Keys
+    | Required Permission: "Run file scan via SDK"
+    |
+    */
+    'trend_micro' => [
+        // Enable/disable Trend Micro scanning
+        'enabled' => false,
+
+        // API credentials (use environment variables for security)
+        'api_key' => getenv('TREND_MICRO_API_KEY') ?: '',
+
+        // Region: 'us-east-1', 'eu-central-1', 'ap-northeast-1', 'ap-southeast-1',
+        //         'ap-southeast-2', 'ap-south-1', 'me-central-1'
+        'region' => getenv('TREND_MICRO_REGION') ?: 'us-east-1',
+
+        // Custom API endpoint (optional, auto-configured from region if empty)
+        'api_url' => getenv('TREND_MICRO_API_URL') ?: '',
+
+        // Scan timeout in seconds (max time to wait for scan result)
+        'scan_timeout' => 60,
+
+        // Maximum file size to scan (bytes, default: 100MB)
+        'max_file_size' => 100 * 1024 * 1024,
+
+        // File extensions to skip scanning (empty array = scan all)
+        'skip_extensions' => [],
+
+        // Log file for Trend Micro scan activity
+        'log_file' => __DIR__ . '/../logs/trend_micro.log',
+
+        // Separate log file for malware detections
+        'malware_log' => __DIR__ . '/../logs/malware_detections.log',
+
+        // Action on scan errors
+        'on_error' => [
+            'action' => 'continue',  // 'continue' = allow upload, 'quarantine', 'delete'
+            'quarantine_dir' => __DIR__ . '/../quarantine',
+        ],
+    ],
+
 ];
