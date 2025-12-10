@@ -1,0 +1,37 @@
+<?php
+/**
+ * Example onLogout hook - Log user logouts
+ *
+ * This hook is triggered when a user logs out.
+ *
+ * Available data in $hookData:
+ *   - username: Username of the user logging out
+ *   - ip_address: IP address of the client
+ *
+ * Use cases:
+ *   - Audit logging
+ *   - Session cleanup
+ *   - Analytics tracking
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/auth.log';
+$timestamp = date('Y-m-d H:i:s');
+
+$logEntry = sprintf(
+    "[%s] LOGOUT: User '%s' logged out from IP '%s'\n",
+    $timestamp,
+    $hookData['username'],
+    $hookData['ip_address']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;

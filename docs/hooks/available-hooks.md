@@ -13,11 +13,11 @@ Triggered when a file upload completes successfully.
 **Data provided**:
 ```php
 $hookData = [
-    'file_path' => '/path/to/file.txt',  // Destination path in repository
-    'file_name' => 'file.txt',            // Original filename
-    'file_size' => 1048576,               // File size in bytes
-    'user' => 'john',                     // Username who uploaded
-    'home_dir' => '/users/john',          // User's home directory
+    'file_path' => '/documents/file.txt',  // Destination path in repository
+    'file_name' => 'file.txt',             // Original filename
+    'file_size' => 1048576,                // File size in bytes
+    'user' => 'john',                      // Username who uploaded
+    'home_dir' => '/users/john',           // User's home directory
 ];
 ```
 
@@ -34,7 +34,8 @@ $hookData = [
 <?php
 // Log upload to external service
 $logEntry = sprintf(
-    "File uploaded: %s by %s (%d bytes)",
+    "[%s] File uploaded: %s by %s (%d bytes)",
+    date('Y-m-d H:i:s'),
     $hookData['file_name'],
     $hookData['user'],
     $hookData['file_size']
@@ -47,61 +48,30 @@ return ['status' => 'logged'];
 
 ---
 
-### onDelete
-
-Triggered before a file or directory is deleted.
-
-**When**: After the delete request is validated but before actual deletion.
-
-**Data provided**:
-```php
-$hookData = [
-    'file_path' => '/path/to/file.txt',  // Path being deleted
-    'file_name' => 'file.txt',           // Name of file/folder
-    'type' => 'file',                    // 'file' or 'dir'
-    'user' => 'john',                    // Username performing deletion
-];
-```
-
-**Use cases**:
-- Creating backups before deletion
-- Audit logging
-- Preventing deletion of protected files
-- Cleaning up related resources
-
-**Example**:
-```php
-<?php
-// Backup file before deletion
-$backupDir = '/var/backups/filegator/' . date('Y-m-d');
-if (!is_dir($backupDir)) {
-    mkdir($backupDir, 0755, true);
-}
-
-$repoPath = __DIR__ . '/../../repository';
-$fullPath = $repoPath . $hookData['file_path'];
-
-if (file_exists($fullPath) && $hookData['type'] === 'file') {
-    copy($fullPath, $backupDir . '/' . $hookData['file_name']);
-}
-
-return ['backed_up' => true];
-```
-
----
-
 ### onDownload
 
 Triggered when a file download is initiated.
 
 **When**: Before the file stream is sent to the client.
 
-**Data provided**:
+**Data provided** (single file download):
 ```php
 $hookData = [
-    'file_path' => '/path/to/file.txt',  // Path being downloaded
-    'file_name' => 'file.txt',           // Filename
-    'user' => 'john',                    // Username downloading
+    'file_path' => '/documents/file.txt',  // Path being downloaded
+    'file_name' => 'file.txt',             // Filename
+    'file_size' => 1048576,                // File size in bytes
+    'user' => 'john',                      // Username downloading
+];
+```
+
+**Data provided** (batch download):
+```php
+$hookData = [
+    'file_path' => '/documents/folder',    // Path being downloaded
+    'file_name' => 'folder',               // Item name
+    'type' => 'dir',                       // 'file' or 'dir'
+    'batch_download' => true,              // Indicates batch download
+    'user' => 'john',                      // Username downloading
 ];
 ```
 
@@ -110,6 +80,47 @@ $hookData = [
 - Access logging for compliance
 - Bandwidth throttling
 - Checking download permissions
+
+---
+
+### onDelete
+
+Triggered after a file or directory is deleted.
+
+**When**: After the delete operation completes successfully.
+
+**Data provided**:
+```php
+$hookData = [
+    'file_path' => '/documents/file.txt',  // Full path of deleted item
+    'file_name' => 'file.txt',             // Name of file/folder
+    'type' => 'file',                      // 'file' or 'dir'
+    'user' => 'john',                      // Username performing deletion
+];
+```
+
+**Use cases**:
+- Audit logging
+- Cleaning up related resources
+- Sync with external systems
+- Notification of deletions
+
+**Example**:
+```php
+<?php
+// Log deletion
+$logEntry = sprintf(
+    "[%s] DELETED: %s '%s' by user '%s'",
+    date('Y-m-d H:i:s'),
+    $hookData['type'] === 'dir' ? 'Directory' : 'File',
+    $hookData['file_path'],
+    $hookData['user']
+);
+
+file_put_contents('/var/log/deletions.log', $logEntry . "\n", FILE_APPEND);
+
+return ['logged' => true];
+```
 
 ---
 
@@ -122,12 +133,18 @@ Triggered when a new file or directory is created.
 **Data provided**:
 ```php
 $hookData = [
-    'file_path' => '/path/',             // Parent directory
-    'file_name' => 'newfile.txt',        // Created item name
-    'type' => 'file',                    // 'file' or 'dir'
-    'user' => 'john',                    // Username
+    'file_path' => '/documents/newfile.txt',  // Full path of created item
+    'file_name' => 'newfile.txt',             // Created item name
+    'type' => 'file',                         // 'file' or 'dir'
+    'user' => 'john',                         // Username
 ];
 ```
+
+**Use cases**:
+- Audit logging
+- Setting default permissions
+- Triggering workflows
+- Notification of new content
 
 ---
 
@@ -140,12 +157,19 @@ Triggered when a file or directory is renamed.
 **Data provided**:
 ```php
 $hookData = [
-    'from' => 'oldname.txt',             // Original name
-    'to' => 'newname.txt',               // New name
-    'destination' => '/path/',           // Directory containing the item
-    'user' => 'john',                    // Username
+    'old_path' => '/documents/oldname.txt',   // Original full path
+    'new_path' => '/documents/newname.txt',   // New full path
+    'old_name' => 'oldname.txt',              // Original name
+    'new_name' => 'newname.txt',              // New name
+    'directory' => '/documents',              // Parent directory
+    'user' => 'john',                         // Username
 ];
 ```
+
+**Use cases**:
+- Audit logging
+- Updating references in databases
+- Syncing with external systems
 
 ---
 
@@ -158,11 +182,18 @@ Triggered when a file or directory is moved.
 **Data provided**:
 ```php
 $hookData = [
-    'from' => '/old/path/file.txt',      // Original path
-    'to' => '/new/path/file.txt',        // New path
-    'user' => 'john',                    // Username
+    'source_path' => '/inbox/file.txt',       // Original path
+    'destination_path' => '/archive/file.txt', // New path
+    'file_name' => 'file.txt',                // Item name
+    'type' => 'file',                         // 'file' or 'dir'
+    'user' => 'john',                         // Username
 ];
 ```
+
+**Use cases**:
+- Audit logging
+- Workflow triggers
+- Sync with external systems
 
 ---
 
@@ -175,12 +206,18 @@ Triggered when a file or directory is copied.
 **Data provided**:
 ```php
 $hookData = [
-    'source' => '/source/file.txt',      // Source path
-    'destination' => '/dest/',           // Destination directory
-    'type' => 'file',                    // 'file' or 'dir'
-    'user' => 'john',                    // Username
+    'source_path' => '/documents/file.txt',   // Source path
+    'destination' => '/backup',               // Destination directory
+    'file_name' => 'file.txt',                // Item name
+    'type' => 'file',                         // 'file' or 'dir'
+    'user' => 'john',                         // Username
 ];
 ```
+
+**Use cases**:
+- Audit logging
+- Tracking disk usage
+- Triggering backup workflows
 
 ---
 
@@ -195,8 +232,10 @@ Triggered when a user successfully logs in.
 **Data provided**:
 ```php
 $hookData = [
-    'username' => 'john',                // Username
-    'ip_address' => '192.168.1.100',     // Client IP
+    'username' => 'john',                     // Username
+    'ip_address' => '192.168.1.100',          // Client IP
+    'home_dir' => '/users/john',              // User's home directory
+    'role' => 'admin',                        // User's role
 ];
 ```
 
@@ -205,6 +244,30 @@ $hookData = [
 - Security monitoring
 - Session tracking
 - Two-factor authentication triggers
+- IP-based access logging
+
+**Example**:
+```php
+<?php
+// Security logging
+$logEntry = sprintf(
+    "[%s] LOGIN: User '%s' (role: %s) from IP %s",
+    date('Y-m-d H:i:s'),
+    $hookData['username'],
+    $hookData['role'],
+    $hookData['ip_address']
+);
+
+file_put_contents('/var/log/auth.log', $logEntry . "\n", FILE_APPEND);
+
+// Check for suspicious login patterns
+if (in_array($hookData['ip_address'], ['10.0.0.1', '10.0.0.2'])) {
+    // Send alert notification
+    mail('admin@example.com', 'Security Alert', 'Login from monitored IP');
+}
+
+return true;
+```
 
 ---
 
@@ -212,14 +275,20 @@ $hookData = [
 
 Triggered when a user logs out.
 
-**When**: When the logout action is performed.
+**When**: Before the logout action completes.
 
 **Data provided**:
 ```php
 $hookData = [
-    'username' => 'john',                // Username
+    'username' => 'john',                     // Username
+    'ip_address' => '192.168.1.100',          // Client IP
 ];
 ```
+
+**Use cases**:
+- Session tracking
+- Audit logging
+- Analytics
 
 ---
 
@@ -238,7 +307,7 @@ Hooks can return different values to control execution:
 **Example - Stopping execution**:
 ```php
 <?php
-// Prevent deletion of protected files
+// Prevent operation on protected files
 if (strpos($hookData['file_path'], '/protected/') === 0) {
     return false; // Stops further hooks
 }
@@ -256,3 +325,17 @@ return [
     'processed_at' => date('Y-m-d H:i:s'),
 ];
 ```
+
+## Summary Table
+
+| Hook | Trigger Event | Key Data Fields |
+|------|---------------|-----------------|
+| `onUpload` | File upload complete | `file_path`, `file_name`, `file_size`, `user`, `home_dir` |
+| `onDownload` | File download starts | `file_path`, `file_name`, `file_size`, `user`, `batch_download` |
+| `onDelete` | File/dir deleted | `file_path`, `file_name`, `type`, `user` |
+| `onCreate` | File/dir created | `file_path`, `file_name`, `type`, `user` |
+| `onRename` | File/dir renamed | `old_path`, `new_path`, `old_name`, `new_name`, `directory`, `user` |
+| `onMove` | File/dir moved | `source_path`, `destination_path`, `file_name`, `type`, `user` |
+| `onCopy` | File/dir copied | `source_path`, `destination`, `file_name`, `type`, `user` |
+| `onLogin` | User logs in | `username`, `ip_address`, `home_dir`, `role` |
+| `onLogout` | User logs out | `username`, `ip_address` |

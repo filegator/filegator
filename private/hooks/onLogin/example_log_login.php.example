@@ -1,0 +1,42 @@
+<?php
+/**
+ * Example onLogin hook - Log successful user logins
+ *
+ * This hook is triggered when a user successfully logs in.
+ *
+ * Available data in $hookData:
+ *   - username: Username of the logged-in user
+ *   - ip_address: IP address of the client
+ *   - home_dir: User's home directory
+ *   - role: User's role (e.g., 'admin', 'user', 'guest')
+ *
+ * Use cases:
+ *   - Audit logging
+ *   - Security monitoring
+ *   - Session tracking
+ *   - IP-based access control
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/auth.log';
+$timestamp = date('Y-m-d H:i:s');
+
+$logEntry = sprintf(
+    "[%s] LOGIN: User '%s' (role: %s) logged in from IP '%s' - Home: '%s'\n",
+    $timestamp,
+    $hookData['username'],
+    $hookData['role'],
+    $hookData['ip_address'],
+    $hookData['home_dir']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;

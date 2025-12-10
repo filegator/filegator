@@ -1,0 +1,39 @@
+<?php
+/**
+ * Example onDownload hook - Log file downloads
+ *
+ * This hook is triggered when a file is downloaded.
+ *
+ * Available data in $hookData:
+ *   - file_path: Full path to the downloaded file
+ *   - file_name: Name of the downloaded file
+ *   - file_size: Size of the file in bytes (for single downloads)
+ *   - type: 'file' or 'dir' (for batch downloads)
+ *   - batch_download: true if part of a batch download (optional)
+ *   - user: Username of the user downloading the file
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/downloads.log';
+$timestamp = date('Y-m-d H:i:s');
+$isBatch = isset($hookData['batch_download']) && $hookData['batch_download'] ? ' [BATCH]' : '';
+
+$logEntry = sprintf(
+    "[%s] DOWNLOAD%s: User '%s' downloaded '%s' from '%s'\n",
+    $timestamp,
+    $isBatch,
+    $hookData['user'],
+    $hookData['file_name'],
+    $hookData['file_path']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;

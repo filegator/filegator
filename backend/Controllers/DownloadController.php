@@ -16,6 +16,7 @@ use Filegator\Kernel\Response;
 use Filegator\Kernel\StreamedResponse;
 use Filegator\Services\Archiver\ArchiverInterface;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Hooks\HooksInterface;
 use Filegator\Services\PathACL\PathACLInterface;
 use Filegator\Services\Session\SessionStorageInterface as Session;
 use Filegator\Services\Storage\Filesystem;
@@ -34,18 +35,29 @@ class DownloadController
     protected $storage;
 
     protected $pathacl;
+    protected $hooks;
 
-    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage, PathACLInterface $pathacl = null)
+    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage, PathACLInterface $pathacl = null, HooksInterface $hooks = null)
     {
         $this->session = $session;
         $this->config = $config;
         $this->auth = $auth;
         $this->pathacl = $pathacl;
+        $this->hooks = $hooks;
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
 
         $this->storage = $storage;
         $this->storage->setPathPrefix($user->getHomeDir());
+    }
+
+    /**
+     * Get the current user's username
+     */
+    protected function getUsername(): string
+    {
+        $user = $this->auth->user() ?: $this->auth->getGuest();
+        return $user ? $user->getUsername() : 'guest';
     }
 
     /**
@@ -95,6 +107,16 @@ class DownloadController
             $file = $this->storage->readStream($path);
         } catch (\Exception $e) {
             return $response->redirect('/');
+        }
+
+        // Trigger onDownload hook
+        if ($this->hooks) {
+            $this->hooks->trigger('onDownload', [
+                'file_path' => $path,
+                'file_name' => $file['filename'],
+                'file_size' => $file['filesize'] ?? 0,
+                'user' => $this->getUsername(),
+            ]);
         }
 
         $streamedResponse->setCallback(function () use ($file) {
@@ -183,6 +205,17 @@ class DownloadController
             }
             if ($item->type == 'file') {
                 $archiver->addFileFromStorage($item->path);
+            }
+
+            // Trigger onDownload hook for each item in batch
+            if ($this->hooks) {
+                $this->hooks->trigger('onDownload', [
+                    'file_path' => $item->path,
+                    'file_name' => $item->name,
+                    'type' => $item->type,
+                    'batch_download' => true,
+                    'user' => $this->getUsername(),
+                ]);
             }
         }
 

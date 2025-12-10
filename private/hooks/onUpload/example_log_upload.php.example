@@ -1,0 +1,47 @@
+<?php
+/**
+ * Example onUpload hook - Log file uploads to a file
+ *
+ * This hook is triggered when a file upload completes successfully.
+ *
+ * Available data in $hookData:
+ *   - file_path: Full path to the uploaded file (e.g., '/documents/report.pdf')
+ *   - file_name: Name of the uploaded file (e.g., 'report.pdf')
+ *   - file_size: Size of the uploaded file in bytes
+ *   - user: Username of the user who uploaded the file
+ *   - home_dir: User's home directory
+ *
+ * Return values:
+ *   - true or null: Success, continue processing other hooks
+ *   - false: Stop processing (prevents other hooks from running)
+ *   - array: Custom result data
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/uploads.log';
+$timestamp = date('Y-m-d H:i:s');
+
+$logEntry = sprintf(
+    "[%s] UPLOAD: User '%s' uploaded '%s' (%d bytes) to '%s'\n",
+    $timestamp,
+    $hookData['user'],
+    $hookData['file_name'],
+    $hookData['file_size'],
+    $hookData['file_path']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+// Append to log file
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+// Return success
+return [
+    'status' => 'logged',
+    'message' => 'Upload logged successfully',
+];
