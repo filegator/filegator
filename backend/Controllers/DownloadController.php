@@ -16,6 +16,11 @@ use Filegator\Kernel\Response;
 use Filegator\Kernel\StreamedResponse;
 use Filegator\Services\Archiver\ArchiverInterface;
 use Filegator\Services\Auth\AuthInterface;
+<<<<<<< Updated upstream
+=======
+use Filegator\Services\Hooks\HooksInterface;
+use Filegator\Services\PathACL\PathACLInterface;
+>>>>>>> Stashed changes
 use Filegator\Services\Session\SessionStorageInterface as Session;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\TmpfsInterface;
@@ -32,11 +37,24 @@ class DownloadController
 
     protected $storage;
 
+<<<<<<< Updated upstream
     public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage)
+=======
+    protected $pathacl;
+
+    protected $hooks;
+
+    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage, PathACLInterface $pathacl = null, HooksInterface $hooks = null)
+>>>>>>> Stashed changes
     {
         $this->session = $session;
         $this->config = $config;
         $this->auth = $auth;
+<<<<<<< Updated upstream
+=======
+        $this->pathacl = $pathacl;
+        $this->hooks = $hooks;
+>>>>>>> Stashed changes
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
 
@@ -44,12 +62,68 @@ class DownloadController
         $this->storage->setPathPrefix($user->getHomeDir());
     }
 
+<<<<<<< Updated upstream
+=======
+    /**
+     * Get the current user's username
+     */
+    protected function getUsername(): string
+    {
+        $user = $this->auth->user() ?: $this->auth->getGuest();
+        return $user ? $user->getUsername() : 'guest';
+    }
+
+    /**
+     * Check PathACL permission for the current user and path
+     *
+     * @param Request $request HTTP request object
+     * @param string $path File/folder path
+     * @param string $permission Permission to check
+     * @return bool True if allowed
+     */
+    protected function checkPathACL(Request $request, string $path, string $permission): bool
+    {
+        // If PathACL is not injected or not enabled, allow (fall back to global permissions)
+        if (!$this->pathacl || !$this->pathacl->isEnabled()) {
+            return true;
+        }
+
+        $user = $this->auth->user() ?: $this->auth->getGuest();
+        $clientIp = $request->getClientIp();
+
+        return $this->pathacl->checkPermission($user, $clientIp, $path, $permission);
+    }
+
+    /**
+     * Return 403 Forbidden response with error message
+     *
+     * @param Response $response Response object
+     * @param string $message Error message
+     * @return Response
+     */
+    protected function forbidden(Response $response, string $message = 'Access denied by path ACL'): Response
+    {
+        $response->setStatusCode(403);
+        return $response->json(['error' => $message]);
+    }
+
+>>>>>>> Stashed changes
     public function download(Request $request, Response $response, StreamedResponse $streamedResponse)
     {
         try {
             $file = $this->storage->readStream((string) base64_decode($request->input('path')));
         } catch (\Exception $e) {
             return $response->redirect('/');
+        }
+
+        // Trigger onDownload hook
+        if ($this->hooks) {
+            $this->hooks->trigger('onDownload', [
+                'file_path' => $path,
+                'file_name' => $file['filename'],
+                'file_size' => $file['filesize'] ?? 0,
+                'user' => $this->getUsername(),
+            ]);
         }
 
         $streamedResponse->setCallback(function () use ($file) {
@@ -131,6 +205,17 @@ class DownloadController
             }
             if ($item->type == 'file') {
                 $archiver->addFileFromStorage($item->path);
+            }
+
+            // Trigger onDownload hook for each item in batch
+            if ($this->hooks) {
+                $this->hooks->trigger('onDownload', [
+                    'file_path' => $item->path,
+                    'file_name' => $item->name,
+                    'type' => $item->type,
+                    'batch_download' => true,
+                    'user' => $this->getUsername(),
+                ]);
             }
         }
 
