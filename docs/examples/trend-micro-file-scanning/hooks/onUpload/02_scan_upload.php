@@ -249,9 +249,8 @@ try {
 /**
  * Scan file with Trend Micro Vision One File Security API
  *
- * Note: Trend Micro primarily uses SDK-based integration (Node.js, Python, Java, Go)
- * This implementation provides a PHP wrapper that can call the API via HTTP.
- * For production use, consider using the official SDKs via CLI or separate service.
+ * Uses the Trend Micro Vision One File Security PHP SDK for scanning.
+ * Falls back to direct API call if SDK is not available.
  *
  * @param string $filePath Absolute path to file
  * @param string $fileName File name
@@ -260,6 +259,114 @@ try {
  * @return array Result array with keys: status, malware_found, scan_id, threats, error
  */
 function scanFileWithTrendMicro($filePath, $fileName, $apiKey, $config) {
+    // Load SDK if available
+    $sdkPath = dirname(__DIR__, 2) . '/lib/TrendMicroScanner.php';
+    if (file_exists($sdkPath)) {
+        return scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath);
+    }
+
+    // Fallback to direct API call if SDK not available
+    return scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config);
+}
+
+/**
+ * Scan file using the Trend Micro PHP SDK
+ *
+ * @param string $filePath Absolute path to file
+ * @param string $fileName File name
+ * @param string $apiKey Trend Micro API key
+ * @param array $config Configuration array
+ * @param string $sdkPath Path to SDK file
+ * @return array Result array
+ */
+function scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath) {
+    require_once $sdkPath;
+
+    try {
+        $region = $config['region'] ?? getenv('TREND_MICRO_REGION') ?: 'us';
+        $timeout = $config['scan_timeout'] ?? 300;
+        $debug = $config['debug'] ?? false;
+
+        $scanner = new TrendMicroScanner($region, $apiKey, $timeout, $debug);
+
+        // Set log file if configured
+        $logFile = $config['log_file'] ?? null;
+        if ($logFile) {
+            $scanner->setLogFile($logFile);
+        }
+
+        // Perform scan
+        $result = $scanner->scanFile($filePath);
+
+        $scanner->close();
+
+        // Convert SDK result to hook format
+        if ($result->hasMalware()) {
+            $threats = [];
+            foreach ($result->getFoundMalwares() as $malware) {
+                $threats[] = [
+                    'malwareName' => $malware->getMalwareName(),
+                    'fileName' => $malware->getFileName(),
+                    'type' => $malware->getType(),
+                    'filter' => $malware->getFilter(),
+                ];
+            }
+
+            return [
+                'status' => 'malware',
+                'malware_found' => true,
+                'scan_id' => $result->getScanId(),
+                'threats' => $threats,
+                'file_sha256' => $result->getFileSha256(),
+                'scan_timestamp' => date('c'),
+            ];
+        }
+
+        return [
+            'status' => 'clean',
+            'malware_found' => false,
+            'scan_id' => $result->getScanId(),
+            'file_sha256' => $result->getFileSha256(),
+            'scan_timestamp' => date('c'),
+        ];
+
+    } catch (TrendMicro\FileSecurity\Exception\AuthenticationException $e) {
+        return [
+            'status' => 'error',
+            'error' => 'Authentication failed: ' . $e->getMessage(),
+            'malware_found' => false,
+        ];
+    } catch (TrendMicro\FileSecurity\Exception\ConnectionException $e) {
+        return [
+            'status' => 'error',
+            'error' => 'Connection failed: ' . $e->getMessage(),
+            'malware_found' => false,
+        ];
+    } catch (TrendMicro\FileSecurity\Exception\TimeoutException $e) {
+        return [
+            'status' => 'error',
+            'error' => 'Scan timed out: ' . $e->getMessage(),
+            'malware_found' => false,
+        ];
+    } catch (Exception $e) {
+        return [
+            'status' => 'error',
+            'error' => 'SDK error: ' . $e->getMessage(),
+            'malware_found' => false,
+        ];
+    }
+}
+
+/**
+ * Scan file with direct API call (fallback when SDK not available)
+ *
+ * @param string $filePath Absolute path to file
+ * @param string $fileName File name
+ * @param string $apiKey Trend Micro API key
+ * @param array $config Configuration array
+ * @return array Result array with keys: status, malware_found, scan_id, threats, error
+ */
+function scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config) {
     // Get region and build endpoint
     // Vision One regions: us, eu, jp, sg, au, in
     // Reference: https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains
