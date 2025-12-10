@@ -377,6 +377,7 @@ class TrendMicroInstaller
                 throw new Exception("Failed to write hooks config: $dest");
             }
             chmod($dest, 0600);
+            $this->setWebServerOwnership($dest);
             echo "  Created: hooks/config.php\n";
         } else {
             echo "  [DRY RUN] Would create: hooks/config.php\n";
@@ -418,6 +419,7 @@ class TrendMicroInstaller
                 throw new Exception("Failed to write ACL config: $dest");
             }
             chmod($dest, 0600);
+            $this->setWebServerOwnership($dest);
             echo "  Created: acl_config.php\n";
             echo "  Gateway IP: {$this->config['gateway_ip']}\n";
         } else {
@@ -626,30 +628,121 @@ CONFIG;
     }
 
     /**
-     * Set proper file permissions
+     * Set proper file permissions and ownership
+     *
+     * Files are owned by www-data:www-data with 0600 permissions for security.
+     * This ensures only the web server can read sensitive config files.
      */
     private function setFilePermissions()
     {
-        $permissions = [
+        // Files that need www-data ownership with restrictive permissions
+        $secureFiles = [
             '/private/acl_config.php' => 0600,
             '/private/hooks/config.php' => 0600,
             '/private/users.json' => 0600,
-            '/private/hooks/onUpload/01_move_from_download.php' => 0755,
-            '/private/hooks/onUpload/02_scan_upload.php' => 0755,
-            '/private/quarantine' => 0700,
+            '/.env' => 0600,
         ];
 
-        foreach ($permissions as $file => $perm) {
+        // Executable files (hooks)
+        $executableFiles = [
+            '/private/hooks/onUpload/01_move_from_download.php' => 0755,
+            '/private/hooks/onUpload/02_scan_upload.php' => 0755,
+        ];
+
+        // Directories that need www-data write access
+        $directories = [
+            '/private/quarantine' => 0700,
+            '/private/logs' => 0700,
+            '/repository/upload' => 0755,
+            '/repository/scanned' => 0755,
+            '/repository/download' => 0755,
+        ];
+
+        // Process secure config files
+        foreach ($secureFiles as $file => $perm) {
             $fullPath = $this->filegatorPath . $file;
             if (file_exists($fullPath)) {
                 if (!$this->dryRun) {
                     chmod($fullPath, $perm);
+                    $this->setWebServerOwnership($fullPath);
+                    echo "  Set permissions " . decoct($perm) . " (www-data) on: $file\n";
+                } else {
+                    echo "  [DRY RUN] Would set permissions " . decoct($perm) . " (www-data) on: $file\n";
+                }
+            }
+        }
+
+        // Process executable files
+        foreach ($executableFiles as $file => $perm) {
+            $fullPath = $this->filegatorPath . $file;
+            if (file_exists($fullPath)) {
+                if (!$this->dryRun) {
+                    chmod($fullPath, $perm);
+                    $this->setWebServerOwnership($fullPath);
                     echo "  Set permissions " . decoct($perm) . " on: $file\n";
                 } else {
                     echo "  [DRY RUN] Would set permissions " . decoct($perm) . " on: $file\n";
                 }
             }
         }
+
+        // Process directories
+        foreach ($directories as $dir => $perm) {
+            $fullPath = $this->filegatorPath . $dir;
+            if (is_dir($fullPath)) {
+                if (!$this->dryRun) {
+                    chmod($fullPath, $perm);
+                    $this->setWebServerOwnership($fullPath);
+                    echo "  Set permissions " . decoct($perm) . " (www-data) on: $dir\n";
+                } else {
+                    echo "  [DRY RUN] Would set permissions " . decoct($perm) . " (www-data) on: $dir\n";
+                }
+            }
+        }
+    }
+
+    /**
+     * Set web server ownership on a file or directory
+     *
+     * Attempts to chown to www-data:www-data. Requires root privileges.
+     * Falls back gracefully if chown fails (non-root installation).
+     *
+     * @param string $path File or directory path
+     * @return bool True if successful
+     */
+    private function setWebServerOwnership(string $path): bool
+    {
+        // Detect web server user (www-data on Debian/Ubuntu, apache on RHEL/CentOS, nginx)
+        $webUser = 'www-data';
+        $webGroup = 'www-data';
+
+        // Try to detect the web server user
+        if (function_exists('posix_getpwnam')) {
+            if (!posix_getpwnam('www-data')) {
+                if (posix_getpwnam('apache')) {
+                    $webUser = 'apache';
+                    $webGroup = 'apache';
+                } elseif (posix_getpwnam('nginx')) {
+                    $webUser = 'nginx';
+                    $webGroup = 'nginx';
+                }
+            }
+        }
+
+        // Attempt to change ownership
+        $success = @chown($path, $webUser) && @chgrp($path, $webGroup);
+
+        if (!$success && posix_getuid() !== 0) {
+            // Not running as root, warn user
+            static $warned = false;
+            if (!$warned) {
+                $this->printWarning("  Note: Run as root to set www-data ownership, or run:\n");
+                $this->printWarning("        sudo chown -R {$webUser}:{$webGroup} {$this->filegatorPath}/private\n");
+                $warned = true;
+            }
+        }
+
+        return $success;
     }
 
     /**
