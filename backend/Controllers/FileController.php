@@ -101,9 +101,19 @@ class FileController
     {
         $path = $request->input('to', $this->separator);
 
+        // Check PathACL permission for the target directory
+        if (!$this->checkPathACL($request, $path, 'read')) {
+            return $this->forbidden($response, 'Access denied: cannot access this directory');
+        }
+
         $this->session->set(self::SESSION_CWD, $path);
 
-        return $response->json($this->storage->getDirectoryCollection($path));
+        $content = $this->storage->getDirectoryCollection($path);
+
+        // Filter out items the user cannot access
+        $content = $this->filterDirectoryByACL($request, $content);
+
+        return $response->json($content);
     }
 
     public function getDirectory(Request $request, Response $response)
@@ -117,7 +127,41 @@ class FileController
 
         $content = $this->storage->getDirectoryCollection($path);
 
+        // Filter out items the user cannot access
+        $content = $this->filterDirectoryByACL($request, $content);
+
         return $response->json($content);
+    }
+
+    /**
+     * Filter directory collection to remove items user cannot access
+     *
+     * @param Request $request HTTP request object
+     * @param \Filegator\Services\Storage\DirectoryCollection $collection Directory collection
+     * @return \Filegator\Services\Storage\DirectoryCollection Filtered collection
+     */
+    protected function filterDirectoryByACL(Request $request, $collection)
+    {
+        // If PathACL is not enabled, return unfiltered
+        if (!$this->pathacl || !$this->pathacl->isEnabled()) {
+            return $collection;
+        }
+
+        $user = $this->auth->user() ?: $this->auth->getGuest();
+        $clientIp = $request->getClientIp();
+
+        // Filter items based on read permission
+        $collection->filter(function ($item) use ($user, $clientIp) {
+            // Always allow the "back" navigation item (..)
+            if ($item['type'] === 'back') {
+                return true;
+            }
+
+            // Check if user can read this path
+            return $this->pathacl->checkPermission($user, $clientIp, $item['path'], 'read');
+        });
+
+        return $collection;
     }
 
     public function createNew(Request $request, Response $response)
