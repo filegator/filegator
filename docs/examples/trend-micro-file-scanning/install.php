@@ -507,28 +507,30 @@ class TrendMicroInstaller
         }
 
         $content = file_get_contents($configFile);
+        $modified = false;
 
         // Check if PathACL is configured
         $hasPathACL = strpos($content, 'PathACLInterface') !== false;
         $hasHooks = strpos($content, 'HooksInterface') !== false;
 
-        if (!$hasPathACL || !$hasHooks) {
-            $this->printWarning("  Configuration.php needs manual updates:\n");
-            if (!$hasPathACL) {
-                $this->printWarning("    - Add PathACL service configuration\n");
-            }
-            if (!$hasHooks) {
-                $this->printWarning("    - Add Hooks service configuration\n");
-            }
-            $this->printWarning("  See DESIGN.md section 4.1 for configuration details\n");
-            return;
-        }
-
-        // Try to enable PathACL and Hooks by replacing 'enabled' => false with true
         if (!$this->dryRun) {
             $this->backupFile($configFile);
 
-            // Simple regex replacements (may need manual verification)
+            // Add PathACL configuration if missing
+            if (!$hasPathACL) {
+                $content = $this->injectServiceConfig($content, $this->getPathACLConfig());
+                $modified = true;
+                echo "  Added: PathACL service configuration\n";
+            }
+
+            // Add Hooks configuration if missing
+            if (!$hasHooks) {
+                $content = $this->injectServiceConfig($content, $this->getHooksConfig());
+                $modified = true;
+                echo "  Added: Hooks service configuration\n";
+            }
+
+            // Try to enable PathACL and Hooks by replacing 'enabled' => false with true
             $patterns = [
                 // Enable PathACL
                 "/('Filegator\\\\Services\\\\PathACL\\\\PathACLInterface'[^}]+?'enabled'\s*=>\s*)false/s" => "$1true",
@@ -536,7 +538,6 @@ class TrendMicroInstaller
                 "/('Filegator\\\\Services\\\\Hooks\\\\HooksInterface'[^}]+?'enabled'\s*=>\s*)false/s" => "$1true",
             ];
 
-            $modified = false;
             foreach ($patterns as $pattern => $replacement) {
                 $newContent = preg_replace($pattern, $replacement, $content);
                 if ($newContent !== $content) {
@@ -547,14 +548,81 @@ class TrendMicroInstaller
 
             if ($modified) {
                 file_put_contents($configFile, $content);
-                echo "  Updated: configuration.php (enabled PathACL and Hooks)\n";
-                $this->printWarning("  Please verify configuration.php manually!\n");
+                echo "  Updated: configuration.php\n";
             } else {
-                echo "  PathACL and Hooks appear to be already enabled\n";
+                echo "  PathACL and Hooks are already configured and enabled\n";
             }
         } else {
             echo "  [DRY RUN] Would update: configuration.php\n";
+            if (!$hasPathACL) {
+                echo "    - Would add PathACL service configuration\n";
+            }
+            if (!$hasHooks) {
+                echo "    - Would add Hooks service configuration\n";
+            }
         }
+    }
+
+    /**
+     * Get PathACL service configuration string
+     */
+    private function getPathACLConfig()
+    {
+        return <<<'CONFIG'
+        'Filegator\Services\PathACL\PathACLInterface' => [
+            'handler' => '\Filegator\Services\PathACL\PathACL',
+            'config' => [
+                'enabled' => true,
+                'acl_config_file' => __DIR__.'/private/acl_config.php',
+            ],
+        ],
+CONFIG;
+    }
+
+    /**
+     * Get Hooks service configuration string
+     */
+    private function getHooksConfig()
+    {
+        return <<<'CONFIG'
+        'Filegator\Services\Hooks\HooksInterface' => [
+            'handler' => '\Filegator\Services\Hooks\Hooks',
+            'config' => [
+                'enabled' => true,
+                'hooks_path' => __DIR__.'/private/hooks',
+                'timeout' => 30,
+            ],
+        ],
+CONFIG;
+    }
+
+    /**
+     * Inject a service configuration into the services array
+     */
+    private function injectServiceConfig($content, $serviceConfig)
+    {
+        // Find the closing of the services array (look for '],' or '];' before the final '];')
+        // We'll insert before the last service entry's closing bracket
+
+        // Pattern to find the last service entry before the closing of services array
+        // Look for the pattern: ],\n    ],\n]; at the end of services
+        $pattern = "/(\s+'services'\s*=>\s*\[.*?)((\s{8}\],\s*\n)(\s{4}\],\s*\n\];))/s";
+
+        if (preg_match($pattern, $content, $matches)) {
+            // Insert new service before the last closing
+            $replacement = $matches[1] . $matches[3] . $serviceConfig . "\n" . "    ],\n];";
+            return preg_replace($pattern, $replacement, $content);
+        }
+
+        // Alternative: find the Router service (typically last) and add after it
+        $routerPattern = "/('Filegator\\\\Services\\\\Router\\\\Router'\s*=>\s*\[[^\]]*\],)/s";
+        if (preg_match($routerPattern, $content)) {
+            return preg_replace($routerPattern, "$1\n" . $serviceConfig, $content);
+        }
+
+        // Fallback: warn user if we can't find injection point
+        $this->printWarning("  Warning: Could not auto-inject service config. Manual edit required.\n");
+        return $content;
     }
 
     /**
