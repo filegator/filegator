@@ -85,6 +85,9 @@ class Router implements Service
         foreach ($optionalServices as $paramName => $serviceKey) {
             if ($this->container->has($serviceKey)) {
                 $params[$paramName] = $this->container->get($serviceKey);
+                error_log("[PathACL DEBUG] Router: Injected service '{$paramName}' from '{$serviceKey}' into controller '{$controller}::{$action}'");
+            } else {
+                error_log("[PathACL DEBUG] Router: Service '{$paramName}' ({$serviceKey}) NOT FOUND in container");
             }
         }
 

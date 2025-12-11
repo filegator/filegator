@@ -253,8 +253,12 @@ class PathACL implements PathACLInterface
      */
     public function checkPermission(User $user, string $clientIp, string $path, string $permission): bool
     {
+        // Debug: Log every permission check
+        error_log("[PathACL DEBUG] PathACL::checkPermission - user: " . $user->getUsername() . ", IP: " . $clientIp . ", path: " . $path . ", permission: " . $permission);
+
         // If ACL is disabled, return true (fall back to global permissions)
         if (!$this->enabled) {
+            error_log("[PathACL DEBUG] PathACL::checkPermission - DISABLED, returning TRUE (allow all)");
             return true;
         }
 
@@ -263,20 +267,25 @@ class PathACL implements PathACLInterface
             if ($this->cacheEnabled) {
                 $cacheKey = $this->getCacheKey($user, $clientIp, $path, $permission);
                 if (isset($this->cache[$cacheKey])) {
-                    return $this->cache[$cacheKey];
+                    $cachedResult = $this->cache[$cacheKey];
+                    error_log("[PathACL DEBUG] PathACL::checkPermission - Cache hit, returning: " . ($cachedResult ? 'ALLOW' : 'DENY'));
+                    return $cachedResult;
                 }
             }
 
             // Step 1: User-level IP check
             if (!$this->checkUserIpAccess($user, $clientIp)) {
+                error_log("[PathACL DEBUG] PathACL::checkPermission - User-level IP check FAILED, returning DENY");
                 return $this->cacheResult($user, $clientIp, $path, $permission, false);
             }
 
             // Step 2: Get effective permissions for this path
             $effectivePerms = $this->getEffectivePermissions($user, $clientIp, $path);
+            error_log("[PathACL DEBUG] PathACL::checkPermission - Effective permissions: " . json_encode($effectivePerms));
 
             // Step 3: Check if requested permission is granted
             $allowed = in_array($permission, $effectivePerms);
+            error_log("[PathACL DEBUG] PathACL::checkPermission - Final decision: " . ($allowed ? 'ALLOW' : 'DENY'));
 
             return $this->cacheResult($user, $clientIp, $path, $permission, $allowed);
 

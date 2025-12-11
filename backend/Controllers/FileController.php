@@ -142,13 +142,20 @@ class FileController
      */
     protected function filterDirectoryByACL(Request $request, $collection)
     {
+        // Debug: Log PathACL status
+        error_log("[PathACL DEBUG] FileController::filterDirectoryByACL - pathacl injected: " . ($this->pathacl ? 'YES' : 'NO'));
+        error_log("[PathACL DEBUG] FileController::filterDirectoryByACL - pathacl enabled: " . ($this->pathacl && $this->pathacl->isEnabled() ? 'YES' : 'NO'));
+
         // If PathACL is not enabled, return unfiltered
         if (!$this->pathacl || !$this->pathacl->isEnabled()) {
+            error_log("[PathACL DEBUG] FileController::filterDirectoryByACL - Returning UNFILTERED collection (PathACL disabled or not injected)");
             return $collection;
         }
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
         $clientIp = $request->getClientIp();
+
+        error_log("[PathACL DEBUG] FileController::filterDirectoryByACL - user: " . $user->getUsername() . ", clientIp: " . $clientIp);
 
         // Filter items based on read permission
         $collection->filter(function ($item) use ($user, $clientIp) {
