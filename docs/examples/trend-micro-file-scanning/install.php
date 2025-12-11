@@ -515,6 +515,27 @@ class TrendMicroInstaller
         $hasPathACL = strpos($content, 'PathACLInterface') !== false;
         $hasHooks = strpos($content, 'HooksInterface') !== false;
 
+        // Check if services are in correct order (before Router)
+        $routerPos = strpos($content, "'Filegator\\Services\\Router\\Router'");
+        $pathACLPos = $hasPathACL ? strpos($content, "'Filegator\\Services\\PathACL\\PathACLInterface'") : false;
+        $hooksPos = $hasHooks ? strpos($content, "'Filegator\\Services\\Hooks\\HooksInterface'") : false;
+
+        // Detect misconfigured order
+        $pathACLAfterRouter = $hasPathACL && $routerPos !== false && $pathACLPos > $routerPos;
+        $hooksAfterRouter = $hasHooks && $routerPos !== false && $hooksPos > $routerPos;
+
+        if ($pathACLAfterRouter || $hooksAfterRouter) {
+            $this->printWarning("\n  WARNING: Service order issue detected in configuration.php!\n");
+            if ($pathACLAfterRouter) {
+                $this->printWarning("  - PathACL is configured AFTER Router\n");
+            }
+            if ($hooksAfterRouter) {
+                $this->printWarning("  - Hooks is configured AFTER Router\n");
+            }
+            $this->printWarning("  Router must be the LAST service because it dispatches requests immediately.\n");
+            $this->printWarning("  Please manually move PathACL and Hooks BEFORE Router in configuration.php\n\n");
+        }
+
         if (!$this->dryRun) {
             $this->backupFile($configFile);
 
@@ -522,14 +543,14 @@ class TrendMicroInstaller
             if (!$hasPathACL) {
                 $content = $this->injectServiceConfig($content, $this->getPathACLConfig());
                 $modified = true;
-                echo "  Added: PathACL service configuration\n";
+                echo "  Added: PathACL service configuration (before Router)\n";
             }
 
             // Add Hooks configuration if missing
             if (!$hasHooks) {
                 $content = $this->injectServiceConfig($content, $this->getHooksConfig());
                 $modified = true;
-                echo "  Added: Hooks service configuration\n";
+                echo "  Added: Hooks service configuration (before Router)\n";
             }
 
             // Try to enable PathACL and Hooks by replacing 'enabled' => false with true
@@ -607,20 +628,31 @@ CONFIG;
      */
     private function injectServiceConfig($content, $serviceConfig)
     {
-        // Find the Router service and insert BEFORE it
-        // Router must be last because its init() dispatches the request
-        $routerPattern = "/(\s*)('Filegator\\\\Services\\\\Router\\\\Router'\s*=>\s*\[)/s";
-        if (preg_match($routerPattern, $content, $matches)) {
-            $indent = $matches[1];
-            $replacement = $indent . $serviceConfig . "\n" . $indent . $matches[2];
-            return preg_replace($routerPattern, $replacement, $content, 1);
+        // Strategy: Find EITHER the Router key OR the comment block above it
+        // and insert the new service BEFORE that point.
+
+        // Pattern 1: Match the COMMENT block that precedes Router (if it exists)
+        // This matches "// IMPORTANT: Router MUST be the last service" comment block
+        $commentPattern = '/^(        \/\/ IMPORTANT: Router MUST be the last service[^\n]*\n(?:        \/\/[^\n]*\n)*)/m';
+        if (preg_match($commentPattern, $content, $matches, PREG_OFFSET_MATCH)) {
+            // Insert before the comment block
+            $insertPos = $matches[1][1];
+            return substr($content, 0, $insertPos) . $serviceConfig . "\n" . substr($content, $insertPos);
         }
 
-        // Fallback: try to find the last service entry before closing
-        $pattern = "/(\s+'services'\s*=>\s*\[.*?)((\s{8}\],\s*\n)(\s{4}\],\s*\n\];))/s";
-        if (preg_match($pattern, $content, $matches)) {
-            $replacement = $matches[1] . $matches[3] . $serviceConfig . "\n" . "    ],\n];";
-            return preg_replace($pattern, $replacement, $content);
+        // Pattern 2: Direct match on Router service key (handles both quote styles)
+        // The key in the file is: 'Filegator\Services\Router\Router'
+        $routerKeyPattern = "/^(        ['\"]Filegator\\\\Services\\\\Router\\\\Router['\"]\s*=>\s*\[)/m";
+        if (preg_match($routerKeyPattern, $content, $matches, PREG_OFFSET_MATCH)) {
+            $insertPos = $matches[1][1];
+            return substr($content, 0, $insertPos) . $serviceConfig . "\n" . substr($content, $insertPos);
+        }
+
+        // Pattern 3: Even simpler - just look for the literal string
+        $literalSearch = "        'Filegator\\Services\\Router\\Router' =>";
+        $pos = strpos($content, $literalSearch);
+        if ($pos !== false) {
+            return substr($content, 0, $pos) . $serviceConfig . "\n" . substr($content, $pos);
         }
 
         // Fallback: warn user if we can't find injection point
