@@ -115,14 +115,27 @@ class Hooks implements HooksInterface, Service
     {
         $results = [];
 
+        error_log("[Hooks DEBUG] trigger() called for hook: {$hookName}");
+        error_log("[Hooks DEBUG] enabled: " . ($this->enabled ? 'YES' : 'NO'));
+        error_log("[Hooks DEBUG] hooksPath: " . ($this->hooksPath ?: 'NOT SET'));
+
         if (!$this->enabled) {
+            error_log("[Hooks DEBUG] Hooks are disabled, returning empty");
             return $results;
         }
 
         // Validate hook name
         if (!in_array($hookName, self::ALLOWED_HOOKS)) {
             $this->log("Invalid hook name: {$hookName}");
+            error_log("[Hooks DEBUG] Invalid hook name: {$hookName}");
             return $results;
+        }
+
+        // Check for scripts
+        $scripts = $this->getHookScripts($hookName);
+        error_log("[Hooks DEBUG] Found " . count($scripts) . " scripts for hook {$hookName}");
+        foreach ($scripts as $script) {
+            error_log("[Hooks DEBUG] Script: {$script}");
         }
 
         // Execute in-memory callbacks first
@@ -130,6 +143,8 @@ class Hooks implements HooksInterface, Service
 
         // Execute hook scripts from directory
         $results = array_merge($results, $this->executeScripts($hookName, $data));
+
+        error_log("[Hooks DEBUG] trigger() completed with " . count($results) . " results");
 
         return $results;
     }
