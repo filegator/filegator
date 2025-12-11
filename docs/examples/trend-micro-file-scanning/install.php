@@ -640,29 +640,26 @@ CONFIG;
      */
     private function injectServiceConfig($content, $serviceConfig)
     {
-        // Strategy: Find EITHER the Router key OR the comment block above it
-        // and insert the new service BEFORE that point.
+        // Strategy: Find the Router key and insert the new service BEFORE it.
+        // Use simple strpos() for reliability across PHP versions.
 
-        // Pattern 1: Match the COMMENT block that precedes Router (if it exists)
-        // This matches "// IMPORTANT: Router MUST be the last service" comment block
-        $commentPattern = '/^(        \/\/ IMPORTANT: Router MUST be the last service[^\n]*\n(?:        \/\/[^\n]*\n)*)/m';
-        if (preg_match($commentPattern, $content, $matches, PREG_OFFSET_MATCH)) {
-            // Insert before the comment block
-            $insertPos = $matches[1][1];
-            return substr($content, 0, $insertPos) . $serviceConfig . "\n" . substr($content, $insertPos);
+        // Pattern 1: Look for the comment block that precedes Router
+        $commentSearch = "        // IMPORTANT: Router MUST be the last service";
+        $pos = strpos($content, $commentSearch);
+        if ($pos !== false) {
+            return substr($content, 0, $pos) . $serviceConfig . "\n" . substr($content, $pos);
         }
 
-        // Pattern 2: Direct match on Router service key (handles both quote styles)
-        // The key in the file is: 'Filegator\Services\Router\Router'
-        $routerKeyPattern = "/^(        ['\"]Filegator\\\\Services\\\\Router\\\\Router['\"]\s*=>\s*\[)/m";
-        if (preg_match($routerKeyPattern, $content, $matches, PREG_OFFSET_MATCH)) {
-            $insertPos = $matches[1][1];
-            return substr($content, 0, $insertPos) . $serviceConfig . "\n" . substr($content, $insertPos);
-        }
-
-        // Pattern 3: Even simpler - just look for the literal string
+        // Pattern 2: Look for the Router service key directly
         $literalSearch = "        'Filegator\\Services\\Router\\Router' =>";
         $pos = strpos($content, $literalSearch);
+        if ($pos !== false) {
+            return substr($content, 0, $pos) . $serviceConfig . "\n" . substr($content, $pos);
+        }
+
+        // Pattern 3: Try with double quotes
+        $doubleQuoteSearch = '        "Filegator\\Services\\Router\\Router" =>';
+        $pos = strpos($content, $doubleQuoteSearch);
         if ($pos !== false) {
             return substr($content, 0, $pos) . $serviceConfig . "\n" . substr($content, $pos);
         }
