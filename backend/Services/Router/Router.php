@@ -75,6 +75,19 @@ class Router implements Service
             break;
         }
 
+        // Explicitly inject optional services that PHP-DI doesn't autowire for optional parameters
+        // See: docs/design/optional-service-injection.md for architectural explanation
+        $optionalServices = [
+            'pathacl' => 'Filegator\Services\PathACL\PathACLInterface',
+            'hooks' => 'Filegator\Services\Hooks\HooksInterface',
+        ];
+
+        foreach ($optionalServices as $paramName => $serviceKey) {
+            if ($this->container->has($serviceKey)) {
+                $params[$paramName] = $this->container->get($serviceKey);
+            }
+        }
+
         $this->container->call([$controller, $action], $params);
     }
 }
