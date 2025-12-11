@@ -600,30 +600,32 @@ CONFIG;
 
     /**
      * Inject a service configuration into the services array
+     *
+     * IMPORTANT: Services are injected BEFORE Router because Router's init()
+     * method dispatches the request immediately. Any service needed by controllers
+     * must be registered before Router runs.
      */
     private function injectServiceConfig($content, $serviceConfig)
     {
-        // Find the closing of the services array (look for '],' or '];' before the final '];')
-        // We'll insert before the last service entry's closing bracket
+        // Find the Router service and insert BEFORE it
+        // Router must be last because its init() dispatches the request
+        $routerPattern = "/(\s*)('Filegator\\\\Services\\\\Router\\\\Router'\s*=>\s*\[)/s";
+        if (preg_match($routerPattern, $content, $matches)) {
+            $indent = $matches[1];
+            $replacement = $indent . $serviceConfig . "\n" . $indent . $matches[2];
+            return preg_replace($routerPattern, $replacement, $content, 1);
+        }
 
-        // Pattern to find the last service entry before the closing of services array
-        // Look for the pattern: ],\n    ],\n]; at the end of services
+        // Fallback: try to find the last service entry before closing
         $pattern = "/(\s+'services'\s*=>\s*\[.*?)((\s{8}\],\s*\n)(\s{4}\],\s*\n\];))/s";
-
         if (preg_match($pattern, $content, $matches)) {
-            // Insert new service before the last closing
             $replacement = $matches[1] . $matches[3] . $serviceConfig . "\n" . "    ],\n];";
             return preg_replace($pattern, $replacement, $content);
         }
 
-        // Alternative: find the Router service (typically last) and add after it
-        $routerPattern = "/('Filegator\\\\Services\\\\Router\\\\Router'\s*=>\s*\[[^\]]*\],)/s";
-        if (preg_match($routerPattern, $content)) {
-            return preg_replace($routerPattern, "$1\n" . $serviceConfig, $content);
-        }
-
         // Fallback: warn user if we can't find injection point
         $this->printWarning("  Warning: Could not auto-inject service config. Manual edit required.\n");
+        $this->printWarning("  PathACL and Hooks must be configured BEFORE Router in configuration.php\n");
         return $content;
     }
 

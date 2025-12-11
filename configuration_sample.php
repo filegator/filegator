@@ -118,6 +118,9 @@ return [
                 'file' => __DIR__.'/private/users.json',
             ],
         ],
+        // IMPORTANT: Router MUST be the last service in this list!
+        // Router's init() dispatches the request immediately, so all other services
+        // (especially PathACL and Hooks) must be registered before it.
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [
