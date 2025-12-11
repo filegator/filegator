@@ -70,16 +70,16 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john@example.com'],
-                            'ip_allowlist' => ['192.168.1.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.1.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload', 'delete'],
                             'priority' => 20,
                             'override_inherited' => false,
                         ],
                         [
                             'users' => ['john@example.com'],
-                            'ip_allowlist' => ['10.8.0.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['10.8.0.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 10,
                             'override_inherited' => false,
@@ -91,8 +91,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john@example.com'],
-                            'ip_allowlist' => ['*'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['*'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload', 'delete'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -104,8 +104,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@admins'],
-                            'ip_allowlist' => ['*'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['*'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload', 'delete'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -154,8 +154,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['*'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -167,8 +167,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@admins'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'delete'],
                             'priority' => 10,
                             'override_inherited' => true,
@@ -217,8 +217,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@developers'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -230,8 +230,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@qa-team'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -243,8 +243,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@managers'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -294,8 +294,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['*'],
-                            'ip_allowlist' => ['192.168.0.0/16', '10.0.0.0/8'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.0.0/16', '10.0.0.0/8'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -307,8 +307,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['*'],
-                            'ip_allowlist' => ['*'],
-                            'ip_denylist' => ['192.0.2.0/24'],
+                            'ip_inclusions' => ['*'],
+                            'ip_exclusions' => ['192.0.2.0/24'],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -353,16 +353,16 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@readers'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
                         ],
                         [
                             'users' => ['@writers'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['write', 'upload'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -396,24 +396,24 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john@example.com'],
-                            'ip_allowlist' => ['192.168.1.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.1.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'delete'],
                             'priority' => 100,
                             'override_inherited' => false,
                         ],
                         [
                             'users' => ['john@example.com'],
-                            'ip_allowlist' => ['10.0.0.0/8'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['10.0.0.0/8'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 50,
                             'override_inherited' => false,
                         ],
                         [
                             'users' => ['john@example.com'],
-                            'ip_allowlist' => ['*'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['*'],
+                            'ip_exclusions' => [],
                             'permissions' => [],
                             'priority' => 1,
                             'override_inherited' => false,
@@ -458,8 +458,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['*'],
-                            'ip_allowlist' => ['192.168.0.0/16'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.0.0/16'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -471,8 +471,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@hr'],
-                            'ip_allowlist' => ['192.168.1.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.1.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload', 'delete'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -484,8 +484,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@finance'],
-                            'ip_allowlist' => ['192.168.2.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.2.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -497,8 +497,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@employees'],
-                            'ip_allowlist' => ['192.168.0.0/16'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.0.0/16'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -549,8 +549,8 @@ class PathACLIntegrationTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['@developers'],
-                            'ip_allowlist' => ['192.168.1.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.1.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write'],
                             'priority' => 10,
                             'override_inherited' => false,

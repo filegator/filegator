@@ -22,9 +22,9 @@ class User implements \JsonSerializable
 
     protected $name = '';
 
-    protected $ip_allowlist = [];
+    protected $ip_inclusions = [];
 
-    protected $ip_denylist = [];
+    protected $ip_exclusions = [];
 
     protected $available_roles = ['guest', 'user', 'admin'];
 
@@ -129,24 +129,24 @@ class User implements \JsonSerializable
         return $encoded ? implode('|', $this->permissions) : $this->permissions;
     }
 
-    public function setIpAllowlist(array $ip_allowlist)
+    public function setIpInclusions(array $ip_inclusions)
     {
-        $this->ip_allowlist = $ip_allowlist;
+        $this->ip_inclusions = $ip_inclusions;
     }
 
-    public function getIpAllowlist(): array
+    public function getIpInclusions(): array
     {
-        return $this->ip_allowlist;
+        return $this->ip_inclusions;
     }
 
-    public function setIpDenylist(array $ip_denylist)
+    public function setIpExclusions(array $ip_exclusions)
     {
-        $this->ip_denylist = $ip_denylist;
+        $this->ip_exclusions = $ip_exclusions;
     }
 
-    public function getIpDenylist(): array
+    public function getIpExclusions(): array
     {
-        return $this->ip_denylist;
+        return $this->ip_exclusions;
     }
 
     public function jsonSerialize()
@@ -157,8 +157,8 @@ class User implements \JsonSerializable
             'homedir' => $this->getHomeDir(),
             'username' => $this->getUsername(),
             'name' => $this->getName(),
-            'ip_allowlist' => $this->getIpAllowlist(),
-            'ip_denylist' => $this->getIpDenylist(),
+            'ip_inclusions' => $this->getIpInclusions(),
+            'ip_exclusions' => $this->getIpExclusions(),
         ];
     }
 

@@ -50,16 +50,16 @@ return [
                 // Rule 1: Default read-only for all authenticated users
                 [
                     'users' => ['*'],  // * = all authenticated users
-                    'ip_allowlist' => ['*'],  // * = all IPs
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['*'],  // * = all IPs
+                    'ip_exclusions' => [],
                     'permissions' => ['read'],
                     'priority' => 0,  // Lowest priority
                 ],
                 // Rule 2: Admins have full access from anywhere
                 [
                     'users' => ['@admins'],  // @ prefix for groups
-                    'ip_allowlist' => ['*'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
                     'priority' => 100,  // High priority
                 ],
@@ -72,8 +72,8 @@ return [
             'rules' => [
                 [
                     'users' => ['*'],
-                    'ip_allowlist' => ['*'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'download'],
                     'priority' => 50,
                     'override_inherited' => false,  // Merge with inherited permissions
@@ -87,8 +87,8 @@ return [
             'rules' => [
                 [
                     'users' => ['@developers'],
-                    'ip_allowlist' => ['192.168.1.0/24', '10.8.0.0/24'],  // Office + VPN
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['192.168.1.0/24', '10.8.0.0/24'],  // Office + VPN
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
                     'priority' => 60,
                     'override_inherited' => true,  // Replace inherited permissions
@@ -102,8 +102,8 @@ return [
             'rules' => [
                 [
                     'users' => ['john', 'jane'],  // Only specific users
-                    'ip_allowlist' => ['*'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
                     'priority' => 75,
                     'override_inherited' => true,
@@ -111,8 +111,8 @@ return [
                 // Contractors get read-only from VPN only
                 [
                     'users' => ['@contractors'],
-                    'ip_allowlist' => ['10.8.0.0/24'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['10.8.0.0/24'],
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'download'],
                     'priority' => 70,
                     'override_inherited' => true,
@@ -126,8 +126,8 @@ return [
             'rules' => [
                 [
                     'users' => ['@hr-staff', '@admins'],
-                    'ip_allowlist' => ['192.168.1.0/24'],  // Office network only
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['192.168.1.0/24'],  // Office network only
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
                     'priority' => 100,
                 ],
@@ -140,8 +140,8 @@ return [
             'rules' => [
                 [
                     'users' => ['*'],
-                    'ip_allowlist' => ['192.168.0.0/16', '10.0.0.0/8'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['192.168.0.0/16', '10.0.0.0/8'],
+                    'ip_exclusions' => [],
                     'permissions' => ['upload'],  // Can upload but not read
                     'priority' => 50,
                     'override_inherited' => false,

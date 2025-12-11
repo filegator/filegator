@@ -7,7 +7,7 @@ Three-dimensional access control for FileGator combining **User Identity + Sourc
 The PathACL service provides enterprise-grade access control capabilities by evaluating permissions based on three dimensions:
 
 1. **User Identity** - Username, group membership
-2. **Source IP Address** - CIDR ranges, allowlists, denylists
+2. **Source IP Address** - CIDR ranges, inclusions, exclusions
 3. **Folder Path** - Path-specific rules with inheritance
 
 ## Features
@@ -105,8 +105,8 @@ Each rule in `path_rules` consists of:
 ```php
 [
     'users' => ['*'],                      // '*', usernames, or '@groupname'
-    'ip_allowlist' => ['192.168.1.0/24'], // CIDR, IPs, or '*'
-    'ip_denylist' => [],                   // IPs to deny
+    'ip_inclusions' => ['192.168.1.0/24'], // CIDR, IPs, or '*' - IPs to include
+    'ip_exclusions' => [],                  // IPs to exclude (takes precedence)
     'permissions' => ['read', 'write'],    // Permission array
     'priority' => 50,                      // Higher priority first
     'override_inherited' => false,         // Replace vs merge permissions
@@ -123,8 +123,8 @@ Each rule in `path_rules` consists of:
         'rules' => [
             [
                 'users' => ['*'],
-                'ip_allowlist' => ['203.0.113.0/24'],  // Office network
-                'ip_denylist' => [],
+                'ip_inclusions' => ['203.0.113.0/24'],  // Office network
+                'ip_exclusions' => [],
                 'permissions' => ['read', 'write', 'upload', 'download'],
                 'priority' => 50,
             ],
@@ -142,14 +142,14 @@ Each rule in `path_rules` consists of:
             // VPN users: read-only
             [
                 'users' => ['*'],
-                'ip_allowlist' => ['10.8.0.0/24'],
+                'ip_inclusions' => ['10.8.0.0/24'],
                 'permissions' => ['read', 'download'],
                 'priority' => 40,
             ],
             // Office users: full access
             [
                 'users' => ['*'],
-                'ip_allowlist' => ['192.168.1.0/24'],
+                'ip_inclusions' => ['192.168.1.0/24'],
                 'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
                 'priority' => 50,
             ],
@@ -171,7 +171,7 @@ Each rule in `path_rules` consists of:
         'rules' => [
             [
                 'users' => ['@hr-staff'],
-                'ip_allowlist' => ['192.168.1.0/24'],
+                'ip_inclusions' => ['192.168.1.0/24'],
                 'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
                 'priority' => 60,
             ],
@@ -181,7 +181,7 @@ Each rule in `path_rules` consists of:
         'rules' => [
             [
                 'users' => ['@developers'],
-                'ip_allowlist' => ['192.168.2.0/24'],
+                'ip_inclusions' => ['192.168.2.0/24'],
                 'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
                 'priority' => 60,
             ],
@@ -224,25 +224,25 @@ The IpMatcher utility supports:
 ### IP Evaluation Logic
 
 ```
-1. Check denylist first - if match, DENY (deny always wins)
-2. Check allowlist (if non-empty) - if no match, DENY
-3. If allowlist is empty, ALLOW (denylist-only mode)
+1. Check exclusions first - if match, DENY (exclusions always win)
+2. Check inclusions (if non-empty) - if no match, DENY
+3. If inclusions is empty, ALLOW (exclusions-only mode)
 ```
 
 ### Examples
 
 ```php
 // Allow entire subnet except one IP
-'ip_allowlist' => ['192.168.1.0/24'],
-'ip_denylist' => ['192.168.1.50'],
+'ip_inclusions' => ['192.168.1.0/24'],
+'ip_exclusions' => ['192.168.1.50'],
 
 // Allow only specific IPs
-'ip_allowlist' => ['192.168.1.10', '192.168.1.20'],
-'ip_denylist' => [],
+'ip_inclusions' => ['192.168.1.10', '192.168.1.20'],
+'ip_exclusions' => [],
 
 // Block specific IPs (allow all others)
-'ip_allowlist' => [],  // Empty = allow all
-'ip_denylist' => ['192.0.2.50', '198.51.100.0/24'],
+'ip_inclusions' => [],  // Empty = allow all
+'ip_exclusions' => ['192.0.2.50', '198.51.100.0/24'],
 ```
 
 ## Path Matching
@@ -388,13 +388,13 @@ When `enabled => false`, the PathACL service:
     'rules' => [
         [
             'users' => ['*'],
-            'ip_allowlist' => ['*'],
+            'ip_inclusions' => ['*'],
             'permissions' => ['read', 'download'],
             'priority' => 10,
         ],
         [
             'users' => ['*'],
-            'ip_allowlist' => ['192.168.1.0/24'],  // Office only
+            'ip_inclusions' => ['192.168.1.0/24'],  // Office only
             'permissions' => ['write', 'upload', 'delete'],
             'priority' => 20,
         ],
@@ -414,7 +414,7 @@ When `enabled => false`, the PathACL service:
         'rules' => [
             [
                 'users' => ['@contractors'],
-                'ip_allowlist' => ['10.8.0.0/24'],  // VPN only
+                'ip_inclusions' => ['10.8.0.0/24'],  // VPN only
                 'permissions' => ['read', 'download'],
                 'priority' => 50,
             ],
@@ -430,7 +430,7 @@ When `enabled => false`, the PathACL service:
     'rules' => [
         [
             'users' => ['admin'],
-            'ip_allowlist' => ['*'],  // From anywhere
+            'ip_inclusions' => ['*'],  // From anywhere
             'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'chmod'],
             'priority' => 100,  // Highest priority
         ],
@@ -455,7 +455,7 @@ To test your ACL configuration:
 **Check:**
 1. Is PathACL enabled? (`$pathAcl->isEnabled()`)
 2. Does user match any rules? (use `explainPermission()`)
-3. Is user's IP in allowlist?
+3. Is user's IP in inclusions list?
 4. Are there conflicting rules with higher priority?
 
 ### Issue: Everyone has access to restricted folder
@@ -463,7 +463,7 @@ To test your ACL configuration:
 **Check:**
 1. Is there a wildcard rule (`'users' => ['*']`) with high priority?
 2. Is `override_inherited` set correctly?
-3. Are denylists configured properly?
+3. Are exclusions configured properly?
 
 ### Issue: Performance degradation
 

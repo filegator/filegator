@@ -19,84 +19,84 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * - Single IPv4/IPv6 addresses
  * - CIDR notation (e.g., 192.168.1.0/24)
  * - Wildcard (*) for all IPs
- * - Allowlist and denylist evaluation
+ * - Inclusions and exclusions evaluation
  *
  * Uses Symfony's IpUtils for robust IP matching.
  */
 class IpMatcher
 {
     /**
-     * Check if an IP address matches any pattern in the allowlist.
+     * Check if an IP address matches any pattern in the inclusions list.
      *
      * @param string $ip IP address to check
-     * @param array $allowlist Array of allowed IP patterns (CIDR, single IPs, or '*')
-     * @return bool True if IP matches allowlist (or allowlist contains '*')
+     * @param array $inclusions Array of included IP patterns (CIDR, single IPs, or '*')
+     * @return bool True if IP matches inclusions (or inclusions contains '*')
      */
-    public function matchesAllowList(string $ip, array $allowlist): bool
+    public function matchesInclusions(string $ip, array $inclusions): bool
     {
-        // Empty allowlist means allow all (no restriction)
-        if (empty($allowlist)) {
+        // Empty inclusions means include all (no restriction)
+        if (empty($inclusions)) {
             return true;
         }
 
         // Wildcard matches everything
-        if (in_array('*', $allowlist, true)) {
+        if (in_array('*', $inclusions, true)) {
             return true;
         }
 
         // Use Symfony IpUtils for CIDR and exact matching
-        return IpUtils::checkIp($ip, $allowlist);
+        return IpUtils::checkIp($ip, $inclusions);
     }
 
     /**
-     * Check if an IP address matches any pattern in the denylist.
+     * Check if an IP address matches any pattern in the exclusions list.
      *
      * @param string $ip IP address to check
-     * @param array $denylist Array of denied IP patterns (CIDR, single IPs, or '*')
-     * @return bool True if IP matches denylist (should be blocked)
+     * @param array $exclusions Array of excluded IP patterns (CIDR, single IPs, or '*')
+     * @return bool True if IP matches exclusions (should be blocked)
      */
-    public function matchesDenyList(string $ip, array $denylist): bool
+    public function matchesExclusions(string $ip, array $exclusions): bool
     {
-        // Empty denylist means deny nothing
-        if (empty($denylist)) {
+        // Empty exclusions means exclude nothing
+        if (empty($exclusions)) {
             return false;
         }
 
-        // Wildcard denies everything
-        if (in_array('*', $denylist, true)) {
+        // Wildcard excludes everything
+        if (in_array('*', $exclusions, true)) {
             return true;
         }
 
         // Use Symfony IpUtils for CIDR and exact matching
-        return IpUtils::checkIp($ip, $denylist);
+        return IpUtils::checkIp($ip, $exclusions);
     }
 
     /**
-     * Determine if IP is allowed based on allowlist and denylist.
+     * Determine if IP is allowed based on inclusions and exclusions.
      *
      * Evaluation order (security-first):
-     * 1. Check denylist - if match found, immediately deny
-     * 2. Check allowlist - if non-empty, IP must be in allowlist
-     * 3. If allowlist is empty, allow by default (denylist-only mode)
+     * 1. Check exclusions - if match found, immediately deny
+     * 2. Check inclusions - if non-empty, IP must be in inclusions
+     * 3. If inclusions is empty, allow by default (exclusions-only mode)
      *
      * @param string $ip IP address to check
-     * @param array $allowlist Array of allowed IP patterns
-     * @param array $denylist Array of denied IP patterns
+     * @param array $inclusions Array of included IP patterns
+     * @param array $exclusions Array of excluded IP patterns
      * @return bool True if IP is allowed (passes both checks)
      */
-    public function isAllowed(string $ip, array $allowlist, array $denylist): bool
+    public function isAllowed(string $ip, array $inclusions, array $exclusions): bool
     {
-        // Step 1: Deny always wins - check denylist first
-        if ($this->matchesDenyList($ip, $denylist)) {
+        // Step 1: Exclusions always win - check exclusions first
+        if ($this->matchesExclusions($ip, $exclusions)) {
             return false;
         }
 
-        // Step 2: Check allowlist (if non-empty, IP must be in list)
-        if (!empty($allowlist)) {
-            return $this->matchesAllowList($ip, $allowlist);
+        // Step 2: Check inclusions (if non-empty, IP must be in list)
+        if (!empty($inclusions)) {
+            return $this->matchesInclusions($ip, $inclusions);
         }
 
-        // Step 3: Empty allowlist = allow all (unless denied above)
+        // Step 3: Empty inclusions = allow all (unless excluded above)
         return true;
     }
 

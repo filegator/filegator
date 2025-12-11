@@ -94,97 +94,97 @@ class IpMatcherTest extends TestCase
         $this->assertFalse($this->matcher->isValidPattern('not-an-ip'));
     }
 
-    // ========== Allowlist Matching Tests ==========
+    // ========== Inclusions Matching Tests ==========
 
-    public function testMatchesAllowListWithEmptyList()
+    public function testMatchesInclusionsWithEmptyList()
     {
-        // Empty allowlist means allow all
-        $this->assertTrue($this->matcher->matchesAllowList('192.168.1.50', []));
-        $this->assertTrue($this->matcher->matchesAllowList('10.0.0.1', []));
+        // Empty inclusions means include all
+        $this->assertTrue($this->matcher->matchesInclusions('192.168.1.50', []));
+        $this->assertTrue($this->matcher->matchesInclusions('10.0.0.1', []));
     }
 
-    public function testMatchesAllowListWithWildcard()
+    public function testMatchesInclusionsWithWildcard()
     {
-        $allowlist = ['*'];
-        $this->assertTrue($this->matcher->matchesAllowList('192.168.1.50', $allowlist));
-        $this->assertTrue($this->matcher->matchesAllowList('10.0.0.1', $allowlist));
-        $this->assertTrue($this->matcher->matchesAllowList('2001:db8::1', $allowlist));
+        $inclusions = ['*'];
+        $this->assertTrue($this->matcher->matchesInclusions('192.168.1.50', $inclusions));
+        $this->assertTrue($this->matcher->matchesInclusions('10.0.0.1', $inclusions));
+        $this->assertTrue($this->matcher->matchesInclusions('2001:db8::1', $inclusions));
     }
 
-    public function testMatchesAllowListWithExactIPMatch()
+    public function testMatchesInclusionsWithExactIPMatch()
     {
-        $allowlist = ['192.168.1.50', '10.8.0.50'];
+        $inclusions = ['192.168.1.50', '10.8.0.50'];
 
-        $this->assertTrue($this->matcher->matchesAllowList('192.168.1.50', $allowlist));
-        $this->assertTrue($this->matcher->matchesAllowList('10.8.0.50', $allowlist));
-        $this->assertFalse($this->matcher->matchesAllowList('192.168.1.51', $allowlist));
-        $this->assertFalse($this->matcher->matchesAllowList('172.16.0.1', $allowlist));
+        $this->assertTrue($this->matcher->matchesInclusions('192.168.1.50', $inclusions));
+        $this->assertTrue($this->matcher->matchesInclusions('10.8.0.50', $inclusions));
+        $this->assertFalse($this->matcher->matchesInclusions('192.168.1.51', $inclusions));
+        $this->assertFalse($this->matcher->matchesInclusions('172.16.0.1', $inclusions));
     }
 
-    public function testMatchesAllowListWithCIDRNotation()
+    public function testMatchesInclusionsWithCIDRNotation()
     {
-        $allowlist = ['192.168.1.0/24'];
+        $inclusions = ['192.168.1.0/24'];
 
-        $this->assertTrue($this->matcher->matchesAllowList('192.168.1.1', $allowlist));
-        $this->assertTrue($this->matcher->matchesAllowList('192.168.1.50', $allowlist));
-        $this->assertTrue($this->matcher->matchesAllowList('192.168.1.254', $allowlist));
-        $this->assertFalse($this->matcher->matchesAllowList('192.168.2.1', $allowlist));
-        $this->assertFalse($this->matcher->matchesAllowList('10.0.0.1', $allowlist));
+        $this->assertTrue($this->matcher->matchesInclusions('192.168.1.1', $inclusions));
+        $this->assertTrue($this->matcher->matchesInclusions('192.168.1.50', $inclusions));
+        $this->assertTrue($this->matcher->matchesInclusions('192.168.1.254', $inclusions));
+        $this->assertFalse($this->matcher->matchesInclusions('192.168.2.1', $inclusions));
+        $this->assertFalse($this->matcher->matchesInclusions('10.0.0.1', $inclusions));
     }
 
-    public function testMatchesAllowListWithMultipleCIDRRanges()
+    public function testMatchesInclusionsWithMultipleCIDRRanges()
     {
-        $allowlist = ['192.168.1.0/24', '10.8.0.0/24'];
+        $inclusions = ['192.168.1.0/24', '10.8.0.0/24'];
 
-        $this->assertTrue($this->matcher->matchesAllowList('192.168.1.50', $allowlist));
-        $this->assertTrue($this->matcher->matchesAllowList('10.8.0.50', $allowlist));
-        $this->assertFalse($this->matcher->matchesAllowList('172.16.0.1', $allowlist));
+        $this->assertTrue($this->matcher->matchesInclusions('192.168.1.50', $inclusions));
+        $this->assertTrue($this->matcher->matchesInclusions('10.8.0.50', $inclusions));
+        $this->assertFalse($this->matcher->matchesInclusions('172.16.0.1', $inclusions));
     }
 
-    public function testMatchesAllowListWithIPv6()
+    public function testMatchesInclusionsWithIPv6()
     {
-        $allowlist = ['2001:db8::/32'];
+        $inclusions = ['2001:db8::/32'];
 
-        $this->assertTrue($this->matcher->matchesAllowList('2001:db8::1', $allowlist));
-        $this->assertTrue($this->matcher->matchesAllowList('2001:db8:1::1', $allowlist));
-        $this->assertFalse($this->matcher->matchesAllowList('2001:db9::1', $allowlist));
+        $this->assertTrue($this->matcher->matchesInclusions('2001:db8::1', $inclusions));
+        $this->assertTrue($this->matcher->matchesInclusions('2001:db8:1::1', $inclusions));
+        $this->assertFalse($this->matcher->matchesInclusions('2001:db9::1', $inclusions));
     }
 
-    // ========== Denylist Matching Tests ==========
+    // ========== Exclusions Matching Tests ==========
 
-    public function testMatchesDenyListWithEmptyList()
+    public function testMatchesExclusionsWithEmptyList()
     {
-        // Empty denylist means deny nothing
-        $this->assertFalse($this->matcher->matchesDenyList('192.168.1.50', []));
-        $this->assertFalse($this->matcher->matchesDenyList('10.0.0.1', []));
+        // Empty exclusions means exclude nothing
+        $this->assertFalse($this->matcher->matchesExclusions('192.168.1.50', []));
+        $this->assertFalse($this->matcher->matchesExclusions('10.0.0.1', []));
     }
 
-    public function testMatchesDenyListWithWildcard()
+    public function testMatchesExclusionsWithWildcard()
     {
-        $denylist = ['*'];
-        $this->assertTrue($this->matcher->matchesDenyList('192.168.1.50', $denylist));
-        $this->assertTrue($this->matcher->matchesDenyList('10.0.0.1', $denylist));
+        $exclusions = ['*'];
+        $this->assertTrue($this->matcher->matchesExclusions('192.168.1.50', $exclusions));
+        $this->assertTrue($this->matcher->matchesExclusions('10.0.0.1', $exclusions));
     }
 
-    public function testMatchesDenyListWithExactIPMatch()
+    public function testMatchesExclusionsWithExactIPMatch()
     {
-        $denylist = ['192.168.1.100', '10.0.0.1'];
+        $exclusions = ['192.168.1.100', '10.0.0.1'];
 
-        $this->assertTrue($this->matcher->matchesDenyList('192.168.1.100', $denylist));
-        $this->assertTrue($this->matcher->matchesDenyList('10.0.0.1', $denylist));
-        $this->assertFalse($this->matcher->matchesDenyList('192.168.1.50', $denylist));
+        $this->assertTrue($this->matcher->matchesExclusions('192.168.1.100', $exclusions));
+        $this->assertTrue($this->matcher->matchesExclusions('10.0.0.1', $exclusions));
+        $this->assertFalse($this->matcher->matchesExclusions('192.168.1.50', $exclusions));
     }
 
-    public function testMatchesDenyListWithCIDRNotation()
+    public function testMatchesExclusionsWithCIDRNotation()
     {
-        $denylist = ['172.16.0.0/12'];
+        $exclusions = ['172.16.0.0/12'];
 
-        $this->assertTrue($this->matcher->matchesDenyList('172.16.0.1', $denylist));
-        $this->assertTrue($this->matcher->matchesDenyList('172.31.255.254', $denylist));
-        $this->assertFalse($this->matcher->matchesDenyList('192.168.1.1', $denylist));
+        $this->assertTrue($this->matcher->matchesExclusions('172.16.0.1', $exclusions));
+        $this->assertTrue($this->matcher->matchesExclusions('172.31.255.254', $exclusions));
+        $this->assertFalse($this->matcher->matchesExclusions('192.168.1.1', $exclusions));
     }
 
-    // ========== Combined Allowlist/Denylist Tests ==========
+    // ========== Combined Inclusions/Exclusions Tests ==========
 
     public function testIsAllowedWithEmptyLists()
     {
@@ -193,90 +193,90 @@ class IpMatcherTest extends TestCase
         $this->assertTrue($this->matcher->isAllowed('10.0.0.1', [], []));
     }
 
-    public function testIsAllowedWithDenylistOnly()
+    public function testIsAllowedWithExclusionsOnly()
     {
-        $denylist = ['192.168.1.100', '10.0.0.0/24'];
+        $exclusions = ['192.168.1.100', '10.0.0.0/24'];
 
-        // Not in denylist = allowed
-        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', [], $denylist));
-        $this->assertTrue($this->matcher->isAllowed('172.16.0.1', [], $denylist));
+        // Not in exclusions = allowed
+        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', [], $exclusions));
+        $this->assertTrue($this->matcher->isAllowed('172.16.0.1', [], $exclusions));
 
-        // In denylist = denied
-        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', [], $denylist));
-        $this->assertFalse($this->matcher->isAllowed('10.0.0.50', [], $denylist));
+        // In exclusions = denied
+        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', [], $exclusions));
+        $this->assertFalse($this->matcher->isAllowed('10.0.0.50', [], $exclusions));
     }
 
-    public function testIsAllowedWithAllowlistOnly()
+    public function testIsAllowedWithInclusionsOnly()
     {
-        $allowlist = ['192.168.1.0/24', '10.8.0.50'];
+        $inclusions = ['192.168.1.0/24', '10.8.0.50'];
 
-        // In allowlist = allowed
-        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $allowlist, []));
-        $this->assertTrue($this->matcher->isAllowed('10.8.0.50', $allowlist, []));
+        // In inclusions = allowed
+        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $inclusions, []));
+        $this->assertTrue($this->matcher->isAllowed('10.8.0.50', $inclusions, []));
 
-        // Not in allowlist = denied
-        $this->assertFalse($this->matcher->isAllowed('172.16.0.1', $allowlist, []));
-        $this->assertFalse($this->matcher->isAllowed('10.8.0.51', $allowlist, []));
+        // Not in inclusions = denied
+        $this->assertFalse($this->matcher->isAllowed('172.16.0.1', $inclusions, []));
+        $this->assertFalse($this->matcher->isAllowed('10.8.0.51', $inclusions, []));
     }
 
     public function testIsAllowedWithBothLists()
     {
-        $allowlist = ['192.168.1.0/24'];
-        $denylist = ['192.168.1.100'];
+        $inclusions = ['192.168.1.0/24'];
+        $exclusions = ['192.168.1.100'];
 
-        // In allowlist but NOT in denylist = allowed
-        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $allowlist, $denylist));
+        // In inclusions but NOT in exclusions = allowed
+        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $inclusions, $exclusions));
 
-        // In BOTH allowlist AND denylist = denied (denylist wins)
-        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', $allowlist, $denylist));
+        // In BOTH inclusions AND exclusions = denied (exclusions win)
+        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', $inclusions, $exclusions));
 
-        // Not in allowlist = denied
-        $this->assertFalse($this->matcher->isAllowed('10.0.0.1', $allowlist, $denylist));
+        // Not in inclusions = denied
+        $this->assertFalse($this->matcher->isAllowed('10.0.0.1', $inclusions, $exclusions));
     }
 
-    public function testIsAllowedDenylistTakesPrecedence()
+    public function testIsAllowedExclusionsTakesPrecedence()
     {
-        // Denylist should always take precedence over allowlist
-        $allowlist = ['*'];
-        $denylist = ['192.168.1.100'];
+        // Exclusions should always take precedence over inclusions
+        $inclusions = ['*'];
+        $exclusions = ['192.168.1.100'];
 
-        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $allowlist, $denylist));
-        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', $allowlist, $denylist));
+        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $inclusions, $exclusions));
+        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', $inclusions, $exclusions));
     }
 
     // ========== Edge Cases ==========
 
     public function testMatchingWithLocalhostIPv4()
     {
-        $allowlist = ['127.0.0.1'];
-        $this->assertTrue($this->matcher->matchesAllowList('127.0.0.1', $allowlist));
+        $inclusions = ['127.0.0.1'];
+        $this->assertTrue($this->matcher->matchesInclusions('127.0.0.1', $inclusions));
     }
 
     public function testMatchingWithLocalhostIPv6()
     {
-        $allowlist = ['::1'];
-        $this->assertTrue($this->matcher->matchesAllowList('::1', $allowlist));
+        $inclusions = ['::1'];
+        $this->assertTrue($this->matcher->matchesInclusions('::1', $inclusions));
     }
 
-    public function testIsAllowedWithWildcardAllowlistAndSpecificDenylist()
+    public function testIsAllowedWithWildcardInclusionsAndSpecificExclusions()
     {
         // Allow everyone except specific IPs
-        $allowlist = ['*'];
-        $denylist = ['192.168.1.100', '10.0.0.0/8'];
+        $inclusions = ['*'];
+        $exclusions = ['192.168.1.100', '10.0.0.0/8'];
 
-        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $allowlist, $denylist));
-        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', $allowlist, $denylist));
-        $this->assertFalse($this->matcher->isAllowed('10.5.5.5', $allowlist, $denylist));
+        $this->assertTrue($this->matcher->isAllowed('192.168.1.50', $inclusions, $exclusions));
+        $this->assertFalse($this->matcher->isAllowed('192.168.1.100', $inclusions, $exclusions));
+        $this->assertFalse($this->matcher->isAllowed('10.5.5.5', $inclusions, $exclusions));
     }
 
     public function testIsAllowedWithOverlappingRanges()
     {
         // Overlapping CIDR ranges
-        $allowlist = ['192.168.0.0/16'];
-        $denylist = ['192.168.1.0/24'];
+        $inclusions = ['192.168.0.0/16'];
+        $exclusions = ['192.168.1.0/24'];
 
-        $this->assertTrue($this->matcher->isAllowed('192.168.2.50', $allowlist, $denylist));
-        $this->assertFalse($this->matcher->isAllowed('192.168.1.50', $allowlist, $denylist));
+        $this->assertTrue($this->matcher->isAllowed('192.168.2.50', $inclusions, $exclusions));
+        $this->assertFalse($this->matcher->isAllowed('192.168.1.50', $inclusions, $exclusions));
     }
 
     // ========== Anonymize IP Tests ==========

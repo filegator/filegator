@@ -106,13 +106,13 @@ class JsonFile implements Service, AuthInterface
                 $u['permissions'] = $user->getPermissions(true);
 
                 // Save IP restrictions if set
-                $ip_allowlist = $user->getIpAllowlist();
-                $ip_denylist = $user->getIpDenylist();
-                if (!empty($ip_allowlist)) {
-                    $u['ip_allowlist'] = $ip_allowlist;
+                $ip_inclusions = $user->getIpInclusions();
+                $ip_exclusions = $user->getIpExclusions();
+                if (!empty($ip_inclusions)) {
+                    $u['ip_inclusions'] = $ip_inclusions;
                 }
-                if (!empty($ip_denylist)) {
-                    $u['ip_denylist'] = $ip_denylist;
+                if (!empty($ip_exclusions)) {
+                    $u['ip_exclusions'] = $ip_exclusions;
                 }
 
                 if ($password) {
@@ -146,13 +146,13 @@ class JsonFile implements Service, AuthInterface
         ];
 
         // Add IP restrictions if set
-        $ip_allowlist = $user->getIpAllowlist();
-        $ip_denylist = $user->getIpDenylist();
-        if (!empty($ip_allowlist)) {
-            $newUser['ip_allowlist'] = $ip_allowlist;
+        $ip_inclusions = $user->getIpInclusions();
+        $ip_exclusions = $user->getIpExclusions();
+        if (!empty($ip_inclusions)) {
+            $newUser['ip_inclusions'] = $ip_inclusions;
         }
-        if (!empty($ip_denylist)) {
-            $newUser['ip_denylist'] = $ip_denylist;
+        if (!empty($ip_exclusions)) {
+            $newUser['ip_exclusions'] = $ip_exclusions;
         }
 
         $all_users[] = $newUser;
@@ -222,11 +222,11 @@ class JsonFile implements Service, AuthInterface
         $new->setPermissions($user['permissions'], true);
 
         // Load IP restrictions if present
-        if (isset($user['ip_allowlist']) && is_array($user['ip_allowlist'])) {
-            $new->setIpAllowlist($user['ip_allowlist']);
+        if (isset($user['ip_inclusions']) && is_array($user['ip_inclusions'])) {
+            $new->setIpInclusions($user['ip_inclusions']);
         }
-        if (isset($user['ip_denylist']) && is_array($user['ip_denylist'])) {
-            $new->setIpDenylist($user['ip_denylist']);
+        if (isset($user['ip_exclusions']) && is_array($user['ip_exclusions'])) {
+            $new->setIpExclusions($user['ip_exclusions']);
         }
 
         return $new;

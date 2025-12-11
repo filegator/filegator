@@ -26,7 +26,7 @@ use Filegator\Services\Auth\User;
  * - Cascading inheritance from parent folders
  * - Priority-based rule evaluation
  * - Group-based permissions
- * - IP allowlist/denylist support
+ * - IP inclusions/exclusions support
  * - Permission caching for performance
  * - Detailed permission explanation for debugging
  */
@@ -120,11 +120,35 @@ class PathACL implements PathACLInterface
             }
 
             // Load from external file if specified
-            if (isset($config['acl_config_file']) && file_exists($config['acl_config_file'])) {
-                $aclConfig = require $config['acl_config_file'];
+            $aclConfigFile = $config['acl_config_file'] ?? null;
+
+            if ($aclConfigFile !== null) {
+                // Check if file exists
+                if (!file_exists($aclConfigFile)) {
+                    error_log('PathACL: Configuration file does not exist: ' . $aclConfigFile);
+                    $this->handleConfigError(new \Exception('ACL config file not found: ' . $aclConfigFile));
+                    return;
+                }
+
+                // Check if file is readable (prevents fatal error from require)
+                if (!is_readable($aclConfigFile)) {
+                    error_log('PathACL: Configuration file is not readable: ' . $aclConfigFile);
+                    error_log('PathACL: Please check file permissions. The web server (www-data) must be able to read this file.');
+                    error_log('PathACL: Try: sudo chown www-data:www-data ' . $aclConfigFile . ' && sudo chmod 600 ' . $aclConfigFile);
+                    $this->handleConfigError(new \Exception('ACL config file not readable: ' . $aclConfigFile . '. Check file permissions.'));
+                    return;
+                }
+
+                $aclConfig = require $aclConfigFile;
+                error_log("PathACL DEBUG: Loaded config from file: {$aclConfigFile}");
             } else {
                 $aclConfig = $config;
+                error_log("PathACL DEBUG: Using inline config (no external file)");
             }
+
+            // Log loaded path rules
+            $pathRuleKeys = isset($aclConfig['path_rules']) ? array_keys($aclConfig['path_rules']) : [];
+            error_log("PathACL DEBUG: Loaded path rules for: [" . implode(', ', $pathRuleKeys) . "]");
 
             // Load settings
             $settings = $aclConfig['settings'] ?? [];
@@ -203,8 +227,8 @@ class PathACL implements PathACLInterface
                 }
 
                 // Validate IP lists
-                $rule['ip_allowlist'] = $rule['ip_allowlist'] ?? [];
-                $rule['ip_denylist'] = $rule['ip_denylist'] ?? [];
+                $rule['ip_inclusions'] = $rule['ip_inclusions'] ?? [];
+                $rule['ip_exclusions'] = $rule['ip_exclusions'] ?? [];
             }
         }
     }
@@ -237,6 +261,7 @@ class PathACL implements PathACLInterface
     {
         // If ACL is disabled, return true (fall back to global permissions)
         if (!$this->enabled) {
+            error_log("PathACL DEBUG: ACL is DISABLED, allowing all access");
             return true;
         }
 
@@ -251,6 +276,7 @@ class PathACL implements PathACLInterface
 
             // Step 1: User-level IP check
             if (!$this->checkUserIpAccess($user, $clientIp)) {
+                error_log("PathACL DEBUG: User IP access DENIED for user={$user->getUsername()}, ip={$clientIp}");
                 return $this->cacheResult($user, $clientIp, $path, $permission, false);
             }
 
@@ -259,6 +285,9 @@ class PathACL implements PathACLInterface
 
             // Step 3: Check if requested permission is granted
             $allowed = in_array($permission, $effectivePerms);
+
+            // Debug logging for directory visibility
+            error_log("PathACL DEBUG: user={$user->getUsername()}, ip={$clientIp}, path={$path}, permission={$permission}, effective=[" . implode(',', $effectivePerms) . "], allowed=" . ($allowed ? 'YES' : 'NO'));
 
             return $this->cacheResult($user, $clientIp, $path, $permission, $allowed);
 
@@ -316,16 +345,16 @@ class PathACL implements PathACLInterface
      */
     protected function checkUserIpAccess(User $user, string $clientIp): bool
     {
-        $allowlist = $user->getIpAllowlist();
-        $denylist = $user->getIpDenylist();
+        $inclusions = $user->getIpInclusions();
+        $exclusions = $user->getIpExclusions();
 
         // If no IP restrictions are set at user level, allow
-        if (empty($allowlist) && empty($denylist)) {
+        if (empty($inclusions) && empty($exclusions)) {
             return true;
         }
 
         // Use IpMatcher to evaluate user-level IP restrictions
-        return $this->ipMatcher->isAllowed($clientIp, $allowlist, $denylist);
+        return $this->ipMatcher->isAllowed($clientIp, $inclusions, $exclusions);
     }
 
     /**
@@ -357,7 +386,7 @@ class PathACL implements PathACLInterface
                 }
 
                 // Check if IP matches
-                if (!$this->ipMatchesRule($clientIp, $rule['ip_allowlist'], $rule['ip_denylist'])) {
+                if (!$this->ipMatchesRule($clientIp, $rule['ip_inclusions'], $rule['ip_exclusions'])) {
                     continue;
                 }
 
@@ -429,13 +458,13 @@ class PathACL implements PathACLInterface
      * Check if IP matches rule's IP restrictions.
      *
      * @param string $clientIp Client IP address
-     * @param array $allowlist IP allowlist
-     * @param array $denylist IP denylist
+     * @param array $inclusions IP inclusions (IPs to include/allow)
+     * @param array $exclusions IP exclusions (IPs to exclude/deny)
      * @return bool True if IP is allowed
      */
-    protected function ipMatchesRule(string $clientIp, array $allowlist, array $denylist): bool
+    protected function ipMatchesRule(string $clientIp, array $inclusions, array $exclusions): bool
     {
-        return $this->ipMatcher->isAllowed($clientIp, $allowlist, $denylist);
+        return $this->ipMatcher->isAllowed($clientIp, $inclusions, $exclusions);
     }
 
     /**

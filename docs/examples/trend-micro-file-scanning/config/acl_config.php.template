@@ -104,8 +104,8 @@ return [
             'rules' => [
                 [
                     'users' => ['john'],
-                    'ip_allowlist' => ['*'], // All IPs
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['*'], // All IPs
+                    'ip_exclusions' => [],
                     'permissions' => ['read'],
                     'priority' => 10,
                     'description' => 'Default read access to home directory',
@@ -125,8 +125,8 @@ return [
                 // Gateway IP: Full access to upload folder
                 [
                     'users' => ['john'],
-                    'ip_allowlist' => ['{{GATEWAY_IP}}'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['{{GATEWAY_IP}}'],
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'upload', 'download'],
                     'priority' => 50,
                     'override_inherited' => true,
@@ -135,8 +135,8 @@ return [
                 // Internal network: Explicitly denied (folder hidden)
                 [
                     'users' => ['john'],
-                    'ip_allowlist' => ['*'],
-                    'ip_denylist' => ['{{GATEWAY_IP}}'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => ['{{GATEWAY_IP}}'],
                     'permissions' => [], // No permissions = folder is hidden
                     'priority' => 40,
                     'override_inherited' => true,
@@ -157,8 +157,8 @@ return [
                 // Internal network: Read and download clean files
                 [
                     'users' => ['john'],
-                    'ip_allowlist' => ['*'],
-                    'ip_denylist' => ['{{GATEWAY_IP}}'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => ['{{GATEWAY_IP}}'],
                     'permissions' => ['read', 'download'],
                     'priority' => 50,
                     'override_inherited' => true,
@@ -167,8 +167,8 @@ return [
                 // Gateway: Explicitly denied (folder hidden)
                 [
                     'users' => ['john'],
-                    'ip_allowlist' => ['{{GATEWAY_IP}}'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['{{GATEWAY_IP}}'],
+                    'ip_exclusions' => [],
                     'permissions' => [], // No permissions = folder is hidden
                     'priority' => 40,
                     'override_inherited' => true,
@@ -189,8 +189,8 @@ return [
                 // Internal network: Read and upload
                 [
                     'users' => ['john'],
-                    'ip_allowlist' => ['*'],
-                    'ip_denylist' => ['{{GATEWAY_IP}}'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => ['{{GATEWAY_IP}}'],
                     'permissions' => ['read', 'upload'],
                     'priority' => 50,
                     'override_inherited' => true,
@@ -199,8 +199,8 @@ return [
                 // Gateway: Explicitly denied (folder hidden)
                 [
                     'users' => ['john'],
-                    'ip_allowlist' => ['{{GATEWAY_IP}}'],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => ['{{GATEWAY_IP}}'],
+                    'ip_exclusions' => [],
                     'permissions' => [], // No permissions = folder is hidden
                     'priority' => 40,
                     'override_inherited' => true,

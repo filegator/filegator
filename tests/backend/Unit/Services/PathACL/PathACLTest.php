@@ -59,8 +59,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => ['192.168.1.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.1.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload', 'delete'],
                             'priority' => 10,
                             'override_inherited' => false,
@@ -156,8 +156,8 @@ class PathACLTest extends TestCase
             'rules' => [
                 [
                     'users' => ['*'],
-                    'ip_allowlist' => [],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => [],
+                    'ip_exclusions' => [],
                     'permissions' => ['read'],
                     'priority' => 0,
                     'override_inherited' => false,
@@ -181,8 +181,8 @@ class PathACLTest extends TestCase
             'rules' => [
                 [
                     'users' => ['@developers'],
-                    'ip_allowlist' => [],
-                    'ip_denylist' => [],
+                    'ip_inclusions' => [],
+                    'ip_exclusions' => [],
                     'permissions' => ['read', 'write'],
                     'priority' => 0,
                     'override_inherited' => false,
@@ -210,16 +210,16 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 5,
                             'override_inherited' => false,
                         ],
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'delete'],
                             'priority' => 10,
                             'override_inherited' => false,
@@ -249,8 +249,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['*'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write', 'upload', 'delete'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -262,8 +262,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 10,
                             'override_inherited' => true,
@@ -294,8 +294,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -323,8 +323,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['*'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -336,8 +336,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['admin@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read', 'write'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -356,9 +356,9 @@ class PathACLTest extends TestCase
         $this->assertFalse($result);
     }
 
-    // ========== IP Allowlist/Denylist Tests ==========
+    // ========== IP Inclusions/Exclusions Tests ==========
 
-    public function testIPDenylistBlocksAccess()
+    public function testIPExclusionsBlocksAccess()
     {
         $config = [
             'enabled' => true,
@@ -368,8 +368,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => ['*'],
-                            'ip_denylist' => ['192.168.1.100'],
+                            'ip_inclusions' => ['*'],
+                            'ip_exclusions' => ['192.168.1.100'],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -390,7 +390,7 @@ class PathACLTest extends TestCase
         $this->assertFalse($this->pathAcl->checkPermission($user, '192.168.1.100', '/projects', 'read'));
     }
 
-    public function testIPAllowlistRestrictsAccess()
+    public function testIPInclusionsRestrictsAccess()
     {
         $config = [
             'enabled' => true,
@@ -400,8 +400,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => ['192.168.1.0/24'],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => ['192.168.1.0/24'],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -457,16 +457,16 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
                         ],
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['write', 'upload'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -582,8 +582,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['*'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,
@@ -611,8 +611,8 @@ class PathACLTest extends TestCase
                     'rules' => [
                         [
                             'users' => ['john.doe@example.com'],
-                            'ip_allowlist' => [],
-                            'ip_denylist' => [],
+                            'ip_inclusions' => [],
+                            'ip_exclusions' => [],
                             'permissions' => ['read'],
                             'priority' => 0,
                             'override_inherited' => false,

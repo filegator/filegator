@@ -56,8 +56,8 @@ return [
      *
      * Rule structure:
      * - users: Array of usernames or @groupname or ['*'] for all authenticated users
-     * - ip_allowlist: Array of IPs/CIDR blocks allowed, or ['*'] for all
-     * - ip_denylist: Array of IPs/CIDR blocks denied (takes precedence)
+     * - ip_inclusions: Array of IPs/CIDR blocks to include (allow), or ['*'] for all
+     * - ip_exclusions: Array of IPs/CIDR blocks to exclude (deny, takes precedence)
      * - permissions: Array of permissions granted (read, write, upload, download, delete, zip, chmod)
      * - priority: Higher priority rules evaluated first
      * - override_inherited: If true, replace inherited permissions; if false, merge
@@ -73,8 +73,8 @@ return [
                 // Default rule: All authenticated users can read from any IP
                 [
                     'users' => ['*'], // * = all authenticated users
-                    'ip_allowlist' => ['*'], // * = all IP addresses
-                    'ip_denylist' => [], // No IPs blocked
+                    'ip_inclusions' => ['*'], // * = all IP addresses
+                    'ip_exclusions' => [], // No IPs excluded
                     'permissions' => ['read'], // Read-only by default
                     'priority' => 0, // Lowest priority (default rule)
                     'override_inherited' => false,
