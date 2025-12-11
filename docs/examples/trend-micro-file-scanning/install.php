@@ -524,20 +524,28 @@ class TrendMicroInstaller
         $pathACLAfterRouter = $hasPathACL && $routerPos !== false && $pathACLPos > $routerPos;
         $hooksAfterRouter = $hasHooks && $routerPos !== false && $hooksPos > $routerPos;
 
-        if ($pathACLAfterRouter || $hooksAfterRouter) {
-            $this->printWarning("\n  WARNING: Service order issue detected in configuration.php!\n");
-            if ($pathACLAfterRouter) {
-                $this->printWarning("  - PathACL is configured AFTER Router\n");
-            }
-            if ($hooksAfterRouter) {
-                $this->printWarning("  - Hooks is configured AFTER Router\n");
-            }
-            $this->printWarning("  Router must be the LAST service because it dispatches requests immediately.\n");
-            $this->printWarning("  Please manually move PathACL and Hooks BEFORE Router in configuration.php\n\n");
-        }
-
         if (!$this->dryRun) {
             $this->backupFile($configFile);
+
+            // Fix misconfigured order: remove PathACL from wrong position and re-inject before Router
+            if ($pathACLAfterRouter) {
+                $this->printWarning("  Fixing: PathACL is configured AFTER Router, moving it before Router...\n");
+                $content = $this->removeServiceConfig($content, 'PathACL');
+                $content = $this->injectServiceConfig($content, $this->getPathACLConfig());
+                $modified = true;
+                echo "  Fixed: PathACL moved to before Router\n";
+                $hasPathACL = true; // Mark as handled
+            }
+
+            // Fix misconfigured order: remove Hooks from wrong position and re-inject before Router
+            if ($hooksAfterRouter) {
+                $this->printWarning("  Fixing: Hooks is configured AFTER Router, moving it before Router...\n");
+                $content = $this->removeServiceConfig($content, 'Hooks');
+                $content = $this->injectServiceConfig($content, $this->getHooksConfig());
+                $modified = true;
+                echo "  Fixed: Hooks moved to before Router\n";
+                $hasHooks = true; // Mark as handled
+            }
 
             // Add PathACL configuration if missing
             if (!$hasPathACL) {
@@ -577,10 +585,14 @@ class TrendMicroInstaller
             }
         } else {
             echo "  [DRY RUN] Would update: configuration.php\n";
-            if (!$hasPathACL) {
+            if ($pathACLAfterRouter) {
+                echo "    - Would move PathACL before Router (currently after)\n";
+            } elseif (!$hasPathACL) {
                 echo "    - Would add PathACL service configuration\n";
             }
-            if (!$hasHooks) {
+            if ($hooksAfterRouter) {
+                echo "    - Would move Hooks before Router (currently after)\n";
+            } elseif (!$hasHooks) {
                 echo "    - Would add Hooks service configuration\n";
             }
         }
@@ -659,6 +671,39 @@ CONFIG;
         $this->printWarning("  Warning: Could not auto-inject service config. Manual edit required.\n");
         $this->printWarning("  PathACL and Hooks must be configured BEFORE Router in configuration.php\n");
         return $content;
+    }
+
+    /**
+     * Remove a service configuration block from content
+     *
+     * @param string $content The configuration file content
+     * @param string $serviceName Service name (PathACL or Hooks)
+     * @return string Modified content with service removed
+     */
+    private function removeServiceConfig($content, $serviceName)
+    {
+        // Build the service key pattern based on service name
+        if ($serviceName === 'PathACL') {
+            $serviceKey = 'Filegator\\\\Services\\\\PathACL\\\\PathACLInterface';
+        } elseif ($serviceName === 'Hooks') {
+            $serviceKey = 'Filegator\\\\Services\\\\Hooks\\\\HooksInterface';
+        } else {
+            return $content;
+        }
+
+        // Pattern to match the entire service block including trailing comma and whitespace
+        // Matches: 'ServiceKey' => [ ... ], (with proper nesting)
+        $pattern = "/\s*'" . $serviceKey . "'\s*=>\s*\[[^\]]*\[[^\]]*\][^\]]*\],?\s*/s";
+
+        $newContent = preg_replace($pattern, "\n", $content, 1);
+
+        if ($newContent === null || $newContent === $content) {
+            // Try simpler pattern for configs without nested arrays
+            $simplePattern = "/\s*'" . $serviceKey . "'\s*=>\s*\[[^\]]+\],?\s*/s";
+            $newContent = preg_replace($simplePattern, "\n", $content, 1);
+        }
+
+        return $newContent !== null ? $newContent : $content;
     }
 
     /**
