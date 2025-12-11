@@ -140,15 +140,9 @@ class PathACL implements PathACLInterface
                 }
 
                 $aclConfig = require $aclConfigFile;
-                error_log("PathACL DEBUG: Loaded config from file: {$aclConfigFile}");
             } else {
                 $aclConfig = $config;
-                error_log("PathACL DEBUG: Using inline config (no external file)");
             }
-
-            // Log loaded path rules
-            $pathRuleKeys = isset($aclConfig['path_rules']) ? array_keys($aclConfig['path_rules']) : [];
-            error_log("PathACL DEBUG: Loaded path rules for: [" . implode(', ', $pathRuleKeys) . "]");
 
             // Load settings
             $settings = $aclConfig['settings'] ?? [];
@@ -261,7 +255,6 @@ class PathACL implements PathACLInterface
     {
         // If ACL is disabled, return true (fall back to global permissions)
         if (!$this->enabled) {
-            error_log("PathACL DEBUG: ACL is DISABLED, allowing all access");
             return true;
         }
 
@@ -276,7 +269,6 @@ class PathACL implements PathACLInterface
 
             // Step 1: User-level IP check
             if (!$this->checkUserIpAccess($user, $clientIp)) {
-                error_log("PathACL DEBUG: User IP access DENIED for user={$user->getUsername()}, ip={$clientIp}");
                 return $this->cacheResult($user, $clientIp, $path, $permission, false);
             }
 
@@ -285,9 +277,6 @@ class PathACL implements PathACLInterface
 
             // Step 3: Check if requested permission is granted
             $allowed = in_array($permission, $effectivePerms);
-
-            // Debug logging for directory visibility
-            error_log("PathACL DEBUG: user={$user->getUsername()}, ip={$clientIp}, path={$path}, permission={$permission}, effective=[" . implode(',', $effectivePerms) . "], allowed=" . ($allowed ? 'YES' : 'NO'));
 
             return $this->cacheResult($user, $clientIp, $path, $permission, $allowed);
 
