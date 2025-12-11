@@ -260,8 +260,8 @@ Edit `/var/www/filegator/configuration.php`:
     'Filegator\Services\PathACL\PathACLInterface' => [
         'handler' => '\Filegator\Services\PathACL\PathACL',
         'config' => [
+            'enabled' => true,  // REQUIRED: Must be true to enable PathACL
             'acl_config_file' => __DIR__.'/private/acl_config.php',
-            'enabled' => true,  // Change to true
         ],
     ],
 

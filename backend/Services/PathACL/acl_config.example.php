@@ -18,7 +18,9 @@
  */
 
 return [
-    // Enable/disable path-based ACL system
+    // Note: The 'enabled' setting in configuration.php controls whether PathACL is active.
+    // This 'enabled' flag here is for reference only and is not used by the system.
+    // Make sure configuration.php has: 'enabled' => true in the PathACL service config.
     'enabled' => true,
 
     // Global ACL settings

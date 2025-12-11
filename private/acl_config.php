@@ -13,8 +13,15 @@
 
 return [
     /**
-     * Enable or disable the Path-Based ACL system
-     * If disabled, FileGator falls back to global user permissions
+     * NOTE: This 'enabled' flag is NOT used by the system.
+     * PathACL is enabled/disabled via the 'enabled' setting in configuration.php:
+     *
+     *   'Filegator\Services\PathACL\PathACLInterface' => [
+     *       'config' => [
+     *           'enabled' => true,  // <-- THIS controls PathACL activation
+     *           'acl_config_file' => __DIR__.'/private/acl_config.php',
+     *       ],
+     *   ],
      */
     'enabled' => true,
 

@@ -23,7 +23,17 @@
 
 return [
     /**
-     * Enable Path-Based ACL system
+     * NOTE: This 'enabled' flag is NOT used by the system.
+     * PathACL is enabled/disabled via the 'enabled' setting in configuration.php:
+     *
+     *   'Filegator\Services\PathACL\PathACLInterface' => [
+     *       'config' => [
+     *           'enabled' => true,  // <-- THIS controls PathACL activation
+     *           'acl_config_file' => __DIR__.'/private/acl_config.php',
+     *       ],
+     *   ],
+     *
+     * The installer (install.php) adds this configuration automatically.
      */
     'enabled' => true,
 

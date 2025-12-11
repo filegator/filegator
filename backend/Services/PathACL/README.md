@@ -47,12 +47,14 @@ Add to your `/configuration.php`:
     'Filegator\Services\PathACL\PathACLInterface' => [
         'handler' => '\Filegator\Services\PathACL\PathACL',
         'config' => [
+            'enabled' => true,  // REQUIRED: Must be true to enable PathACL
             'acl_config_file' => __DIR__.'/private/acl_config.php',
-            'enabled' => true,
         ],
     ],
 ]
 ```
+
+**Important:** The `'enabled' => true` setting in `configuration.php` is **required** to activate the PathACL system. Without it, the service will be registered but will not filter any paths.
 
 ### 2. Create Configuration File
 

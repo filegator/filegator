@@ -272,8 +272,8 @@ The installer will update the existing `configuration.php` to enable required se
     'Filegator\Services\PathACL\PathACLInterface' => [
         'handler' => '\Filegator\Services\PathACL\PathACL',
         'config' => [
+            'enabled' => true,  // REQUIRED: Must be true to enable PathACL
             'acl_config_file' => __DIR__.'/private/acl_config.php',
-            'enabled' => true,  // Enabled by installer
         ],
     ],
 

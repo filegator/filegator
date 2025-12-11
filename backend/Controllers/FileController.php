@@ -142,10 +142,16 @@ class FileController
      */
     protected function filterDirectoryByACL(Request $request, $collection)
     {
+        // Debug: Check if PathACL is available
+        error_log("FileController DEBUG: filterDirectoryByACL called, pathacl=" . ($this->pathacl ? 'INJECTED' : 'NULL'));
+
         // If PathACL is not enabled, return unfiltered
         if (!$this->pathacl || !$this->pathacl->isEnabled()) {
+            error_log("FileController DEBUG: PathACL not enabled or not injected, returning unfiltered");
             return $collection;
         }
+
+        error_log("FileController DEBUG: PathACL IS enabled, filtering collection");
 
         $user = $this->auth->user() ?: $this->auth->getGuest();
         $clientIp = $request->getClientIp();
