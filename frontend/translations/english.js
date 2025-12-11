@@ -10,6 +10,7 @@ const data = {
   'Please enter username and password': 'Please enter username and password.',
   'Not Found': 'Not Found',
   'Not Allowed': 'Not Allowed',
+  'Access denied': 'Access denied',
   'Please log in': 'Please log in',
   'Unknown error': 'Unknown error',
   'Add files': 'Add files',

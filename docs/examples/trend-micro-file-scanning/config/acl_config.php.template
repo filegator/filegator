@@ -3,20 +3,40 @@
 /**
  * Path-Based ACL Configuration for Trend Micro File Scanning Example
  *
+ * ============================================================================
+ * IMPORTANT: DENY BY DEFAULT SECURITY MODEL
+ * ============================================================================
+ * When PathACL is enabled, ALL access is DENIED unless there is a matching
+ * rule that explicitly grants permissions. This is a security-first design.
+ *
+ * If a user has NO matching rules, they will be completely locked out.
+ * You MUST configure rules for every user who needs access.
+ *
+ * To grant baseline access to all authenticated users, add a wildcard rule:
+ *   'users' => ['*'],  // Matches all authenticated users
+ *   'ip_inclusions' => ['*'],  // From any IP
+ *   'permissions' => ['read'],  // Read-only baseline
+ *
+ * ============================================================================
+ *
  * This configuration implements a three-zone security architecture:
  * - Gateway IP: Can upload and monitor files in staging area
  * - Internal Network: Can download scanned files
  * - File scanning pipeline: Automated via hooks
  *
- * User: john
+ * User: john (restricted user with IP-based folder visibility)
+ * User: admin (full access from any IP)
  * Gateway IP: {{GATEWAY_IP}} (replaced by installer)
  * Internal Network: All other local IPs
  *
- * Permission Matrix:
+ * Permission Matrix for 'john':
  * - / (home):     Gateway=Read, Internal=Read
  * - /upload:      Gateway=Upload+Read+Download, Internal=Hidden
  * - /scanned:     Gateway=Hidden, Internal=Read+Download
  * - /download:    Gateway=Hidden, Internal=Read+Upload
+ *
+ * Permission Matrix for 'admin':
+ * - Full access to all paths from any IP
  *
  * See: /mnt/ai/filegator/docs/examples/trend-micro-file-scanning/DESIGN.md
  */
@@ -107,31 +127,64 @@ return [
 
         /**
          * ROOT LEVEL (/)
-         * Read-only access for all authenticated users
+         * Base permissions for all users
+         *
+         * IMPORTANT: Rules are evaluated by priority (highest first).
+         * Admin gets full access, john gets read, others get read-only baseline.
          */
         '/' => [
             'inherit' => false, // Root has no parent
             'rules' => [
+                // ADMIN: Full access from any IP (highest priority)
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
+                // JOHN: Read access from any IP (specific user)
                 [
                     'users' => ['john'],
                     'ip_inclusions' => ['*'], // All IPs
                     'ip_exclusions' => [],
                     'permissions' => ['read'],
                     'priority' => 10,
-                    'description' => 'Default read access to home directory',
+                    'description' => 'John has read access to home directory',
+                ],
+                // WILDCARD: All other authenticated users get read-only baseline
+                // Remove or modify this rule to lock out unconfigured users
+                [
+                    'users' => ['*'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read'],
+                    'priority' => 0, // Lowest priority - specific rules override
+                    'description' => 'Baseline read access for all authenticated users',
                 ],
             ],
         ],
 
         /**
          * UPLOAD FOLDER (/upload)
-         * Visible ONLY to gateway IP
+         * Visible ONLY to gateway IP (for john)
          * Gateway can upload, read, and download files in staging area
          * Internal network cannot see this folder at all
+         * Admin has full access from any IP
          */
         '/upload' => [
             'inherit' => false,
             'rules' => [
+                // ADMIN: Full access from any IP
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
                 // Gateway IP: Full access to upload folder
                 [
                     'users' => ['john'],
@@ -157,13 +210,23 @@ return [
 
         /**
          * SCANNED FOLDER (/scanned)
-         * Visible ONLY to internal network
+         * Visible ONLY to internal network (for john)
          * Contains clean files that passed Trend Micro scanning
          * Gateway cannot see this folder
+         * Admin has full access from any IP
          */
         '/scanned' => [
             'inherit' => false,
             'rules' => [
+                // ADMIN: Full access from any IP
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
                 // Internal network: Read and download clean files
                 [
                     'users' => ['john'],
@@ -189,13 +252,23 @@ return [
 
         /**
          * DOWNLOAD FOLDER (/download)
-         * Upload destination for INTERNAL NETWORK ONLY
+         * Upload destination for INTERNAL NETWORK ONLY (for john)
          * Files uploaded here are automatically moved to /upload by hooks
          * Gateway cannot see this folder - they upload directly to /upload
+         * Admin has full access from any IP
          */
         '/download' => [
             'inherit' => false,
             'rules' => [
+                // ADMIN: Full access from any IP
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
                 // Internal network: Read and upload
                 [
                     'users' => ['john'],

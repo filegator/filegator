@@ -75,10 +75,10 @@ class UploadController
      * @param string $message Error message
      * @return Response
      */
-    protected function forbidden(Response $response, string $message = 'Access denied by path ACL'): Response
+    protected function forbidden(Response $response, string $message = 'Access denied'): Response
     {
-        $response->setStatusCode(403);
-        return $response->json(['error' => $message]);
+        $response->json($message, 403);
+        return $response;
     }
 
     public function chunkCheck(Request $request, Response $response)
@@ -108,7 +108,7 @@ class UploadController
         // Check PathACL permission for upload (check on first chunk only)
         if ($chunk_number == 1) {
             if (!$this->checkPathACL($request, $destination, 'upload')) {
-                return $this->forbidden($response, 'Access denied: cannot upload to this directory');
+                return $this->forbidden($response);
             }
         }
 

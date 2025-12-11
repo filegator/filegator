@@ -91,10 +91,10 @@ class FileController
      * @param string $message Error message
      * @return Response
      */
-    protected function forbidden(Response $response, string $message = 'Access denied by path ACL'): Response
+    protected function forbidden(Response $response, string $message = 'Access denied'): Response
     {
-        $response->setStatusCode(403);
-        return $response->json(['error' => $message]);
+        $response->json($message, 403);
+        return $response;
     }
 
     public function changeDirectory(Request $request, Response $response)
@@ -103,7 +103,7 @@ class FileController
 
         // Check PathACL permission for the target directory
         if (!$this->checkPathACL($request, $path, 'read')) {
-            return $this->forbidden($response, 'Access denied: cannot access this directory');
+            return $this->forbidden($response);
         }
 
         $this->session->set(self::SESSION_CWD, $path);
@@ -122,7 +122,7 @@ class FileController
 
         // Check PathACL permission
         if (!$this->checkPathACL($request, $path, 'read')) {
-            return $this->forbidden($response, 'Access denied: cannot read this directory');
+            return $this->forbidden($response);
         }
 
         $content = $this->storage->getDirectoryCollection($path);
@@ -179,7 +179,7 @@ class FileController
 
         // Check PathACL permission
         if (!$this->checkPathACL($request, $path, 'write')) {
-            return $this->forbidden($response, 'Access denied: cannot create items in this directory');
+            return $this->forbidden($response);
         }
 
         if ($type == 'dir') {
@@ -210,13 +210,13 @@ class FileController
 
         // Check PathACL permission for destination
         if (!$this->checkPathACL($request, $destination, 'write')) {
-            return $this->forbidden($response, 'Access denied: cannot write to destination directory');
+            return $this->forbidden($response);
         }
 
         foreach ($items as $item) {
             // Check PathACL permission for each source item
             if (!$this->checkPathACL($request, $item->path, 'read')) {
-                return $this->forbidden($response, 'Access denied: cannot read source item ' . $item->path);
+                return $this->forbidden($response);
             }
 
             if ($item->type == 'dir') {
@@ -248,13 +248,13 @@ class FileController
 
         // Check PathACL permission for destination
         if (!$this->checkPathACL($request, $destination, 'write')) {
-            return $this->forbidden($response, 'Access denied: cannot write to destination directory');
+            return $this->forbidden($response);
         }
 
         foreach ($items as $item) {
             // Check PathACL permission for each source item (need write to move/delete)
             if (!$this->checkPathACL($request, $item->path, 'write')) {
-                return $this->forbidden($response, 'Access denied: cannot move item ' . $item->path);
+                return $this->forbidden($response);
             }
 
             $full_destination = trim($destination, $this->separator)
@@ -285,7 +285,7 @@ class FileController
 
         // Check PathACL permission for destination
         if (!$this->checkPathACL($request, $destination, 'zip')) {
-            return $this->forbidden($response, 'Access denied: cannot create zip in this directory');
+            return $this->forbidden($response);
         }
 
         $archiver->createArchive($this->storage);
@@ -293,7 +293,7 @@ class FileController
         foreach ($items as $item) {
             // Check PathACL permission for each item to be zipped
             if (!$this->checkPathACL($request, $item->path, 'read')) {
-                return $this->forbidden($response, 'Access denied: cannot read item ' . $item->path);
+                return $this->forbidden($response);
             }
 
             if ($item->type == 'dir') {
@@ -316,12 +316,12 @@ class FileController
 
         // Check PathACL permission for source (need read)
         if (!$this->checkPathACL($request, $source, 'read')) {
-            return $this->forbidden($response, 'Access denied: cannot read archive file');
+            return $this->forbidden($response);
         }
 
         // Check PathACL permission for destination (need write)
         if (!$this->checkPathACL($request, $destination, 'write')) {
-            return $this->forbidden($response, 'Access denied: cannot extract to destination directory');
+            return $this->forbidden($response);
         }
 
         $archiver->uncompress($source, $destination, $this->storage);
@@ -339,7 +339,7 @@ class FileController
         foreach ($items as $item) {
             // Check PathACL permission for chmod operation
             if (!$this->checkPathACL($request, $item->path, 'chmod')) {
-                return $this->forbidden($response, 'Access denied: cannot change permissions for ' . $item->path);
+                return $this->forbidden($response);
             }
 
             $this->storage->chmod($item->path, $permissions, $recursive);
@@ -359,7 +359,7 @@ class FileController
 
         // Check PathACL permission for rename (need write)
         if (!$this->checkPathACL($request, $sourcePath, 'write')) {
-            return $this->forbidden($response, 'Access denied: cannot rename item in this directory');
+            return $this->forbidden($response);
         }
 
         $this->storage->rename($destination, $from, $to);
@@ -387,7 +387,7 @@ class FileController
         foreach ($items as $item) {
             // Check PathACL permission for delete (need write)
             if (!$this->checkPathACL($request, $item->path, 'write')) {
-                return $this->forbidden($response, 'Access denied: cannot delete item ' . $item->path);
+                return $this->forbidden($response);
             }
 
             if ($item->type == 'dir') {
@@ -423,7 +423,7 @@ class FileController
 
         // Check PathACL permission for write
         if (!$this->checkPathACL($request, $filePath, 'write')) {
-            return $this->forbidden($response, 'Access denied: cannot save content to this file');
+            return $this->forbidden($response);
         }
 
         $stream = tmpfile();

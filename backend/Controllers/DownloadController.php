@@ -88,10 +88,10 @@ class DownloadController
      * @param string $message Error message
      * @return Response
      */
-    protected function forbidden(Response $response, string $message = 'Access denied by path ACL'): Response
+    protected function forbidden(Response $response, string $message = 'Access denied'): Response
     {
-        $response->setStatusCode(403);
-        return $response->json(['error' => $message]);
+        $response->json($message, 403);
+        return $response;
     }
 
     public function download(Request $request, Response $response, StreamedResponse $streamedResponse)
@@ -100,7 +100,7 @@ class DownloadController
 
         // Check PathACL permission for download
         if (!$this->checkPathACL($request, $path, 'download')) {
-            return $this->forbidden($response, 'Access denied: cannot download this file');
+            return $this->forbidden($response);
         }
 
         try {
