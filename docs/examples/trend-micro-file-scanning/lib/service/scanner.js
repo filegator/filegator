@@ -124,12 +124,9 @@ async function scanFile(options) {
         client = new AmaasGrpcClient(sdkRegion, apiKey, timeout);
 
         // Scan the file
-        const scanOptions = {
-            pml: pml,
-            tags: tags,
-        };
-
-        const result = await client.scanFile(file, scanOptions);
+        // SDK signature: scanFile(name: string, tags?: string[], pml?: boolean, feedback?: boolean)
+        const feedback = true; // Enable Smart Protection Network feedback
+        const result = await client.scanFile(file, tags, pml, feedback);
 
         // Parse the result
         const scanResult = typeof result === 'string' ? JSON.parse(result) : result;
