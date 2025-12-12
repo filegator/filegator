@@ -35,7 +35,7 @@
  *   1 - Error (invalid input, connection failure, etc.)
  */
 
-const AmaasGrpcClient = require('file-security-sdk');
+const { AmaasGrpcClient } = require('file-security-sdk');
 const fs = require('fs');
 const path = require('path');
 
