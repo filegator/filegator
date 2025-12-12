@@ -78,6 +78,7 @@ const data = {
   'Show hidden': 'Show hidden',
   'Show symbolic format': 'Show symbolic format',
   'Hide symbolic format': 'Hide symbolic format',
+  'No upload permission for this folder': 'No upload permission for this folder',
 }
 
 export default data

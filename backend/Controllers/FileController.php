@@ -110,8 +110,8 @@ class FileController
 
         $content = $this->storage->getDirectoryCollection($path);
 
-        // Filter out items the user cannot access
-        $content = $this->filterDirectoryByACL($request, $content);
+        // Filter out items the user cannot access and add path permissions
+        $content = $this->filterDirectoryByACL($request, $content, $path);
 
         return $response->json($content);
     }
@@ -127,8 +127,8 @@ class FileController
 
         $content = $this->storage->getDirectoryCollection($path);
 
-        // Filter out items the user cannot access
-        $content = $this->filterDirectoryByACL($request, $content);
+        // Filter out items the user cannot access and add path permissions
+        $content = $this->filterDirectoryByACL($request, $content, $path);
 
         return $response->json($content);
     }
@@ -138,9 +138,10 @@ class FileController
      *
      * @param Request $request HTTP request object
      * @param \Filegator\Services\Storage\DirectoryCollection $collection Directory collection
+     * @param string $currentPath Current directory path (for getting path permissions)
      * @return \Filegator\Services\Storage\DirectoryCollection Filtered collection
      */
-    protected function filterDirectoryByACL(Request $request, $collection)
+    protected function filterDirectoryByACL(Request $request, $collection, string $currentPath = '/')
     {
         // Debug: Log PathACL status
         error_log("[PathACL DEBUG] FileController::filterDirectoryByACL - pathacl injected: " . ($this->pathacl ? 'YES' : 'NO'));
@@ -156,6 +157,11 @@ class FileController
         $clientIp = $request->getClientIp();
 
         error_log("[PathACL DEBUG] FileController::filterDirectoryByACL - user: " . $user->getUsername() . ", clientIp: " . $clientIp);
+
+        // Get effective permissions for the current directory and include in response
+        $effectivePermissions = $this->pathacl->getEffectivePermissions($user, $clientIp, $currentPath);
+        $collection->setPathPermissions($effectivePermissions);
+        error_log("[PathACL DEBUG] Path permissions for '{$currentPath}': " . json_encode($effectivePermissions));
 
         // Filter items based on read permission
         $collection->filter(function ($item) use ($user, $clientIp) {

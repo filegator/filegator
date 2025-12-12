@@ -429,9 +429,25 @@ function scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config) {
     // Calculate file hash for tracking
     $fileSHA256 = hash('sha256', $fileContent);
 
-    // Prepare API request
-    // Note: Trend Micro uses gRPC, this is a simplified HTTP approach
-    // For production, use official SDK or create a bridge service
+    // Use cURL if available, otherwise fall back to file_get_contents with stream context
+    if (function_exists('curl_init')) {
+        return scanWithCurl($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256);
+    } else {
+        return scanWithStreamContext($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256);
+    }
+}
+
+/**
+ * Scan file using cURL
+ *
+ * @param string $apiUrl API endpoint URL
+ * @param string $fileContent File content
+ * @param string $apiKey API key
+ * @param int $scanTimeout Timeout in seconds
+ * @param string $fileSHA256 File hash
+ * @return array Result array
+ */
+function scanWithCurl($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256) {
     $ch = curl_init();
 
     curl_setopt_array($ch, [
@@ -454,11 +470,80 @@ function scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config) {
     $curlError = curl_error($ch);
     curl_close($ch);
 
+    return parseApiResponse($response, $httpCode, $curlError, $fileSHA256);
+}
+
+/**
+ * Scan file using file_get_contents with stream context (fallback when cURL not available)
+ *
+ * @param string $apiUrl API endpoint URL
+ * @param string $fileContent File content
+ * @param string $apiKey API key
+ * @param int $scanTimeout Timeout in seconds
+ * @param string $fileSHA256 File hash
+ * @return array Result array
+ */
+function scanWithStreamContext($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256) {
+    error_log("[Trend Micro Hook] Using file_get_contents fallback (cURL not available)");
+
+    $headers = [
+        'Authorization: ApiKey ' . $apiKey,
+        'Content-Type: application/octet-stream',
+        'Content-Length: ' . strlen($fileContent),
+    ];
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => implode("\r\n", $headers),
+            'content' => $fileContent,
+            'timeout' => $scanTimeout,
+            'ignore_errors' => true, // Allows reading response body even on HTTP errors
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+        ],
+    ]);
+
+    $response = @file_get_contents($apiUrl . '/scan', false, $context);
+
+    // Get HTTP response code from headers
+    $httpCode = 0;
+    $errorMessage = '';
+    if (isset($http_response_header) && is_array($http_response_header)) {
+        // Parse status line like "HTTP/1.1 200 OK"
+        foreach ($http_response_header as $header) {
+            if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/', $header, $matches)) {
+                $httpCode = (int) $matches[1];
+                break;
+            }
+        }
+    }
+
+    if ($response === false) {
+        $error = error_get_last();
+        $errorMessage = $error['message'] ?? 'Unknown error';
+    }
+
+    return parseApiResponse($response, $httpCode, $errorMessage, $fileSHA256);
+}
+
+/**
+ * Parse API response and return standardized result
+ *
+ * @param string|false $response API response
+ * @param int $httpCode HTTP status code
+ * @param string $errorMessage Error message if any
+ * @param string $fileSHA256 File hash
+ * @return array Result array
+ */
+function parseApiResponse($response, $httpCode, $errorMessage, $fileSHA256) {
     // Handle HTTP errors
     if ($httpCode === 0) {
         return [
             'status' => 'error',
-            'error' => 'Connection failed: ' . $curlError,
+            'error' => 'Connection failed: ' . $errorMessage,
             'malware_found' => false,
         ];
     }

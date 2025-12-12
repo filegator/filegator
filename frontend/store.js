@@ -20,6 +20,7 @@ export default new Vuex.Store({
     cwd: {
       location: '/',
       content: [],
+      pathPermissions: [], // Path-specific permissions from PathACL
     },
     tree: {},
   },
@@ -42,6 +43,7 @@ export default new Vuex.Store({
       state.cwd = {
         location: '/',
         content: [],
+        pathPermissions: [],
       }
     },
     resetTree(state) {
@@ -69,6 +71,7 @@ export default new Vuex.Store({
 
       state.cwd.location = data.location
       state.cwd.content = []
+      state.cwd.pathPermissions = data.pathPermissions || []
 
       _.forEach(_.sortBy(data.content, [function(o) { return _.toLower(o.type) }]), (o) => {
         state.cwd.content.push(o)
