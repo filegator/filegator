@@ -284,13 +284,21 @@ try {
  * @return array Result array with keys: status, malware_found, scan_id, threats, error
  */
 function scanFileWithTrendMicro($filePath, $fileName, $apiKey, $config) {
-    // Load SDK if available
-    $sdkPath = dirname(__DIR__, 2) . '/lib/TrendMicroScanner.php';
+    // Load SDK if available (installed to private/lib/)
+    // Path: hooks/onUpload/02_scan_upload.php -> private/lib/TrendMicroScanner.php
+    // dirname(__DIR__, 1) = .../private/hooks -> dirname(__DIR__, 1) . '/lib' = .../private/lib
+    $sdkPath = dirname(__DIR__, 1) . '/lib/TrendMicroScanner.php';
+
     if (file_exists($sdkPath)) {
+        error_log("[Trend Micro Hook] Using SDK at: $sdkPath");
         return scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath);
     }
 
+    // Log warning - direct API fallback is deprecated (uses REST which doesn't work)
+    error_log("[Trend Micro Hook] WARNING: SDK not found at $sdkPath - falling back to direct API (deprecated)");
+
     // Fallback to direct API call if SDK not available
+    // Note: This fallback uses REST API which may not work. The SDK (with Node.js gRPC) is recommended.
     return scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config);
 }
 

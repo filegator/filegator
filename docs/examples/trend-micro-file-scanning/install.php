@@ -336,21 +336,105 @@ class TrendMicroInstaller
             }
         }
 
-        // Also copy the TrendMicroScanner library
-        $libSource = $this->examplePath . '/lib/TrendMicroScanner.php';
-        $libDest = $this->filegatorPath . '/private/TrendMicroScanner.php';
+        // Copy the entire TrendMicroScanner library (PHP + Node.js service)
+        $libSource = $this->examplePath . '/lib';
+        $libDest = $this->filegatorPath . '/private/lib';
 
-        if (file_exists($libSource)) {
+        if (is_dir($libSource)) {
             if (!$this->dryRun) {
-                if (file_exists($libDest)) {
-                    $this->backupFile($libDest);
+                // Create lib directory if it doesn't exist
+                if (!is_dir($libDest)) {
+                    mkdir($libDest, 0755, true);
                 }
-                copy($libSource, $libDest);
-                chmod($libDest, 0644);
-                echo "  Installed: TrendMicroScanner.php library\n";
+
+                // Recursively copy lib directory
+                $this->copyDirectory($libSource, $libDest);
+                echo "  Installed: TrendMicroScanner library (PHP + Node.js service)\n";
+
+                // Run npm install in service directory
+                $this->installNodeDependencies($libDest . '/service');
             } else {
-                echo "  [DRY RUN] Would install: TrendMicroScanner.php\n";
+                echo "  [DRY RUN] Would install: TrendMicroScanner library\n";
+                echo "  [DRY RUN] Would run: npm install in lib/service/\n";
             }
+        }
+    }
+
+    /**
+     * Recursively copy a directory
+     */
+    private function copyDirectory(string $source, string $dest): void
+    {
+        if (!is_dir($dest)) {
+            mkdir($dest, 0755, true);
+        }
+
+        $dir = opendir($source);
+        while (($file = readdir($dir)) !== false) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+
+            $srcPath = $source . '/' . $file;
+            $destPath = $dest . '/' . $file;
+
+            if (is_dir($srcPath)) {
+                $this->copyDirectory($srcPath, $destPath);
+            } else {
+                copy($srcPath, $destPath);
+                chmod($destPath, 0644);
+            }
+        }
+        closedir($dir);
+    }
+
+    /**
+     * Install Node.js dependencies for the scanner service
+     */
+    private function installNodeDependencies(string $servicePath): void
+    {
+        if (!is_dir($servicePath) || !file_exists($servicePath . '/package.json')) {
+            $this->printWarning("  Warning: Node.js service not found at $servicePath\n");
+            return;
+        }
+
+        // Check if node and npm are available
+        $nodeVersion = @shell_exec('node --version 2>/dev/null');
+        $npmVersion = @shell_exec('npm --version 2>/dev/null');
+
+        if (empty($nodeVersion)) {
+            $this->printWarning("  Warning: Node.js not found. Please install Node.js >= 16.0.0\n");
+            $this->printWarning("  Then run: cd $servicePath && npm install\n");
+            return;
+        }
+
+        // Check Node.js version (need >= 16.0.0)
+        $version = trim(str_replace('v', '', $nodeVersion));
+        if (version_compare($version, '16.0.0', '<')) {
+            $this->printWarning("  Warning: Node.js $version is too old. Please upgrade to >= 16.0.0\n");
+            return;
+        }
+
+        echo "  Node.js version: " . trim($nodeVersion) . "\n";
+        echo "  NPM version: " . trim($npmVersion) . "\n";
+        echo "  Installing Node.js dependencies...\n";
+
+        // Run npm install
+        $originalDir = getcwd();
+        chdir($servicePath);
+
+        $output = [];
+        $returnCode = 0;
+        exec('npm install 2>&1', $output, $returnCode);
+
+        chdir($originalDir);
+
+        if ($returnCode !== 0) {
+            $this->printWarning("  Warning: npm install failed with exit code $returnCode\n");
+            $this->printWarning("  Output: " . implode("\n", array_slice($output, -5)) . "\n");
+            $this->printWarning("  Please run manually: cd $servicePath && npm install\n");
+        } else {
+            $this->printSuccess("  Node.js dependencies installed successfully\n");
         }
     }
 
@@ -936,24 +1020,51 @@ ENV;
     }
 
     /**
-     * Test Trend Micro API connectivity
+     * Test Trend Micro scanner service
      */
     private function testTrendMicroAPI()
     {
-        $libFile = $this->filegatorPath . '/private/TrendMicroScanner.php';
+        $libFile = $this->filegatorPath . '/private/lib/TrendMicroScanner.php';
+        $serviceDir = $this->filegatorPath . '/private/lib/service';
 
         if (!file_exists($libFile)) {
-            $this->printWarning("  TrendMicroScanner library not found, skipping API test\n");
+            $this->printWarning("  TrendMicroScanner library not found, skipping service test\n");
             return;
         }
 
-        // Create a simple test (just check if we can instantiate the class)
-        echo "  Testing API connectivity (basic check)...\n";
-        echo "  Note: Full API test requires actual file upload\n";
-        echo "  API Key: " . substr($this->config['api_key'], 0, 10) . "...\n";
-        echo "  API URL: {$this->config['api_url']}\n";
+        // Check if Node.js service is installed
+        if (!file_exists($serviceDir . '/node_modules')) {
+            $this->printWarning("  Node.js dependencies not installed, skipping service test\n");
+            $this->printWarning("  Run: cd $serviceDir && npm install\n");
+            return;
+        }
 
-        $this->printSuccess("  API configuration validated\n");
+        // Test Node.js scanner service
+        echo "  Testing Node.js scanner service...\n";
+
+        $scannerJs = $serviceDir . '/scanner.js';
+        $output = [];
+        $returnCode = 0;
+        exec("node " . escapeshellarg($scannerJs) . " --test 2>&1", $output, $returnCode);
+
+        if ($returnCode === 0) {
+            $result = json_decode(implode('', $output), true);
+            if ($result && $result['success']) {
+                $this->printSuccess("  Scanner service is working\n");
+                echo "  Node.js version: " . ($result['nodeVersion'] ?? 'Unknown') . "\n";
+                echo "  Available regions: " . implode(', ', $result['regions'] ?? []) . "\n";
+            } else {
+                $this->printWarning("  Scanner service test returned unexpected result\n");
+            }
+        } else {
+            $this->printWarning("  Scanner service test failed (exit code: $returnCode)\n");
+            $this->printWarning("  Output: " . implode("\n", array_slice($output, -3)) . "\n");
+        }
+
+        echo "  API Key: " . substr($this->config['api_key'], 0, 10) . "...\n";
+        echo "  Region: " . $this->config['region'] . "\n";
+
+        $this->printSuccess("  Configuration validated\n");
     }
 
     /**
