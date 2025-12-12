@@ -87,13 +87,21 @@ if (!$fullPath || !file_exists($fullPath) || strpos($fullPath, realpath($reposit
 }
 
 // Validate API key is configured
+// Note: The config.php file should load .env automatically via putenv()
 $apiKey = $tmConfig['api_key'] ?? getenv('TREND_MICRO_API_KEY') ?: '';
+
+// Debug: Show where we're looking for the API key
+error_log("[Trend Micro Hook] Config file: " . dirname(__DIR__) . '/config.php');
+error_log("[Trend Micro Hook] tmConfig['api_key']: " . (isset($tmConfig['api_key']) && $tmConfig['api_key'] ? 'SET (length: ' . strlen($tmConfig['api_key']) . ')' : 'NOT SET'));
+error_log("[Trend Micro Hook] getenv('TREND_MICRO_API_KEY'): " . (getenv('TREND_MICRO_API_KEY') ? 'SET (length: ' . strlen(getenv('TREND_MICRO_API_KEY')) . ')' : 'NOT SET'));
+error_log("[Trend Micro Hook] .env file exists: " . (file_exists(dirname(__DIR__, 3) . '/.env') ? 'YES' : 'NO'));
+
 if (empty($apiKey)) {
     error_log("[Trend Micro Hook] API key not configured");
     return [
         'action' => 'continue',
         'status' => 'error',
-        'message' => 'Trend Micro API key not configured (set TREND_MICRO_API_KEY environment variable)',
+        'message' => 'Trend Micro API key not configured (set TREND_MICRO_API_KEY environment variable or check .env file)',
     ];
 }
 
