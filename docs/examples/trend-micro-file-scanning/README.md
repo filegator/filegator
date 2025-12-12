@@ -224,8 +224,13 @@ cd /path/to/filegator/docs/examples/trend-micro-file-scanning
 cp hooks/onUpload/01_move_from_download.php /var/www/filegator/private/hooks/onUpload/
 cp hooks/onUpload/02_scan_upload.php /var/www/filegator/private/hooks/onUpload/
 
-# Copy library
-cp -r lib /var/www/filegator/docs/examples/trend-micro-file-scanning/
+# Install the Trend Micro PHP SDK via Composer
+cd /var/www/filegator/private
+composer require trendandrew/file-security-sdk
+
+# Install Node.js dependencies for the scanner service
+cd vendor/trendandrew/file-security-sdk/service
+npm install
 ```
 
 ### Step 3: Configure Hooks
@@ -1174,9 +1179,16 @@ All example files are in: `/docs/examples/trend-micro-file-scanning/`
 - `config/hooks_config.php.template` - Hooks configuration template
 - `hooks/onUpload/01_move_from_download.php` - File movement hook
 - `hooks/onUpload/02_scan_upload.php` - Scanning hook
-- `lib/TrendMicroScanner.php` - API wrapper library
 - `scripts/test_installation.php` - Installation verification
 - `scripts/check_tm_api.php` - API connectivity test
+
+### PHP SDK
+
+The Trend Micro File Security PHP SDK is available as a separate Composer package:
+
+- Package: `trendandrew/file-security-sdk`
+- Repository: [https://github.com/trendandrew/tm-v1-fs-php-sdk](https://github.com/trendandrew/tm-v1-fs-php-sdk)
+- Install: `composer require trendandrew/file-security-sdk`
 
 ### Support
 

@@ -710,8 +710,8 @@ if ($fileSize > $maxSize) {
     return ['status' => 'error', 'message' => 'File too large for scanning'];
 }
 
-// Load Trend Micro scanner library
-require_once dirname(__DIR__, 3) . '/docs/examples/trend-micro-file-scanning/lib/TrendMicroScanner.php';
+// Load Trend Micro scanner library via Composer autoload
+require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 $scanner = new \TrendMicro\FileScanner([
     'api_key' => $tmConfig['api_key'] ?? '',
@@ -830,9 +830,11 @@ function sendMalwareAlert($fileName, $scanResult, $config) {
 
 ### 6.3 Trend Micro API Wrapper Library
 
-**File**: `lib/TrendMicroScanner.php`
+**Package**: `trendandrew/file-security-sdk` (install via Composer)
 
-**Purpose**: Encapsulate Trend Micro Cloud One File Security API
+**Repository**: https://github.com/trendandrew/tm-v1-fs-php-sdk
+
+**Purpose**: Encapsulate Trend Micro Vision One File Security API
 
 ```php
 <?php
@@ -1315,13 +1317,14 @@ class TrendMicroInstaller {
     private function testTrendMicroAPI() {
         echo "Testing Trend Micro API connectivity...\n";
 
-        require_once __DIR__ . '/lib/TrendMicroScanner.php';
+        // Load SDK via Composer autoload
+        require_once __DIR__ . '/vendor/autoload.php';
 
-        $scanner = new \TrendMicro\FileScanner([
-            'api_key' => $this->config['api_key'],
-            'region' => $this->config['region'],
-            'timeout' => 10,
-        ]);
+        $scanner = new \TrendMicroScanner(
+            $this->config['region'],
+            $this->config['api_key'],
+            10  // timeout
+        );
 
         // Create test file
         $testFile = sys_get_temp_dir() . '/filegator_test.txt';

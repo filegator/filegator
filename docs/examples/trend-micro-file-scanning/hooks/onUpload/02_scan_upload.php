@@ -277,6 +277,11 @@ try {
  * Uses the Trend Micro Vision One File Security PHP SDK for scanning.
  * The SDK uses Node.js with gRPC for communication with Trend Micro servers.
  *
+ * Installation:
+ *   cd /path/to/filegator/private
+ *   composer require trendandrew/file-security-sdk
+ *   cd vendor/trendandrew/file-security-sdk/service && npm install
+ *
  * @param string $filePath Absolute path to file
  * @param string $fileName File name
  * @param string $apiKey Trend Micro API key
@@ -284,24 +289,30 @@ try {
  * @return array Result array with keys: status, malware_found, scan_id, threats, error
  */
 function scanFileWithTrendMicro($filePath, $fileName, $apiKey, $config) {
-    // Load SDK (installed to private/lib/)
     // Path: hooks/onUpload/02_scan_upload.php is at private/hooks/onUpload/
     // dirname(__DIR__, 2) goes up 2 levels: onUpload -> hooks -> private
-    // Then add /lib/src/TrendMicroScanner.php (standard Composer layout)
-    $sdkPath = dirname(__DIR__, 2) . '/lib/src/TrendMicroScanner.php';
+    $privateDir = dirname(__DIR__, 2);
 
-    if (file_exists($sdkPath)) {
-        error_log("[Trend Micro Hook] Using SDK at: $sdkPath");
-        return scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath);
+    // Check for Composer autoloader
+    $composerAutoload = $privateDir . '/vendor/autoload.php';
+    if (file_exists($composerAutoload)) {
+        require_once $composerAutoload;
+        if (class_exists('TrendMicroScanner')) {
+            error_log("[Trend Micro Hook] Using SDK via Composer autoloader");
+            return scanFileWithSDK($filePath, $fileName, $apiKey, $config);
+        }
     }
 
     // SDK not found - cannot proceed
-    error_log("[Trend Micro Hook] ERROR: SDK not found at $sdkPath");
-    error_log("[Trend Micro Hook] Run the installer to install the TrendMicroScanner library: php install.php");
+    error_log("[Trend Micro Hook] ERROR: TrendMicroScanner SDK not found");
+    error_log("[Trend Micro Hook] Install via Composer:");
+    error_log("[Trend Micro Hook]   cd $privateDir");
+    error_log("[Trend Micro Hook]   composer require trendandrew/file-security-sdk");
+    error_log("[Trend Micro Hook]   cd vendor/trendandrew/file-security-sdk/service && npm install");
 
     return [
         'status' => 'error',
-        'error' => "TrendMicroScanner SDK not found at: $sdkPath. Run the installer to set up the library.",
+        'error' => "TrendMicroScanner SDK not found. Install via: composer require trendandrew/file-security-sdk",
         'malware_found' => false,
     ];
 }
@@ -313,11 +324,9 @@ function scanFileWithTrendMicro($filePath, $fileName, $apiKey, $config) {
  * @param string $fileName File name
  * @param string $apiKey Trend Micro API key
  * @param array $config Configuration array
- * @param string $sdkPath Path to SDK file
  * @return array Result array
  */
-function scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath) {
-    require_once $sdkPath;
+function scanFileWithSDK($filePath, $fileName, $apiKey, $config) {
 
     try {
         $region = $config['region'] ?? getenv('TREND_MICRO_REGION') ?: 'us';

@@ -336,28 +336,104 @@ class TrendMicroInstaller
             }
         }
 
-        // Copy the entire TrendMicroScanner library (PHP + Node.js service)
-        $libSource = $this->examplePath . '/lib';
-        $libDest = $this->filegatorPath . '/private/lib';
+        // Install TrendMicroScanner SDK via Composer
+        $this->installTrendMicroSDK();
+    }
 
-        if (is_dir($libSource)) {
-            if (!$this->dryRun) {
-                // Create lib directory if it doesn't exist
-                if (!is_dir($libDest)) {
-                    mkdir($libDest, 0755, true);
+    /**
+     * Install Trend Micro File Security SDK via Composer
+     */
+    private function installTrendMicroSDK(): void
+    {
+        $privateDir = $this->filegatorPath . '/private';
+        $vendorDir = $privateDir . '/vendor/trendandrew/file-security-sdk';
+        $serviceDir = $vendorDir . '/service';
+
+        echo "\n  Installing Trend Micro File Security SDK...\n";
+
+        if (!$this->dryRun) {
+            // Check if composer is available
+            $composerCmd = $this->findComposer();
+            if (!$composerCmd) {
+                $this->printWarning("  Composer not found. Please install manually:\n");
+                $this->printWarning("    cd $privateDir\n");
+                $this->printWarning("    composer require trendandrew/file-security-sdk\n");
+                $this->printWarning("    cd vendor/trendandrew/file-security-sdk/service && npm install\n");
+                return;
+            }
+
+            // Create composer.json if it doesn't exist
+            $composerJson = $privateDir . '/composer.json';
+            if (!file_exists($composerJson)) {
+                $composerContent = json_encode([
+                    'name' => 'filegator/private',
+                    'description' => 'FileGator private directory dependencies',
+                    'require' => new \stdClass(),
+                ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                file_put_contents($composerJson, $composerContent);
+                echo "  Created: composer.json\n";
+            }
+
+            // Run composer require
+            $cmd = sprintf(
+                'cd %s && %s require trendandrew/file-security-sdk 2>&1',
+                escapeshellarg($privateDir),
+                $composerCmd
+            );
+
+            echo "  Running: composer require trendandrew/file-security-sdk\n";
+            $output = [];
+            $returnCode = 0;
+            exec($cmd, $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                $this->printWarning("  Composer install failed. Output:\n");
+                foreach ($output as $line) {
+                    $this->printWarning("    $line\n");
                 }
+                return;
+            }
 
-                // Recursively copy lib directory
-                $this->copyDirectory($libSource, $libDest);
-                echo "  Installed: TrendMicroScanner library (PHP + Node.js service)\n";
+            echo "  Installed: trendandrew/file-security-sdk via Composer\n";
 
-                // Run npm install in service directory
-                $this->installNodeDependencies($libDest . '/service');
-            } else {
-                echo "  [DRY RUN] Would install: TrendMicroScanner library\n";
-                echo "  [DRY RUN] Would run: npm install in lib/service/\n";
+            // Install Node.js dependencies for the scanner service
+            if (is_dir($serviceDir)) {
+                $this->installNodeDependencies($serviceDir);
+            }
+        } else {
+            echo "  [DRY RUN] Would run: cd $privateDir && composer require trendandrew/file-security-sdk\n";
+            echo "  [DRY RUN] Would run: cd $serviceDir && npm install\n";
+        }
+    }
+
+    /**
+     * Find composer executable
+     */
+    private function findComposer(): ?string
+    {
+        // Check for composer in common locations
+        $composerPaths = [
+            'composer',
+            'composer.phar',
+            '/usr/local/bin/composer',
+            '/usr/bin/composer',
+        ];
+
+        foreach ($composerPaths as $path) {
+            $output = [];
+            $returnCode = 0;
+            exec("which $path 2>/dev/null", $output, $returnCode);
+            if ($returnCode === 0) {
+                return $path;
             }
         }
+
+        // Check if composer.phar exists in current directory
+        if (file_exists('composer.phar')) {
+            return 'php composer.phar';
+        }
+
+        return null;
     }
 
     /**
@@ -1024,11 +1100,12 @@ ENV;
      */
     private function testTrendMicroAPI()
     {
-        $libFile = $this->filegatorPath . '/private/lib/src/TrendMicroScanner.php';
-        $serviceDir = $this->filegatorPath . '/private/lib/service';
+        $vendorDir = $this->filegatorPath . '/private/vendor/trendandrew/file-security-sdk';
+        $serviceDir = $vendorDir . '/service';
 
-        if (!file_exists($libFile)) {
+        if (!file_exists($vendorDir . '/src/TrendMicroScanner.php')) {
             $this->printWarning("  TrendMicroScanner library not found, skipping service test\n");
+            $this->printWarning("  Install via: cd " . $this->filegatorPath . "/private && composer require trendandrew/file-security-sdk\n");
             return;
         }
 
