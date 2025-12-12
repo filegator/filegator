@@ -15,7 +15,7 @@
  * Configuration is loaded from: private/hooks/config.php
  *
  * The $hookData array contains:
- * - file_path: The relative path where the file was stored (e.g., "/download/file.pdf")
+ * - file_path: The destination folder (cwd) where the file was stored (e.g., "/download")
  * - file_name: The original file name (e.g., "file.pdf")
  * - file_size: The file size in bytes
  * - user: The username who uploaded the file
@@ -57,29 +57,48 @@ $user = $hookData['user'] ?? 'unknown';
 $homeDir = $hookData['home_dir'] ?? '/';
 
 // Only process files uploaded to /download directory
-if (strpos($filePath, '/download') !== 0 && strpos($filePath, '/download/') !== 0) {
+// Note: file_path is the destination folder (cwd), not the full path with filename
+// Handle both "/download" and "/download/" formats
+$downloadFolder = rtrim($filePath, '/');
+if ($downloadFolder !== '/download' && strpos($downloadFolder . '/', '/download/') !== 0) {
     return [
         'action' => 'continue',
         'status' => 'skipped',
-        'message' => 'Not in /download folder - no action needed',
+        'message' => "Not in /download folder (path: {$filePath}) - no action needed",
     ];
 }
 
 // Build absolute paths
-$repositoryPath = dirname(__DIR__, 5) . '/repository';
+// Note: $filePath is the folder, $fileName is the actual file name
+// dirname levels: __DIR__ = .../private/hooks/onUpload
+//   dirname(__DIR__, 1) = .../private/hooks
+//   dirname(__DIR__, 2) = .../private
+//   dirname(__DIR__, 3) = .../filegator (root)
+$repositoryPath = dirname(__DIR__, 3) . '/repository';
+$relativeFilePath = rtrim($filePath, '/') . '/' . $fileName;
 
 // Construct source path
-$sourcePath = $repositoryPath . $homeDir . $filePath;
+$sourcePath = $repositoryPath . $homeDir . $relativeFilePath;
+
+// Debug logging
+error_log("[Move Hook] repositoryPath: {$repositoryPath}");
+error_log("[Move Hook] homeDir: {$homeDir}");
+error_log("[Move Hook] filePath: {$filePath}");
+error_log("[Move Hook] fileName: {$fileName}");
+error_log("[Move Hook] relativeFilePath: {$relativeFilePath}");
+error_log("[Move Hook] sourcePath (before realpath): {$sourcePath}");
+
 $sourcePath = realpath($sourcePath);
+error_log("[Move Hook] sourcePath (after realpath): " . ($sourcePath ?: 'FALSE'));
 
 // Validate source path exists and is within repository
 if (!$sourcePath || !file_exists($sourcePath)) {
-    error_log("[Hook] Source file not found: {$repositoryPath}{$homeDir}{$filePath}");
+    error_log("[Move Hook] Source file not found: {$repositoryPath}{$homeDir}{$relativeFilePath}");
     return [
         'action' => 'continue',
         'status' => 'error',
-        'message' => 'Source file not found',
-        'file_path' => $filePath,
+        'message' => "Source file not found: {$relativeFilePath}",
+        'file_path' => $relativeFilePath,
     ];
 }
 
@@ -123,7 +142,7 @@ if (file_exists($destPath)) {
         $hookData['file_name'],
         $fileName
     );
-    @file_put_contents(dirname(__DIR__, 4) . '/logs/hooks.log', $logMessage, FILE_APPEND);
+    @file_put_contents(dirname(__DIR__, 3) . '/logs/hooks.log', $logMessage, FILE_APPEND);
 }
 
 // Move the file
@@ -142,7 +161,7 @@ if (!$moveSuccess) {
 // Log the successful move
 $auditConfig = $config['audit'] ?? [];
 if ($auditConfig['enabled'] ?? true) {
-    $auditLog = $auditConfig['log_file'] ?? dirname(__DIR__, 4) . '/logs/audit.log';
+    $auditLog = $auditConfig['log_file'] ?? dirname(__DIR__, 3) . '/logs/audit.log';
     $logMessage = sprintf(
         "[%s] FILE_MOVED: %s -> /upload/%s (user: %s, size: %d bytes)\n",
         date('Y-m-d H:i:s'),

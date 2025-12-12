@@ -315,7 +315,10 @@ class Hooks implements HooksInterface, Service
      */
     protected function executeScript(string $scriptPath, array $data): array
     {
+        error_log("[Hooks DEBUG] executeScript: {$scriptPath}");
+
         if (!file_exists($scriptPath) || !is_readable($scriptPath)) {
+            error_log("[Hooks DEBUG] Script not found or not readable: {$scriptPath}");
             return [
                 'success' => false,
                 'error' => 'Script not found or not readable',
@@ -332,6 +335,8 @@ class Hooks implements HooksInterface, Service
         try {
             set_time_limit($this->timeout);
 
+            error_log("[Hooks DEBUG] Executing script with data: " . json_encode($data));
+
             // Include the script in an isolated scope
             $hookResult = (function ($scriptPath, $hookData) {
                 return include $scriptPath;
@@ -339,12 +344,17 @@ class Hooks implements HooksInterface, Service
 
             set_time_limit((int)$originalTimeLimit);
 
+            error_log("[Hooks DEBUG] Script completed successfully, result: " . json_encode($hookResult));
+
             return [
                 'success' => true,
                 'output' => $hookResult,
             ];
         } catch (\Throwable $e) {
             set_time_limit((int)$originalTimeLimit);
+
+            error_log("[Hooks DEBUG] Script threw exception: " . $e->getMessage());
+            error_log("[Hooks DEBUG] Exception trace: " . $e->getTraceAsString());
 
             return [
                 'success' => false,

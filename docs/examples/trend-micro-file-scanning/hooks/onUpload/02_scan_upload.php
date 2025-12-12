@@ -10,7 +10,7 @@
  * Error: Log error and optionally quarantine file
  *
  * Environment Variables:
- *   - FG_FILE_PATH: Relative path to the uploaded file
+ *   - FG_FILE_PATH: Destination folder (cwd) where file was uploaded (e.g., "/upload")
  *   - FG_FILE_NAME: Name of the uploaded file
  *   - FG_FILE_SIZE: Size of the file in bytes
  *   - FG_USER: Username who uploaded the file
@@ -47,25 +47,42 @@ $user = $hookData['user'] ?? 'unknown';
 $homeDir = $hookData['home_dir'] ?? '/';
 
 // Only process files in /upload directory
-if (strpos($filePath, '/upload/') !== 0) {
+// Note: file_path is the destination folder (cwd), not the full path with filename
+// Handle both "/upload" and "/upload/" formats
+$uploadFolder = rtrim($filePath, '/');
+if ($uploadFolder !== '/upload' && strpos($uploadFolder . '/', '/upload/') !== 0) {
     return [
         'action' => 'continue',
         'status' => 'skipped',
-        'message' => 'Not in upload folder - Trend Micro scan not triggered',
+        'message' => "Not in upload folder (path: {$filePath}) - Trend Micro scan not triggered",
     ];
 }
 
 // Build absolute file path
+// Note: $filePath is the folder, $fileName is the actual file name
+// dirname levels: __DIR__ = .../private/hooks/onUpload
+//   dirname(__DIR__, 1) = .../private/hooks
+//   dirname(__DIR__, 2) = .../private
+//   dirname(__DIR__, 3) = .../filegator (root)
 $repositoryPath = dirname(__DIR__, 3) . '/repository';
-$fullPath = realpath($repositoryPath . $homeDir . $filePath);
+$relativeFilePath = rtrim($filePath, '/') . '/' . $fileName;
+$fullPath = realpath($repositoryPath . $homeDir . $relativeFilePath);
+
+// Debug logging
+error_log("[Trend Micro Hook] repositoryPath: {$repositoryPath}");
+error_log("[Trend Micro Hook] homeDir: {$homeDir}");
+error_log("[Trend Micro Hook] filePath: {$filePath}");
+error_log("[Trend Micro Hook] fileName: {$fileName}");
+error_log("[Trend Micro Hook] relativeFilePath: {$relativeFilePath}");
+error_log("[Trend Micro Hook] fullPath: " . ($fullPath ?: 'FALSE (realpath failed)'));
 
 // Validate path security (prevent directory traversal)
 if (!$fullPath || !file_exists($fullPath) || strpos($fullPath, realpath($repositoryPath)) !== 0) {
-    error_log("[Trend Micro Hook] Invalid or inaccessible file path: {$filePath}");
+    error_log("[Trend Micro Hook] Invalid or inaccessible file path: {$relativeFilePath}");
     return [
         'action' => 'continue',
         'status' => 'error',
-        'message' => 'Invalid file path',
+        'message' => "Invalid file path: {$relativeFilePath}",
     ];
 }
 
