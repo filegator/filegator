@@ -450,14 +450,16 @@ function scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config) {
 function scanWithCurl($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256) {
     $ch = curl_init();
 
+    // Vision One v3.0 API uses Bearer token authentication
+    // Reference: https://automation.trendmicro.com/xdr/api-v3/
     curl_setopt_array($ch, [
-        CURLOPT_URL => $apiUrl . '/scan',
+        CURLOPT_URL => $apiUrl,  // Don't append /scan - endpoint URL is complete
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => $fileContent,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => $scanTimeout,
         CURLOPT_HTTPHEADER => [
-            'Authorization: ApiKey ' . $apiKey,
+            'Authorization: Bearer ' . $apiKey,
             'Content-Type: application/octet-stream',
             'Content-Length: ' . strlen($fileContent),
         ],
@@ -486,11 +488,16 @@ function scanWithCurl($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256)
 function scanWithStreamContext($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256) {
     error_log("[Trend Micro Hook] Using file_get_contents fallback (cURL not available)");
 
+    // Vision One v3.0 API uses Bearer token authentication
+    // Reference: https://automation.trendmicro.com/xdr/api-v3/
     $headers = [
-        'Authorization: ApiKey ' . $apiKey,
+        'Authorization: Bearer ' . $apiKey,
         'Content-Type: application/octet-stream',
         'Content-Length: ' . strlen($fileContent),
     ];
+
+    // Debug: Log the URL being called (without the API key)
+    error_log("[Trend Micro Hook] Calling API URL: " . $apiUrl);
 
     $context = stream_context_create([
         'http' => [
@@ -506,7 +513,8 @@ function scanWithStreamContext($apiUrl, $fileContent, $apiKey, $scanTimeout, $fi
         ],
     ]);
 
-    $response = @file_get_contents($apiUrl . '/scan', false, $context);
+    // Note: Don't append /scan - the endpoint URL is complete
+    $response = @file_get_contents($apiUrl, false, $context);
 
     // Get HTTP response code from headers
     $httpCode = 0;
