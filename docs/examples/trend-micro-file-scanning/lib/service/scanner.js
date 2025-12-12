@@ -88,7 +88,15 @@ function error(message, details = {}) {
  * Scan a file using the Trend Micro SDK
  */
 async function scanFile(options) {
-    const { file, apiKey, region, timeout = 300, pml = true, tags = [] } = options;
+    const { file, apiKey, region, timeout = 300, pml = true } = options;
+
+    // Ensure tags is always an array
+    let tags = options.tags;
+    if (!Array.isArray(tags)) {
+        tags = ['filegator'];
+    } else if (tags.length === 0) {
+        tags = ['filegator'];
+    }
 
     // Validate inputs
     if (!file) {
@@ -118,7 +126,7 @@ async function scanFile(options) {
         // Scan the file
         const scanOptions = {
             pml: pml,
-            tags: tags.length > 0 ? tags : ['filegator'],
+            tags: tags,
         };
 
         const result = await client.scanFile(file, scanOptions);
