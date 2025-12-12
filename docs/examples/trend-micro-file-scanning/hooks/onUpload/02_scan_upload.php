@@ -275,7 +275,7 @@ try {
  * Scan file with Trend Micro Vision One File Security API
  *
  * Uses the Trend Micro Vision One File Security PHP SDK for scanning.
- * Falls back to direct API call if SDK is not available.
+ * The SDK uses Node.js with gRPC for communication with Trend Micro servers.
  *
  * @param string $filePath Absolute path to file
  * @param string $fileName File name
@@ -284,22 +284,26 @@ try {
  * @return array Result array with keys: status, malware_found, scan_id, threats, error
  */
 function scanFileWithTrendMicro($filePath, $fileName, $apiKey, $config) {
-    // Load SDK if available (installed to private/lib/)
-    // Path: hooks/onUpload/02_scan_upload.php -> private/lib/TrendMicroScanner.php
-    // dirname(__DIR__, 1) = .../private/hooks -> dirname(__DIR__, 1) . '/lib' = .../private/lib
-    $sdkPath = dirname(__DIR__, 1) . '/lib/TrendMicroScanner.php';
+    // Load SDK (installed to private/lib/)
+    // Path: hooks/onUpload/02_scan_upload.php is at private/hooks/onUpload/
+    // dirname(__DIR__, 2) goes up 2 levels: onUpload -> hooks -> private
+    // Then add /lib/TrendMicroScanner.php
+    $sdkPath = dirname(__DIR__, 2) . '/lib/TrendMicroScanner.php';
 
     if (file_exists($sdkPath)) {
         error_log("[Trend Micro Hook] Using SDK at: $sdkPath");
         return scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath);
     }
 
-    // Log warning - direct API fallback is deprecated (uses REST which doesn't work)
-    error_log("[Trend Micro Hook] WARNING: SDK not found at $sdkPath - falling back to direct API (deprecated)");
+    // SDK not found - cannot proceed
+    error_log("[Trend Micro Hook] ERROR: SDK not found at $sdkPath");
+    error_log("[Trend Micro Hook] Run the installer to install the TrendMicroScanner library: php install.php");
 
-    // Fallback to direct API call if SDK not available
-    // Note: This fallback uses REST API which may not work. The SDK (with Node.js gRPC) is recommended.
-    return scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config);
+    return [
+        'status' => 'error',
+        'error' => "TrendMicroScanner SDK not found at: $sdkPath. Run the installer to set up the library.",
+        'malware_found' => false,
+    ];
 }
 
 /**
@@ -388,252 +392,6 @@ function scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath) {
             'malware_found' => false,
         ];
     }
-}
-
-/**
- * Scan file with direct API call (fallback when SDK not available)
- *
- * @param string $filePath Absolute path to file
- * @param string $fileName File name
- * @param string $apiKey Trend Micro API key
- * @param array $config Configuration array
- * @return array Result array with keys: status, malware_found, scan_id, threats, error
- */
-function scanFileWithDirectAPI($filePath, $fileName, $apiKey, $config) {
-    // Get region and build endpoint
-    // Vision One regions: us, eu, jp, sg, au, in
-    // Reference: https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains
-    $region = $config['region'] ?? getenv('TREND_MICRO_REGION') ?: 'us';
-    $apiUrl = $config['api_url'] ?? getenv('TREND_MICRO_API_URL') ?: '';
-
-    // Vision One regional API domains
-    $regionDomains = [
-        'us' => 'api.xdr.trendmicro.com',
-        'eu' => 'api.eu.xdr.trendmicro.com',
-        'jp' => 'api.xdr.trendmicro.co.jp',
-        'sg' => 'api.sg.xdr.trendmicro.com',
-        'au' => 'api.au.xdr.trendmicro.com',
-        'in' => 'api.in.xdr.trendmicro.com',
-    ];
-
-    // If no custom URL, build from region
-    if (empty($apiUrl)) {
-        $domain = $regionDomains[$region] ?? $regionDomains['us'];
-        $apiUrl = "https://{$domain}/v3.0/sandbox/fileSecurity/file";
-    }
-
-    $scanTimeout = $config['scan_timeout'] ?? 60;
-
-    // Read file content
-    $fileContent = file_get_contents($filePath);
-    if ($fileContent === false) {
-        return [
-            'status' => 'error',
-            'error' => 'Failed to read file content',
-            'malware_found' => false,
-        ];
-    }
-
-    // Calculate file hash for tracking
-    $fileSHA256 = hash('sha256', $fileContent);
-
-    // Use cURL if available, otherwise fall back to file_get_contents with stream context
-    if (function_exists('curl_init')) {
-        return scanWithCurl($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256);
-    } else {
-        return scanWithStreamContext($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256);
-    }
-}
-
-/**
- * Scan file using cURL
- *
- * @param string $apiUrl API endpoint URL
- * @param string $fileContent File content
- * @param string $apiKey API key
- * @param int $scanTimeout Timeout in seconds
- * @param string $fileSHA256 File hash
- * @return array Result array
- */
-function scanWithCurl($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256) {
-    $ch = curl_init();
-
-    // Vision One v3.0 API uses Bearer token authentication
-    // Reference: https://automation.trendmicro.com/xdr/api-v3/
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $apiUrl,  // Don't append /scan - endpoint URL is complete
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => $fileContent,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => $scanTimeout,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $apiKey,
-            'Content-Type: application/octet-stream',
-            'Content-Length: ' . strlen($fileContent),
-        ],
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
-    ]);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-
-    return parseApiResponse($response, $httpCode, $curlError, $fileSHA256);
-}
-
-/**
- * Scan file using file_get_contents with stream context (fallback when cURL not available)
- *
- * @param string $apiUrl API endpoint URL
- * @param string $fileContent File content
- * @param string $apiKey API key
- * @param int $scanTimeout Timeout in seconds
- * @param string $fileSHA256 File hash
- * @return array Result array
- */
-function scanWithStreamContext($apiUrl, $fileContent, $apiKey, $scanTimeout, $fileSHA256) {
-    error_log("[Trend Micro Hook] Using file_get_contents fallback (cURL not available)");
-
-    // Vision One v3.0 API uses Bearer token authentication
-    // Reference: https://automation.trendmicro.com/xdr/api-v3/
-    $headers = [
-        'Authorization: Bearer ' . $apiKey,
-        'Content-Type: application/octet-stream',
-        'Content-Length: ' . strlen($fileContent),
-    ];
-
-    // Debug: Log the URL being called (without the API key)
-    error_log("[Trend Micro Hook] Calling API URL: " . $apiUrl);
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'POST',
-            'header' => implode("\r\n", $headers),
-            'content' => $fileContent,
-            'timeout' => $scanTimeout,
-            'ignore_errors' => true, // Allows reading response body even on HTTP errors
-        ],
-        'ssl' => [
-            'verify_peer' => true,
-            'verify_peer_name' => true,
-        ],
-    ]);
-
-    // Note: Don't append /scan - the endpoint URL is complete
-    $response = @file_get_contents($apiUrl, false, $context);
-
-    // Get HTTP response code from headers
-    $httpCode = 0;
-    $errorMessage = '';
-    if (isset($http_response_header) && is_array($http_response_header)) {
-        // Parse status line like "HTTP/1.1 200 OK"
-        foreach ($http_response_header as $header) {
-            if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/', $header, $matches)) {
-                $httpCode = (int) $matches[1];
-                break;
-            }
-        }
-    }
-
-    if ($response === false) {
-        $error = error_get_last();
-        $errorMessage = $error['message'] ?? 'Unknown error';
-    }
-
-    return parseApiResponse($response, $httpCode, $errorMessage, $fileSHA256);
-}
-
-/**
- * Parse API response and return standardized result
- *
- * @param string|false $response API response
- * @param int $httpCode HTTP status code
- * @param string $errorMessage Error message if any
- * @param string $fileSHA256 File hash
- * @return array Result array
- */
-function parseApiResponse($response, $httpCode, $errorMessage, $fileSHA256) {
-    // Handle HTTP errors
-    if ($httpCode === 0) {
-        return [
-            'status' => 'error',
-            'error' => 'Connection failed: ' . $errorMessage,
-            'malware_found' => false,
-        ];
-    }
-
-    if ($httpCode === 429) {
-        return [
-            'status' => 'error',
-            'error' => 'API rate limit exceeded - too many requests',
-            'malware_found' => false,
-        ];
-    }
-
-    if ($httpCode === 401 || $httpCode === 403) {
-        return [
-            'status' => 'error',
-            'error' => 'Authentication failed - invalid API key or insufficient permissions',
-            'malware_found' => false,
-        ];
-    }
-
-    if ($httpCode !== 200 && $httpCode !== 201) {
-        return [
-            'status' => 'error',
-            'error' => "API returned HTTP {$httpCode}: {$response}",
-            'malware_found' => false,
-        ];
-    }
-
-    // Parse JSON response
-    $result = json_decode($response, true);
-    if (!is_array($result)) {
-        return [
-            'status' => 'error',
-            'error' => 'Invalid JSON response from API',
-            'malware_found' => false,
-        ];
-    }
-
-    // Check scan result
-    // scanResult: 0 = clean, >0 = number of malware found
-    $scanResult = $result['scanResult'] ?? null;
-    $foundMalwares = $result['foundMalwares'] ?? [];
-    $scanId = $result['scanId'] ?? null;
-
-    // Determine if malware was found
-    $malwareFound = ($scanResult > 0) || (is_array($foundMalwares) && count($foundMalwares) > 0);
-
-    if ($malwareFound) {
-        return [
-            'status' => 'malware',
-            'malware_found' => true,
-            'scan_id' => $scanId,
-            'threats' => $foundMalwares,
-            'file_sha256' => $fileSHA256,
-            'scan_timestamp' => $result['scanTimestamp'] ?? date('c'),
-        ];
-    }
-
-    if ($scanResult === 0) {
-        return [
-            'status' => 'clean',
-            'malware_found' => false,
-            'scan_id' => $scanId,
-            'file_sha256' => $fileSHA256,
-            'scan_timestamp' => $result['scanTimestamp'] ?? date('c'),
-        ];
-    }
-
-    // Unknown result
-    return [
-        'status' => 'error',
-        'error' => 'Unknown scan result: ' . json_encode($result),
-        'malware_found' => false,
-    ];
 }
 
 /**
