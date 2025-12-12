@@ -2,17 +2,17 @@
 /**
  * Trend Micro Vision One File Security SDK for PHP - Tests
  *
- * @package TrendMicro\FileSecurity\Tests
+ * @package TrendAndrew\FileSecurity\Tests
  * @license MIT
  */
 
-namespace TrendMicro\FileSecurity\Tests;
+namespace TrendAndrew\FileSecurity\Tests;
 
 use PHPUnit\Framework\TestCase;
-use TrendMicro\FileSecurity\AmaasClient;
-use TrendMicro\FileSecurity\LogLevel;
-use TrendMicro\FileSecurity\Exception\InvalidArgumentException;
-use TrendMicro\FileSecurity\Model\ScanOptions;
+use TrendAndrew\FileSecurity\AmaasClient;
+use TrendAndrew\FileSecurity\LogLevel;
+use TrendAndrew\FileSecurity\Exception\InvalidArgumentException;
+use TrendAndrew\FileSecurity\Model\ScanOptions;
 
 /**
  * Test cases for AmaasClient

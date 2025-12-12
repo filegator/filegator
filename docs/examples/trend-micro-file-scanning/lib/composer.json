@@ -1,5 +1,5 @@
 {
-    "name": "trendmicro/filesecurity-sdk",
+    "name": "trendandrew/filesecurity-sdk",
     "description": "Trend Micro Vision One File Security SDK for PHP - File and buffer scanning using AMaaS (Anti-Malware as a Service)",
     "type": "library",
     "license": "MIT",
@@ -16,7 +16,7 @@
     "homepage": "https://github.com/trendmicro/tm-v1-fs-php-sdk",
     "authors": [
         {
-            "name": "Trend Micro",
+            "name": "TrendAndrew",
             "homepage": "https://www.trendmicro.com"
         }
     ],
@@ -32,19 +32,22 @@
     },
     "autoload": {
         "psr-4": {
-            "TrendMicro\\FileSecurity\\": "TrendMicro/FileSecurity/"
-        }
+            "TrendAndrew\\FileSecurity\\": "src/TrendAndrew/FileSecurity/"
+        },
+        "files": [
+            "src/TrendMicroScanner.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
-            "TrendMicro\\FileSecurity\\Tests\\": "tests/"
+            "TrendAndrew\\FileSecurity\\Tests\\": "tests/"
         }
     },
     "scripts": {
         "test": "phpunit",
-        "phpstan": "phpstan analyse",
-        "cs-check": "phpcs",
-        "cs-fix": "phpcbf"
+        "phpstan": "phpstan analyse src/",
+        "cs-check": "phpcs src/ tests/",
+        "cs-fix": "phpcbf src/ tests/"
     },
     "config": {
         "sort-packages": true

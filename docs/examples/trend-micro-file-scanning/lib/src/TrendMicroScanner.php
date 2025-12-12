@@ -8,18 +8,18 @@
  * This library is designed to be portable and can be extracted to a standalone
  * Composer package.
  *
- * @package TrendMicro\FileSecurity
+ * @package TrendAndrew\FileSecurity
  * @license MIT
  */
 
 // Load models and exceptions
-require_once __DIR__ . '/TrendMicro/FileSecurity/autoload.php';
+require_once __DIR__ . '/TrendAndrew/FileSecurity/autoload.php';
 
-use TrendMicro\FileSecurity\Model\ScanResult;
-use TrendMicro\FileSecurity\Exception\AmaasException;
-use TrendMicro\FileSecurity\Exception\AuthenticationException;
-use TrendMicro\FileSecurity\Exception\ConnectionException;
-use TrendMicro\FileSecurity\Exception\TimeoutException;
+use TrendAndrew\FileSecurity\Model\ScanResult;
+use TrendAndrew\FileSecurity\Exception\AmaasException;
+use TrendAndrew\FileSecurity\Exception\AuthenticationException;
+use TrendAndrew\FileSecurity\Exception\ConnectionException;
+use TrendAndrew\FileSecurity\Exception\TimeoutException;
 
 /**
  * TrendMicroScanner - Main Scanner Class
@@ -131,7 +131,8 @@ class TrendMicroScanner
         $this->debug = $debug;
 
         // Set path to Node.js scanner service
-        $this->servicePath = __DIR__ . '/service/scanner.js';
+        // Service is at lib/service/scanner.js, src/ is at lib/src/
+        $this->servicePath = dirname(__DIR__) . '/service/scanner.js';
 
         // Validate service exists
         if (!file_exists($this->servicePath)) {

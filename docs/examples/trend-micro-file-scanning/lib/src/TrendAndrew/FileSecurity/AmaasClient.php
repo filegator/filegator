@@ -5,22 +5,22 @@
  * A PHP client library for the Trend Micro Vision One File Security scanning service.
  * This SDK provides file and buffer scanning capabilities using the AMaaS (Anti-Malware as a Service) API.
  *
- * @package TrendMicro\FileSecurity
+ * @package TrendAndrew\FileSecurity
  * @version 1.0.0
  * @license MIT
  * @link https://github.com/trendmicro/tm-v1-fs-php-sdk
  */
 
-namespace TrendMicro\FileSecurity;
+namespace TrendAndrew\FileSecurity;
 
-use TrendMicro\FileSecurity\Exception\AmaasException;
-use TrendMicro\FileSecurity\Exception\InvalidArgumentException;
-use TrendMicro\FileSecurity\Exception\AuthenticationException;
-use TrendMicro\FileSecurity\Exception\ConnectionException;
-use TrendMicro\FileSecurity\Exception\TimeoutException;
-use TrendMicro\FileSecurity\Http\HttpClient;
-use TrendMicro\FileSecurity\Model\ScanResult;
-use TrendMicro\FileSecurity\Model\ScanOptions;
+use TrendAndrew\FileSecurity\Exception\AmaasException;
+use TrendAndrew\FileSecurity\Exception\InvalidArgumentException;
+use TrendAndrew\FileSecurity\Exception\AuthenticationException;
+use TrendAndrew\FileSecurity\Exception\ConnectionException;
+use TrendAndrew\FileSecurity\Exception\TimeoutException;
+use TrendAndrew\FileSecurity\Http\HttpClient;
+use TrendAndrew\FileSecurity\Model\ScanResult;
+use TrendAndrew\FileSecurity\Model\ScanOptions;
 
 /**
  * AMaaS (Anti-Malware as a Service) Client

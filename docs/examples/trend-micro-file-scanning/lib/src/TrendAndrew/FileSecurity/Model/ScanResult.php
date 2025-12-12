@@ -2,11 +2,11 @@
 /**
  * Trend Micro Vision One File Security SDK for PHP
  *
- * @package TrendMicro\FileSecurity
+ * @package TrendAndrew\FileSecurity
  * @license MIT
  */
 
-namespace TrendMicro\FileSecurity\Model;
+namespace TrendAndrew\FileSecurity\Model;
 
 /**
  * Represents the result of a file/buffer scan operation

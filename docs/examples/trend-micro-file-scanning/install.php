@@ -1024,7 +1024,7 @@ ENV;
      */
     private function testTrendMicroAPI()
     {
-        $libFile = $this->filegatorPath . '/private/lib/TrendMicroScanner.php';
+        $libFile = $this->filegatorPath . '/private/lib/src/TrendMicroScanner.php';
         $serviceDir = $this->filegatorPath . '/private/lib/service';
 
         if (!file_exists($libFile)) {

@@ -2,11 +2,11 @@
 /**
  * Trend Micro Vision One File Security SDK for PHP
  *
- * @package TrendMicro\FileSecurity
+ * @package TrendAndrew\FileSecurity
  * @license MIT
  */
 
-namespace TrendMicro\FileSecurity\Exception;
+namespace TrendAndrew\FileSecurity\Exception;
 
 /**
  * Base exception for AMaaS SDK errors

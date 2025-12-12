@@ -2,18 +2,18 @@
 /**
  * Trend Micro Vision One File Security SDK for PHP - Tests
  *
- * @package TrendMicro\FileSecurity\Tests
+ * @package TrendAndrew\FileSecurity\Tests
  * @license MIT
  */
 
-namespace TrendMicro\FileSecurity\Tests;
+namespace TrendAndrew\FileSecurity\Tests;
 
 use PHPUnit\Framework\TestCase;
-use TrendMicro\FileSecurity\Exception\AmaasException;
-use TrendMicro\FileSecurity\Exception\InvalidArgumentException;
-use TrendMicro\FileSecurity\Exception\AuthenticationException;
-use TrendMicro\FileSecurity\Exception\ConnectionException;
-use TrendMicro\FileSecurity\Exception\TimeoutException;
+use TrendAndrew\FileSecurity\Exception\AmaasException;
+use TrendAndrew\FileSecurity\Exception\InvalidArgumentException;
+use TrendAndrew\FileSecurity\Exception\AuthenticationException;
+use TrendAndrew\FileSecurity\Exception\ConnectionException;
+use TrendAndrew\FileSecurity\Exception\TimeoutException;
 
 /**
  * Test cases for Exception classes

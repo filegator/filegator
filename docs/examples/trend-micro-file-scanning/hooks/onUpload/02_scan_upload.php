@@ -287,8 +287,8 @@ function scanFileWithTrendMicro($filePath, $fileName, $apiKey, $config) {
     // Load SDK (installed to private/lib/)
     // Path: hooks/onUpload/02_scan_upload.php is at private/hooks/onUpload/
     // dirname(__DIR__, 2) goes up 2 levels: onUpload -> hooks -> private
-    // Then add /lib/TrendMicroScanner.php
-    $sdkPath = dirname(__DIR__, 2) . '/lib/TrendMicroScanner.php';
+    // Then add /lib/src/TrendMicroScanner.php (standard Composer layout)
+    $sdkPath = dirname(__DIR__, 2) . '/lib/src/TrendMicroScanner.php';
 
     if (file_exists($sdkPath)) {
         error_log("[Trend Micro Hook] Using SDK at: $sdkPath");
@@ -367,19 +367,19 @@ function scanFileWithSDK($filePath, $fileName, $apiKey, $config, $sdkPath) {
             'scan_timestamp' => date('c'),
         ];
 
-    } catch (TrendMicro\FileSecurity\Exception\AuthenticationException $e) {
+    } catch (TrendAndrew\FileSecurity\Exception\AuthenticationException $e) {
         return [
             'status' => 'error',
             'error' => 'Authentication failed: ' . $e->getMessage(),
             'malware_found' => false,
         ];
-    } catch (TrendMicro\FileSecurity\Exception\ConnectionException $e) {
+    } catch (TrendAndrew\FileSecurity\Exception\ConnectionException $e) {
         return [
             'status' => 'error',
             'error' => 'Connection failed: ' . $e->getMessage(),
             'malware_found' => false,
         ];
-    } catch (TrendMicro\FileSecurity\Exception\TimeoutException $e) {
+    } catch (TrendAndrew\FileSecurity\Exception\TimeoutException $e) {
         return [
             'status' => 'error',
             'error' => 'Scan timed out: ' . $e->getMessage(),

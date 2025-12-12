@@ -2,17 +2,17 @@
 /**
  * Trend Micro Vision One File Security SDK for PHP
  *
- * @package TrendMicro\FileSecurity
+ * @package TrendAndrew\FileSecurity
  * @license MIT
  */
 
-namespace TrendMicro\FileSecurity\Http;
+namespace TrendAndrew\FileSecurity\Http;
 
-use TrendMicro\FileSecurity\Exception\AmaasException;
-use TrendMicro\FileSecurity\Exception\AuthenticationException;
-use TrendMicro\FileSecurity\Exception\ConnectionException;
-use TrendMicro\FileSecurity\Exception\TimeoutException;
-use TrendMicro\FileSecurity\Model\ScanOptions;
+use TrendAndrew\FileSecurity\Exception\AmaasException;
+use TrendAndrew\FileSecurity\Exception\AuthenticationException;
+use TrendAndrew\FileSecurity\Exception\ConnectionException;
+use TrendAndrew\FileSecurity\Exception\TimeoutException;
+use TrendAndrew\FileSecurity\Model\ScanOptions;
 
 /**
  * HTTP Client for AMaaS API communication

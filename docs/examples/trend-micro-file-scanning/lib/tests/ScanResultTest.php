@@ -2,15 +2,15 @@
 /**
  * Trend Micro Vision One File Security SDK for PHP - Tests
  *
- * @package TrendMicro\FileSecurity\Tests
+ * @package TrendAndrew\FileSecurity\Tests
  * @license MIT
  */
 
-namespace TrendMicro\FileSecurity\Tests;
+namespace TrendAndrew\FileSecurity\Tests;
 
 use PHPUnit\Framework\TestCase;
-use TrendMicro\FileSecurity\Model\ScanResult;
-use TrendMicro\FileSecurity\Model\Malware;
+use TrendAndrew\FileSecurity\Model\ScanResult;
+use TrendAndrew\FileSecurity\Model\Malware;
 
 /**
  * Test cases for ScanResult

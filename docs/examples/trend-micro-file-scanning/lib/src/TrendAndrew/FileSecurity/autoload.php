@@ -5,13 +5,13 @@
  * Simple PSR-4 compatible autoloader for the SDK.
  * Use this if you're not using Composer.
  *
- * @package TrendMicro\FileSecurity
+ * @package TrendAndrew\FileSecurity
  * @license MIT
  */
 
 spl_autoload_register(function ($class) {
     // Base namespace prefix
-    $prefix = 'TrendMicro\\FileSecurity\\';
+    $prefix = 'TrendAndrew\\FileSecurity\\';
 
     // Base directory for the namespace prefix
     $baseDir = __DIR__ . '/';
