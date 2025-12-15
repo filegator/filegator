@@ -351,14 +351,33 @@ class TrendMicroInstaller
 
         echo "\n  Installing Trend Micro File Security SDK...\n";
 
+        // Check if already installed
+        if (is_dir($vendorDir) && file_exists($vendorDir . '/src/TrendMicroScanner.php')) {
+            echo "  SDK already installed at: $vendorDir\n";
+            // Just ensure Node.js dependencies are installed
+            if (is_dir($serviceDir) && !is_dir($serviceDir . '/node_modules')) {
+                $this->installNodeDependencies($serviceDir);
+            }
+            return;
+        }
+
         if (!$this->dryRun) {
             // Check if composer is available
             $composerCmd = $this->findComposer();
             if (!$composerCmd) {
-                $this->printWarning("  Composer not found. Please install manually:\n");
-                $this->printWarning("    cd $privateDir\n");
-                $this->printWarning("    composer require trendandrew/file-security-sdk\n");
-                $this->printWarning("    cd vendor/trendandrew/file-security-sdk/service && npm install\n");
+                $this->printSDKInstallInstructions($privateDir);
+                return;
+            }
+
+            // Check if package exists on Packagist (with timeout)
+            echo "  Checking Packagist for trendandrew/file-security-sdk...\n";
+            $packagistUrl = 'https://repo.packagist.org/p2/trendandrew/file-security-sdk.json';
+            $context = stream_context_create(['http' => ['timeout' => 5]]);
+            $packagistResponse = @file_get_contents($packagistUrl, false, $context);
+
+            if ($packagistResponse === false) {
+                $this->printWarning("  Package not yet available on Packagist.\n");
+                $this->printSDKInstallInstructions($privateDir);
                 return;
             }
 
@@ -391,6 +410,7 @@ class TrendMicroInstaller
                 foreach ($output as $line) {
                     $this->printWarning("    $line\n");
                 }
+                $this->printSDKInstallInstructions($privateDir);
                 return;
             }
 
@@ -404,6 +424,37 @@ class TrendMicroInstaller
             echo "  [DRY RUN] Would run: cd $privateDir && composer require trendandrew/file-security-sdk\n";
             echo "  [DRY RUN] Would run: cd $serviceDir && npm install\n";
         }
+    }
+
+    /**
+     * Print SDK manual installation instructions
+     */
+    private function printSDKInstallInstructions(string $privateDir): void
+    {
+        $this->printWarning("\n  The SDK must be installed manually. Options:\n\n");
+
+        $this->printWarning("  Option 1: Install from Packagist (when available):\n");
+        $this->printWarning("    cd $privateDir\n");
+        $this->printWarning("    composer require trendandrew/file-security-sdk\n");
+        $this->printWarning("    cd vendor/trendandrew/file-security-sdk/service && npm install\n\n");
+
+        $this->printWarning("  Option 2: Install from GitHub:\n");
+        $this->printWarning("    cd $privateDir\n");
+        $this->printWarning("    mkdir -p vendor/trendandrew\n");
+        $this->printWarning("    git clone https://github.com/trendandrew/tm-v1-fs-php-sdk.git vendor/trendandrew/file-security-sdk\n");
+        $this->printWarning("    cd vendor/trendandrew/file-security-sdk/service && npm install\n\n");
+
+        $this->printWarning("  Option 3: Add GitHub repo to composer.json:\n");
+        $this->printWarning("    Add to $privateDir/composer.json:\n");
+        $this->printWarning("    {\n");
+        $this->printWarning("      \"repositories\": [\n");
+        $this->printWarning("        {\"type\": \"vcs\", \"url\": \"https://github.com/trendandrew/tm-v1-fs-php-sdk\"}\n");
+        $this->printWarning("      ],\n");
+        $this->printWarning("      \"require\": {\n");
+        $this->printWarning("        \"trendandrew/file-security-sdk\": \"dev-main\"\n");
+        $this->printWarning("      }\n");
+        $this->printWarning("    }\n");
+        $this->printWarning("    Then run: composer install && cd vendor/trendandrew/file-security-sdk/service && npm install\n");
     }
 
     /**
