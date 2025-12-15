@@ -371,14 +371,18 @@ class TrendMicroInstaller
 
             // Check if package exists on Packagist (with timeout)
             echo "  Checking Packagist for trendandrew/file-security-sdk...\n";
-            $packagistUrl = 'https://repo.packagist.org/p2/trendandrew/file-security-sdk.json';
-            $context = stream_context_create(['http' => ['timeout' => 5]]);
+            $packagistUrl = 'https://packagist.org/packages/trendandrew/file-security-sdk.json';
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 10,
+                    'header' => 'User-Agent: FileGator-Installer/1.0'
+                ]
+            ]);
             $packagistResponse = @file_get_contents($packagistUrl, false, $context);
 
             if ($packagistResponse === false) {
-                $this->printWarning("  Package not yet available on Packagist.\n");
-                $this->printSDKInstallInstructions($privateDir);
-                return;
+                $this->printWarning("  Could not verify package on Packagist (may be a network issue).\n");
+                $this->printWarning("  Attempting install anyway...\n");
             }
 
             // Create composer.json if it doesn't exist
@@ -393,20 +397,29 @@ class TrendMicroInstaller
                 echo "  Created: composer.json\n";
             }
 
-            // Run composer require
+            // Run composer require with timeout and non-interactive mode
             $cmd = sprintf(
-                'cd %s && %s require trendandrew/file-security-sdk 2>&1',
+                'cd %s && timeout 120 %s require --no-interaction trendandrew/file-security-sdk 2>&1',
                 escapeshellarg($privateDir),
                 $composerCmd
             );
 
-            echo "  Running: composer require trendandrew/file-security-sdk\n";
+            echo "  Running: composer require trendandrew/file-security-sdk (timeout: 120s)\n";
+            echo "  This may take a minute...\n";
+
             $output = [];
             $returnCode = 0;
             exec($cmd, $output, $returnCode);
 
+            // timeout command returns 124 on timeout
+            if ($returnCode === 124) {
+                $this->printWarning("  Composer timed out after 120 seconds.\n");
+                $this->printSDKInstallInstructions($privateDir);
+                return;
+            }
+
             if ($returnCode !== 0) {
-                $this->printWarning("  Composer install failed. Output:\n");
+                $this->printWarning("  Composer install failed (exit code: $returnCode). Output:\n");
                 foreach ($output as $line) {
                     $this->printWarning("    $line\n");
                 }
