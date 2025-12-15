@@ -391,10 +391,21 @@ class TrendMicroInstaller
                 $composerContent = json_encode([
                     'name' => 'filegator/private',
                     'description' => 'FileGator private directory dependencies',
+                    'minimum-stability' => 'beta',
+                    'prefer-stable' => true,
                     'require' => new \stdClass(),
                 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
                 file_put_contents($composerJson, $composerContent);
-                echo "  Created: composer.json\n";
+                echo "  Created: composer.json (with minimum-stability: beta)\n";
+            } else {
+                // Check if we need to update minimum-stability
+                $existingComposer = json_decode(file_get_contents($composerJson), true);
+                if (!isset($existingComposer['minimum-stability']) || $existingComposer['minimum-stability'] === 'stable') {
+                    $existingComposer['minimum-stability'] = 'beta';
+                    $existingComposer['prefer-stable'] = true;
+                    file_put_contents($composerJson, json_encode($existingComposer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                    echo "  Updated: composer.json (set minimum-stability: beta)\n";
+                }
             }
 
             // Run composer require with timeout and non-interactive mode
