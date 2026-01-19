@@ -114,7 +114,7 @@ class AdminController
     {
         $user = $this->auth->find($username);
 
-        if (! $user) {
+        if (! $user || $user->getUsername() == 'guest') {
             return $response->json('User not found', 422);
         }
 
