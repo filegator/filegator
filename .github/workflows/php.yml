@@ -23,7 +23,7 @@ jobs:
         coverage: xdebug
 
     - name: Install dependencies
-      run: composer install --no-interaction --no-audit
+      run: composer install --no-interaction
 
     - name: Copy configuration.php
       run: cp configuration_sample.php configuration.php
