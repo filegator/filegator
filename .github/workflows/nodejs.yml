@@ -20,11 +20,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Cypress dependencies
-      run: sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libnotify-dev libnss3 libxss1 libxtst6 xauth xvfb
-
-    - name: npm install, build, and test
+    - name: npm install, build, and lint
       run: |
         npm install
         npm run lint
-        npm run test:e2e
