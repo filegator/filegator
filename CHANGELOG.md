@@ -2,6 +2,12 @@
 
 ## Upcoming...
 
+## 7.13.3 - 2026-01-19
+* Update Dockerfile to use node 22
+
+## 7.13.2 - 2026-01-19
+* Fix cicd pipeline, use ubuntu-22 for ci-dockerhub build
+
 ## 7.13.1 - 2026-01-19
 * Prevent deletion of guest user in deleteUser method
 
