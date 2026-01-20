@@ -150,7 +150,7 @@ export default {
     selectDir() {
       this.formErrors.homedir = ''
 
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
@@ -172,7 +172,7 @@ export default {
     confirmSave() {
 
       if (this.formFields.role == 'guest' && this.getPermissionsArray().length) {
-        this.$dialog.confirm({
+        this.$buefy.dialog.confirm({
           message: this.lang('Are you sure you want to allow access to everyone?'),
           type: 'is-danger',
           cancelText: this.lang('Cancel'),
@@ -199,7 +199,7 @@ export default {
         permissions: this.getPermissionsArray(),
       })
         .then(res => {
-          this.$toast.open({
+          this.$buefy.toast.open({
             message: this.lang('Updated'),
             type: 'is-success',
           })
