@@ -41,6 +41,9 @@ new Vue({
     api.getConfig()
       .then(ret => {
         this.$store.commit('setConfig', ret.data.data)
+        const rtlLangs = ['arabic', 'hebrew', 'persian']
+        const lang = this.$store.state.config.language
+        document.documentElement.setAttribute('dir', rtlLangs.includes(lang) ? 'rtl' : 'ltr')
         api.getUser()
           .then((user) => {
             this.$store.commit('initialize')

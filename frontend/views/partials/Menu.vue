@@ -20,6 +20,9 @@
         <a v-if="is('admin')" class="navbar-item users" @click="$router.push('/users').catch(() => {})">
           {{ lang('Users') }}
         </a>
+        <a v-if="is('admin')" class="navbar-item settings" @click="$router.push('/settings').catch(() => {})">
+          {{ lang('Settings') }}
+        </a>
         <a v-if="is('guest')" class="navbar-item login" @click="login">
           {{ lang('Login') }}
         </a>
