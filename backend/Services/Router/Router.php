@@ -75,6 +75,30 @@ class Router implements Service
             break;
         }
 
-        $this->container->call([$controller, $action], $params);
+        // Get the controller instance from the container
+        $controllerInstance = $this->container->get($controller);
+
+        // Explicitly inject optional services into controller properties
+        // PHP-DI doesn't autowire optional constructor parameters, so we set them directly
+        // See: docs/design/optional-service-injection.md for architectural explanation
+        $optionalServices = [
+            'pathacl' => 'Filegator\Services\PathACL\PathACLInterface',
+            'hooks' => 'Filegator\Services\Hooks\HooksInterface',
+        ];
+
+        foreach ($optionalServices as $propertyName => $serviceKey) {
+            if ($this->container->has($serviceKey)) {
+                // Set the property directly on the controller instance
+                if (property_exists($controllerInstance, $propertyName)) {
+                    $reflection = new \ReflectionProperty($controllerInstance, $propertyName);
+                    $reflection->setAccessible(true);
+                    $reflection->setValue($controllerInstance, $this->container->get($serviceKey));
+                    error_log("[PathACL DEBUG] Router: Injected service '{$propertyName}' into controller property '{$controller}::\${$propertyName}'");
+                }
+            }
+        }
+
+        // Call the action method on the controller instance
+        $this->container->call([$controllerInstance, $action], $params);
     }
 }

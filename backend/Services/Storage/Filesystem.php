@@ -11,6 +11,8 @@
 namespace Filegator\Services\Storage;
 
 use Filegator\Services\Service;
+use Filegator\Services\EventDispatcher\EventDispatcherInterface;
+use Filegator\Services\EventDispatcher\Events\FileEvent;
 use League\Flysystem\Filesystem as Flysystem;
 use League\Flysystem\Util;
 
@@ -21,6 +23,11 @@ class Filesystem implements Service
     protected $storage;
 
     protected $path_prefix;
+
+    /**
+     * @var EventDispatcherInterface|null
+     */
+    protected $eventDispatcher;
 
     public function init(array $config = [])
     {
@@ -33,19 +40,88 @@ class Filesystem implements Service
         $this->storage = new Flysystem($adapter(), $config);
     }
 
+    /**
+     * Set the event dispatcher for firing events
+     */
+    public function setEventDispatcher(?EventDispatcherInterface $dispatcher): void
+    {
+        $this->eventDispatcher = $dispatcher;
+    }
+
+    /**
+     * Get the event dispatcher
+     */
+    public function getEventDispatcher(): ?EventDispatcherInterface
+    {
+        return $this->eventDispatcher;
+    }
+
+    /**
+     * Dispatch an event if dispatcher is available
+     */
+    protected function dispatchEvent(FileEvent $event): FileEvent
+    {
+        if ($this->eventDispatcher) {
+            return $this->eventDispatcher->dispatch($event);
+        }
+        return $event;
+    }
+
     public function createDir(string $path, string $name)
     {
+        // Dispatch before event
+        $event = $this->dispatchEvent(new FileEvent(
+            FileEvent::BEFORE_CREATE_DIR,
+            $path,
+            $name,
+            'dir'
+        ));
+
+        if ($event->isPropagationStopped()) {
+            return $event->getResult() ?? false;
+        }
+
+        // Allow event to modify the name
+        $name = $event->getName() ?? $name;
+
         $destination = $this->joinPaths($this->applyPathPrefix($path), $name);
 
         while (! empty($this->storage->listContents($destination, true))) {
             $destination = $this->upcountName($destination);
         }
 
-        return $this->storage->createDir($destination);
+        $result = $this->storage->createDir($destination);
+
+        // Dispatch after event
+        $this->dispatchEvent(new FileEvent(
+            FileEvent::AFTER_CREATE_DIR,
+            $path,
+            $name,
+            'dir',
+            null,
+            ['result' => $result, 'destination' => $destination]
+        ));
+
+        return $result;
     }
 
     public function createFile(string $path, string $name)
     {
+        // Dispatch before event
+        $event = $this->dispatchEvent(new FileEvent(
+            FileEvent::BEFORE_CREATE_FILE,
+            $path,
+            $name,
+            'file'
+        ));
+
+        if ($event->isPropagationStopped()) {
+            return $event->getResult();
+        }
+
+        // Allow event to modify the name
+        $name = $event->getName() ?? $name;
+
         $destination = $this->joinPaths($this->applyPathPrefix($path), $name);
 
         while ($this->storage->has($destination)) {
@@ -53,6 +129,16 @@ class Filesystem implements Service
         }
 
         $this->storage->put($destination, '');
+
+        // Dispatch after event
+        $this->dispatchEvent(new FileEvent(
+            FileEvent::AFTER_CREATE_FILE,
+            $path,
+            $name,
+            'file',
+            null,
+            ['destination' => $destination]
+        ));
     }
 
     public function fileExists(string $path)

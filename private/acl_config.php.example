@@ -1,0 +1,509 @@
+<?php
+
+/**
+ * FileGator Path-Based ACL Configuration - COMPREHENSIVE EXAMPLE
+ *
+ * This file demonstrates all features of the Path-Based ACL system:
+ * - Multiple path rules with different permissions
+ * - IP-based restrictions using CIDR blocks
+ * - Group-based access (@developers, @managers)
+ * - Inheritance examples (inherit: true/false)
+ * - Priority ordering demonstration
+ * - override_inherited usage
+ * - One user (john) with different permissions on different folders from different IPs
+ *
+ * Copy this file to acl_config.php and customize for your needs.
+ * See: /mnt/ai/filegator/docs/design/ip-folder-acl-design.md
+ */
+
+return [
+    /**
+     * NOTE: This 'enabled' flag is NOT used by the system.
+     * PathACL is enabled/disabled via the 'enabled' setting in configuration.php:
+     *
+     *   'Filegator\Services\PathACL\PathACLInterface' => [
+     *       'config' => [
+     *           'enabled' => true,  // <-- THIS controls PathACL activation
+     *           'acl_config_file' => __DIR__.'/private/acl_config.php',
+     *       ],
+     *   ],
+     */
+    'enabled' => true,
+
+    /**
+     * Global ACL settings
+     */
+    'settings' => [
+        /**
+         * Evaluation mode determines how rules are combined
+         * 'most_specific_wins' = deeper path rules override parent rules
+         */
+        'evaluation_mode' => 'most_specific_wins',
+
+        /**
+         * Default inheritance behavior for paths without explicit 'inherit' setting
+         */
+        'default_inherit' => true,
+
+        /**
+         * Security: deny always overrides allow when there's a conflict
+         */
+        'deny_overrides_allow' => true,
+
+        /**
+         * Enable caching for performance
+         * Caching stores evaluated permissions for faster subsequent checks
+         */
+        'cache_enabled' => true,
+
+        /**
+         * Cache TTL in seconds
+         * Lower values = more responsive to IP changes, higher = better performance
+         */
+        'cache_ttl' => 300, // 5 minutes
+
+        /**
+         * Trusted proxies for X-Forwarded-For header validation
+         * Only add IPs of reverse proxies you control (nginx, CloudFlare, etc.)
+         * SECURITY: Don't trust all proxies or X-Forwarded-For can be spoofed
+         */
+        'trusted_proxies' => [
+            '127.0.0.1',      // localhost
+            '::1',            // localhost IPv6
+            // '10.0.0.1',    // Your nginx server
+            // '172.17.0.0/16', // Docker network (if using Docker)
+        ],
+
+        /**
+         * Behavior when ACL evaluation fails (config error, etc.)
+         * 'deny' = Fail secure (recommended for production)
+         * 'allow' = Fail open (useful for development)
+         * 'fallback' = Fall back to global user permissions
+         */
+        'fail_mode' => 'deny',
+    ],
+
+    /**
+     * Default permissions when no rules match
+     * Empty array = deny all (most secure)
+     * ['read'] = grant read-only by default
+     */
+    'default_permissions' => ['read'],
+
+    /**
+     * Group definitions
+     *
+     * Groups simplify permission management by grouping users together.
+     * Use @groupname in rules to reference a group (e.g., '@developers').
+     * A user can belong to multiple groups.
+     */
+    'groups' => [
+        'developers' => ['john', 'jane', 'bob'],
+        'managers' => ['alice', 'susan'],
+        'contractors' => ['charlie', 'david'],
+        'hr-staff' => ['mary', 'tom'],
+        'admins' => ['admin'],
+    ],
+
+    /**
+     * Path-based ACL rules
+     *
+     * Rules are evaluated from most specific path to least specific (root).
+     * Multiple rules per path are evaluated by priority (higher first).
+     *
+     * Each rule must specify:
+     * - users: ['username'] or ['@groupname'] or ['*'] for all
+     * - ip_inclusions: Array of IPs/CIDR to include (allow) or ['*'] for all
+     * - ip_exclusions: Array of IPs/CIDR to exclude (deny, overrides inclusions)
+     * - permissions: Array of granted permissions
+     * - priority: Numeric priority (higher = evaluated first)
+     *
+     * Optional:
+     * - override_inherited: true = replace inherited, false = merge (default)
+     */
+    'path_rules' => [
+
+        /**
+         * ROOT LEVEL (/)
+         *
+         * These rules apply to all paths unless overridden by more specific rules.
+         * Priority 0 = lowest priority (default/fallback rules)
+         */
+        '/' => [
+            'inherit' => false, // Root has no parent to inherit from
+            'rules' => [
+                // Rule 1: All authenticated users get read access from anywhere
+                [
+                    'users' => ['*'], // All authenticated users
+                    'ip_inclusions' => ['*'], // From any IP address
+                    'ip_exclusions' => [],
+                    'permissions' => ['read'], // Read-only by default
+                    'priority' => 0,
+                    'override_inherited' => false,
+                ],
+
+                // Rule 2: Admins have full access from anywhere
+                [
+                    'users' => ['@admins'], // Admin group
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload', 'delete', 'zip', 'chmod'],
+                    'priority' => 100, // High priority
+                    'override_inherited' => false,
+                ],
+            ],
+        ],
+
+        /**
+         * PUBLIC FOLDER (/public)
+         *
+         * Everyone can read and download, but not modify.
+         * Inherits from root and adds download permission.
+         */
+        '/public' => [
+            'inherit' => true, // Inherit permissions from /
+            'rules' => [
+                [
+                    'users' => ['*'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'download'],
+                    'priority' => 50,
+                    'override_inherited' => false, // Merge with inherited permissions
+                ],
+            ],
+        ],
+
+        /**
+         * PROJECTS FOLDER (/projects)
+         *
+         * Restricted to developers from office network or VPN only.
+         * Demonstrates IP-based restrictions with CIDR notation.
+         */
+        '/projects' => [
+            'inherit' => true,
+            'rules' => [
+                // Developers from office or VPN: full access except chmod
+                [
+                    'users' => ['@developers'],
+                    'ip_inclusions' => [
+                        '192.168.1.0/24',  // Office network (192.168.1.0 - 192.168.1.255)
+                        '10.8.0.0/24',     // VPN network (10.8.0.0 - 10.8.0.255)
+                    ],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip'],
+                    'priority' => 60,
+                    'override_inherited' => true, // Replace inherited permissions
+                ],
+
+                // Managers from anywhere: read-only
+                [
+                    'users' => ['@managers'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'download'],
+                    'priority' => 55,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * PROJECT ALPHA (/projects/alpha)
+         *
+         * Restricted to specific users only.
+         * Demonstrates user-specific rules and group-based access.
+         */
+        '/projects/alpha' => [
+            'inherit' => true,
+            'rules' => [
+                // Only john and jane have write access
+                [
+                    'users' => ['john', 'jane'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
+                    'priority' => 75,
+                    'override_inherited' => true,
+                ],
+
+                // Contractors: read-only from VPN only
+                [
+                    'users' => ['@contractors'],
+                    'ip_inclusions' => ['10.8.0.0/24'], // VPN only
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'download'],
+                    'priority' => 70,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * PROJECT BETA (/projects/beta)
+         *
+         * DEMONSTRATES: User 'john' has DIFFERENT permissions from DIFFERENT IPs
+         *
+         * - From office (192.168.1.0/24): Full access (read, write, upload, delete)
+         * - From VPN (10.8.0.0/24): Read-only access
+         * - From home (203.0.113.50): No access
+         *
+         * This shows how the same user can have different permissions based on their IP.
+         */
+        '/projects/beta' => [
+            'inherit' => true,
+            'rules' => [
+                // Rule 1: john from office - FULL ACCESS (highest priority)
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['192.168.1.0/24'], // Office network
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip'],
+                    'priority' => 90,
+                    'override_inherited' => true,
+                ],
+
+                // Rule 2: john from VPN - READ ONLY (medium priority)
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['10.8.0.0/24'], // VPN network
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'download'],
+                    'priority' => 85,
+                    'override_inherited' => true,
+                ],
+
+                // Rule 3: john from home - BLOCKED (uses ip_exclusions)
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => ['203.0.113.50'], // john's home IP is blocked
+                    'permissions' => [], // No permissions
+                    'priority' => 80,
+                    'override_inherited' => true,
+                ],
+
+                // Rule 4: Other developers from office/VPN
+                [
+                    'users' => ['@developers'],
+                    'ip_inclusions' => ['192.168.1.0/24', '10.8.0.0/24'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
+                    'priority' => 60,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * HR FOLDER (/hr)
+         *
+         * Restricted to HR staff from office network only.
+         * Demonstrates department-based access control.
+         */
+        '/hr' => [
+            'inherit' => true,
+            'rules' => [
+                [
+                    'users' => ['@hr-staff'],
+                    'ip_inclusions' => ['192.168.1.0/24'], // Office only
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
+                    'priority' => 70,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * HR CONFIDENTIAL FOLDER (/hr/confidential)
+         *
+         * MAXIMUM SECURITY: No inheritance, specific IP only.
+         * Demonstrates inherit=false to completely override parent rules.
+         */
+        '/hr/confidential' => [
+            'inherit' => false, // Don't inherit from /hr or /
+            'rules' => [
+                // Only HR managers from specific workstation
+                [
+                    'users' => ['mary', 'tom', '@admins'],
+                    'ip_inclusions' => [
+                        '192.168.1.10', // HR manager workstation
+                        '192.168.1.11', // Backup workstation
+                    ],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
+                    'priority' => 100,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * UPLOADS FOLDER (/uploads)
+         *
+         * Write-only access from internal network.
+         * Users can upload but cannot see what others uploaded.
+         */
+        '/uploads' => [
+            'inherit' => true,
+            'rules' => [
+                [
+                    'users' => ['*'],
+                    'ip_inclusions' => [
+                        '192.168.0.0/16', // Internal network (192.168.0.0 - 192.168.255.255)
+                        '10.0.0.0/8',     // Large internal network
+                    ],
+                    'ip_exclusions' => [],
+                    'permissions' => ['upload'], // Can upload but not read/download
+                    'priority' => 50,
+                    'override_inherited' => false,
+                ],
+            ],
+        ],
+
+        /**
+         * REPORTS FOLDER (/reports)
+         *
+         * Demonstrates priority ordering and rule conflict resolution.
+         * Managers can write, others can only read.
+         */
+        '/reports' => [
+            'inherit' => true,
+            'rules' => [
+                // Managers: full access (highest priority)
+                [
+                    'users' => ['@managers'],
+                    'ip_inclusions' => ['192.168.1.0/24'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete'],
+                    'priority' => 80,
+                    'override_inherited' => true,
+                ],
+
+                // Developers: read-only (lower priority)
+                [
+                    'users' => ['@developers'],
+                    'ip_inclusions' => ['192.168.1.0/24', '10.8.0.0/24'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'download'],
+                    'priority' => 70,
+                    'override_inherited' => true,
+                ],
+
+                // Everyone else from office: read-only (lowest priority)
+                [
+                    'users' => ['*'],
+                    'ip_inclusions' => ['192.168.1.0/24'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read'],
+                    'priority' => 60,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * BLOCKED IPS EXAMPLE (/sensitive)
+         *
+         * Demonstrates ip_exclusions usage.
+         * Entire subnet allowed except specific problematic IPs.
+         */
+        '/sensitive' => [
+            'inherit' => true,
+            'rules' => [
+                [
+                    'users' => ['@developers', '@managers'],
+                    'ip_inclusions' => ['192.168.1.0/24'], // Office network
+                    'ip_exclusions' => [
+                        '192.168.1.99',  // Compromised workstation
+                        '192.168.1.100', // Guest WiFi gateway
+                    ],
+                    'permissions' => ['read', 'download'],
+                    'priority' => 70,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * EXAMPLE: IPv6 Support (/future-project)
+         *
+         * Demonstrates IPv6 CIDR notation support.
+         */
+        '/future-project' => [
+            'inherit' => true,
+            'rules' => [
+                [
+                    'users' => ['@developers'],
+                    'ip_inclusions' => [
+                        '2001:db8::/32',           // IPv6 subnet
+                        '2001:db8:1234:5678::1',   // Specific IPv6 address
+                        '192.168.1.0/24',          // IPv4 (both can coexist)
+                    ],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download'],
+                    'priority' => 70,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+
+        /**
+         * EXAMPLE: Localhost Only (/admin-tools)
+         *
+         * Only accessible from the server itself.
+         */
+        '/admin-tools' => [
+            'inherit' => false,
+            'rules' => [
+                [
+                    'users' => ['@admins'],
+                    'ip_inclusions' => [
+                        '127.0.0.1', // IPv4 localhost
+                        '::1',       // IPv6 localhost
+                    ],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'chmod'],
+                    'priority' => 100,
+                    'override_inherited' => true,
+                ],
+            ],
+        ],
+    ],
+
+    /**
+     * SUMMARY OF KEY EXAMPLES:
+     *
+     * 1. User 'john' has different permissions on /projects/beta based on IP:
+     *    - From 192.168.1.0/24 (office): Full access
+     *    - From 10.8.0.0/24 (VPN): Read-only
+     *    - From 203.0.113.50 (home): Blocked
+     *
+     * 2. Inheritance demonstration:
+     *    - /projects inherits from /
+     *    - /projects/alpha inherits from /projects
+     *    - /hr/confidential does NOT inherit (inherit=false)
+     *
+     * 3. Priority ordering:
+     *    - Higher priority rules evaluated first
+     *    - More specific paths override less specific
+     *    - See /reports for priority example
+     *
+     * 4. IP restrictions:
+     *    - CIDR notation: 192.168.1.0/24 (256 IPs)
+     *    - IP ranges: 10.0.0.0/8 (16M IPs)
+     *    - Single IPs: 192.168.1.10
+     *    - Wildcards: '*' (all IPs)
+     *    - Exclusions: ip_exclusions overrides ip_inclusions
+     *
+     * 5. Group-based access:
+     *    - @developers, @managers, @hr-staff
+     *    - One user can belong to multiple groups
+     *    - All group permissions are merged
+     *
+     * 6. override_inherited behavior:
+     *    - true: Replace inherited permissions (common)
+     *    - false: Merge with inherited permissions (additive)
+     */
+];

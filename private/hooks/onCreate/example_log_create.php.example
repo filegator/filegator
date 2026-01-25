@@ -1,0 +1,37 @@
+<?php
+/**
+ * Example onCreate hook - Log file/directory creation
+ *
+ * This hook is triggered when a new file or directory is created.
+ *
+ * Available data in $hookData:
+ *   - file_path: Full path to the created item
+ *   - file_name: Name of the created item
+ *   - type: 'file' or 'dir'
+ *   - user: Username of the user who created the item
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/creations.log';
+$timestamp = date('Y-m-d H:i:s');
+$itemType = $hookData['type'] === 'dir' ? 'DIRECTORY' : 'FILE';
+
+$logEntry = sprintf(
+    "[%s] CREATE %s: User '%s' created '%s' at path '%s'\n",
+    $timestamp,
+    $itemType,
+    $hookData['user'],
+    $hookData['file_name'],
+    $hookData['file_path']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;

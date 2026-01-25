@@ -105,6 +105,16 @@ class JsonFile implements Service, AuthInterface
                 $u['homedir'] = $user->getHomeDir();
                 $u['permissions'] = $user->getPermissions(true);
 
+                // Save IP restrictions if set
+                $ip_inclusions = $user->getIpInclusions();
+                $ip_exclusions = $user->getIpExclusions();
+                if (!empty($ip_inclusions)) {
+                    $u['ip_inclusions'] = $ip_inclusions;
+                }
+                if (!empty($ip_exclusions)) {
+                    $u['ip_exclusions'] = $ip_exclusions;
+                }
+
                 if ($password) {
                     $u['password'] = $this->hashPassword($password);
                 }
@@ -126,7 +136,7 @@ class JsonFile implements Service, AuthInterface
 
         $all_users = $this->getUsers();
 
-        $all_users[] = [
+        $newUser = [
             'username' => $user->getUsername(),
             'name' => $user->getName(),
             'role' => $user->getRole(),
@@ -134,6 +144,18 @@ class JsonFile implements Service, AuthInterface
             'permissions' => $user->getPermissions(true),
             'password' => $this->hashPassword($password),
         ];
+
+        // Add IP restrictions if set
+        $ip_inclusions = $user->getIpInclusions();
+        $ip_exclusions = $user->getIpExclusions();
+        if (!empty($ip_inclusions)) {
+            $newUser['ip_inclusions'] = $ip_inclusions;
+        }
+        if (!empty($ip_exclusions)) {
+            $newUser['ip_exclusions'] = $ip_exclusions;
+        }
+
+        $all_users[] = $newUser;
 
         $this->saveUsers($all_users);
 
@@ -198,6 +220,14 @@ class JsonFile implements Service, AuthInterface
         $new->setRole($user['role']);
         $new->setHomedir($user['homedir']);
         $new->setPermissions($user['permissions'], true);
+
+        // Load IP restrictions if present
+        if (isset($user['ip_inclusions']) && is_array($user['ip_inclusions'])) {
+            $new->setIpInclusions($user['ip_inclusions']);
+        }
+        if (isset($user['ip_exclusions']) && is_array($user['ip_exclusions'])) {
+            $new->setIpExclusions($user['ip_exclusions']);
+        }
 
         return $new;
     }
