@@ -16,11 +16,6 @@ if (version_compare(PHP_VERSION, '7.2.5', '<')) {
     die;
 }
 
-if (! is_writable(__DIR__.'/../private/logs/')) {
-    echo 'Folder not writable: /private/logs/'."\n";
-    die;
-}
-
 if (! file_exists(__DIR__.'/../configuration.php')) {
     copy(__DIR__.'/../configuration_sample.php', __DIR__.'/../configuration.php');
 }
