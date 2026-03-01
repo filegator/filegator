@@ -19,4 +19,6 @@ interface SessionStorageInterface
     public function invalidate();
 
     public function save();
+
+    public function migrate($destroy = false, $lifetime = null): bool;
 }
