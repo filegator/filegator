@@ -71,4 +71,9 @@ class SessionStorage implements Service, SessionStorageInterface
     {
         return $this->request->getSession();
     }
+
+    public function migrate($destroy = false, $lifetime = null): bool
+    {
+        return $this->request->getSession()->migrate($destroy, $lifetime);
+    }
 }

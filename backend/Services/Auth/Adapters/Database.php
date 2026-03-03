@@ -77,6 +77,7 @@ class Database implements Service, AuthInterface
             $user = $this->mapToUserObject($ret);
             $this->store($user);
             $this->session->set(self::SESSION_HASH, $ret->password.$ret->permissions.$ret->homedir.$ret->role);
+            $this->session->migrate(true);
 
             return true;
         }

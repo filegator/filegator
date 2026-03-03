@@ -71,6 +71,7 @@ class JsonFile implements Service, AuthInterface
                 $user = $this->mapToUserObject($u);
                 $this->store($user);
                 $this->session->set(self::SESSION_HASH, $u['password'].$u['permissions'].$u['homedir'].$u['role']);
+                $this->session->migrate(true);
 
                 return true;
             }
