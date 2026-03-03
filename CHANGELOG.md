@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.13.4 - 2026-03-03
+* Session fixation fixed by regenerating session on login
+
 ## 7.13.3 - 2026-01-19
 * Update Dockerfile to use node 22
 
