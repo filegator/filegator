@@ -1,6 +1,6 @@
 <template>
   <div id="dropzone" class="container"
-       @dragover="dropZone = can('upload') && ! isLoading ? true : false"
+       @dragover="dropZone = can('upload') && canUploadToPath && ! isLoading ? true : false"
        @dragleave="dropZone = false"
        @drop="dropZone = false"
   >
@@ -37,13 +37,18 @@
         <section id="multi-actions" class="is-flex is-justify-between">
           <div>
             <b-field v-if="can('upload') && ! checked.length" class="file is-inline-block">
-              <b-upload multiple native @input="files = $event">
+              <b-tooltip v-if="!canUploadToPath" :label="lang('No upload permission for this folder')" position="is-bottom" type="is-dark">
+                <a class="is-inline-block upload-disabled">
+                  <b-icon icon="upload" size="is-small" /> {{ lang('Add files') }}
+                </a>
+              </b-tooltip>
+              <b-upload v-else multiple native @input="files = $event">
                 <a v-if="! checked.length" class="is-inline-block">
                   <b-icon icon="upload" size="is-small" /> {{ lang('Add files') }}
                 </a>
               </b-upload>
             </b-field>
-            <a v-if="can(['read', 'write']) && ! checked.length" class="add-new is-inline-block">
+            <a v-if="can(['read', 'write']) && canWriteToPath && ! checked.length" class="add-new is-inline-block">
               <b-dropdown :disabled="checked.length > 0" aria-role="list">
                 <span slot="trigger">
                   <b-icon icon="plus" size="is-small" /> {{ lang('New') }}
@@ -224,6 +229,24 @@ export default {
       return Number(_.sumBy(this.$store.state.cwd.content, (o) => {
         return o.type == 'file' || o.type == 'dir'
       }))
+    },
+    // Check if user can upload to current path based on PathACL permissions
+    canUploadToPath() {
+      const pathPermissions = this.$store.state.cwd.pathPermissions || []
+      // If no path-specific permissions, fall back to global permission check
+      if (pathPermissions.length === 0) {
+        return this.can('upload')
+      }
+      // Check if 'upload' or 'write' is in path permissions
+      return pathPermissions.includes('upload') || pathPermissions.includes('write')
+    },
+    // Check if user can write to current path (for "New" button)
+    canWriteToPath() {
+      const pathPermissions = this.$store.state.cwd.pathPermissions || []
+      if (pathPermissions.length === 0) {
+        return this.can(['read', 'write'])
+      }
+      return pathPermissions.includes('write')
     },
   },
   watch: {
@@ -712,5 +735,10 @@ export default {
 }
 .search-btn {
   margin-right: 10px;
+}
+.upload-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto; /* Allow tooltip to work */
 }
 </style>

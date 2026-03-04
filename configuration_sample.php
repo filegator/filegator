@@ -103,12 +103,24 @@ return [
             'handler' => '\Filegator\Services\Archiver\Adapters\ZipArchiver',
             'config' => [],
         ],
+        'Filegator\Services\Hooks\HooksInterface' => [
+            'handler' => '\Filegator\Services\Hooks\Hooks',
+            'config' => [
+                'enabled' => true,
+                'hooks_path' => __DIR__.'/private/hooks',
+                'timeout' => 30, // max execution time for hook scripts (seconds)
+                'async' => false, // whether to run hooks asynchronously
+            ],
+        ],
         'Filegator\Services\Auth\AuthInterface' => [
             'handler' => '\Filegator\Services\Auth\Adapters\JsonFile',
             'config' => [
                 'file' => __DIR__.'/private/users.json',
             ],
         ],
+        // IMPORTANT: Router MUST be the last service in this list!
+        // Router's init() dispatches the request immediately, so all other services
+        // (especially PathACL and Hooks) must be registered before it.
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [

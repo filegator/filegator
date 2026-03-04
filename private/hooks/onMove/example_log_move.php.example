@@ -1,0 +1,39 @@
+<?php
+/**
+ * Example onMove hook - Log file/directory moves
+ *
+ * This hook is triggered when a file or directory is moved.
+ *
+ * Available data in $hookData:
+ *   - source_path: Original path of the item
+ *   - destination_path: New path of the item
+ *   - file_name: Name of the moved item
+ *   - type: 'file' or 'dir'
+ *   - user: Username of the user who moved the item
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/moves.log';
+$timestamp = date('Y-m-d H:i:s');
+$itemType = $hookData['type'] === 'dir' ? 'DIRECTORY' : 'FILE';
+
+$logEntry = sprintf(
+    "[%s] MOVE %s: User '%s' moved '%s' from '%s' to '%s'\n",
+    $timestamp,
+    $itemType,
+    $hookData['user'],
+    $hookData['file_name'],
+    $hookData['source_path'],
+    $hookData['destination_path']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;

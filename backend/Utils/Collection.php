@@ -55,4 +55,16 @@ trait Collection
 
         return $this;
     }
+
+    /**
+     * Filter items using a callback function
+     *
+     * @param callable $callback Function that returns true for items to keep
+     * @return $this
+     */
+    public function filter(callable $callback)
+    {
+        $this->items = array_values(array_filter($this->items, $callback));
+        return $this;
+    }
 }

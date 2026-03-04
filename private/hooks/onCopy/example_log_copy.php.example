@@ -1,0 +1,39 @@
+<?php
+/**
+ * Example onCopy hook - Log file/directory copies
+ *
+ * This hook is triggered when a file or directory is copied.
+ *
+ * Available data in $hookData:
+ *   - source_path: Path of the original item
+ *   - destination: Destination directory
+ *   - file_name: Name of the copied item
+ *   - type: 'file' or 'dir'
+ *   - user: Username of the user who copied the item
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/copies.log';
+$timestamp = date('Y-m-d H:i:s');
+$itemType = $hookData['type'] === 'dir' ? 'DIRECTORY' : 'FILE';
+
+$logEntry = sprintf(
+    "[%s] COPY %s: User '%s' copied '%s' from '%s' to '%s'\n",
+    $timestamp,
+    $itemType,
+    $hookData['user'],
+    $hookData['file_name'],
+    $hookData['source_path'],
+    $hookData['destination']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;
