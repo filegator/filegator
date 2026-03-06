@@ -30,4 +30,5 @@ export default {
 
 /* Dark Theme */
 @import "assets/scss/theme/dark";
+@import "assets/scss/rtl";
 </style>
