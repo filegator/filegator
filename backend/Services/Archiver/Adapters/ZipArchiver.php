@@ -14,7 +14,6 @@ use Filegator\Services\Archiver\ArchiverInterface;
 use Filegator\Services\Service;
 use Filegator\Services\Storage\Filesystem as Storage;
 use Filegator\Services\Tmpfs\TmpfsInterface;
-use League\Flysystem\Config as Flyconfig;
 use League\Flysystem\Filesystem as Flysystem;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 
@@ -44,7 +43,7 @@ class ZipArchiver implements Service, ArchiverInterface
         $this->uniqid = uniqid();
 
         $this->archive = new Flysystem(
-            new ZipAdapter($this->tmpfs->getFileLocation($this->uniqid))
+            new ZipArchiveAdapter($this->tmpfs->getFileLocation($this->uniqid))
         );
 
         $this->storage = $storage;
@@ -55,11 +54,11 @@ class ZipArchiver implements Service, ArchiverInterface
     public function addDirectoryFromStorage(string $path)
     {
         $content = $this->storage->getDirectoryCollection($path, true);
-        $this->archive->createDir($path);
+        $this->archive->createDirectory($path);
 
         foreach ($content->all() as $item) {
             if ($item['type'] == 'dir') {
-                $this->archive->createDir($item['path']);
+                $this->archive->createDirectory($item['path']);
             }
             if ($item['type'] == 'file') {
                 $this->addFileFromStorage($item['path']);
@@ -69,15 +68,13 @@ class ZipArchiver implements Service, ArchiverInterface
 
     public function addFileFromStorage(string $path)
     {
-        $file_uniqid = uniqid();
-
         $file = $this->storage->readStream($path);
 
-        $this->tmpfs->write($file_uniqid, $file['stream']);
+        $this->archive->writeStream($path, $file['stream']);
 
-        $this->archive->write($path, $this->tmpfs->getFileLocation($file_uniqid));
-
-        $this->tmp_files[] = $file_uniqid;
+        if (is_resource($file['stream'])) {
+            fclose($file['stream']);
+        }
     }
 
     public function uncompress(string $source, string $destination, Storage $storage)
@@ -88,19 +85,24 @@ class ZipArchiver implements Service, ArchiverInterface
         $this->tmpfs->write($name, $remote_archive['stream']);
 
         $archive = new Flysystem(
-            new ZipAdapter($this->tmpfs->getFileLocation($name))
+            new ZipArchiveAdapter($this->tmpfs->getFileLocation($name))
         );
 
-        $contents = $archive->listContents('/', true);
+        $contents = iterator_to_array($archive->listContents('/', true));
 
         foreach ($contents as $item) {
             $stream = null;
-            if ($item['type'] == 'dir') {
-                $storage->createDir($destination, $item['path']);
+            if ($item->isDir()) {
+                $storage->createDir($destination, $item->path());
             }
-            if ($item['type'] == 'file') {
-                $stream = $archive->readStream($item['path']);
-                $storage->store($destination.'/'.$item['dirname'], $item['basename'], $stream);
+            if ($item->isFile()) {
+                $stream = $archive->readStream($item->path());
+                $dirname = dirname($item->path());
+                if ($dirname === '.') {
+                    $dirname = '';
+                }
+                $basename = basename($item->path());
+                $storage->store($destination.'/'.$dirname, $basename, $stream);
             }
             if (is_resource($stream)) {
                 fclose($stream);
@@ -112,7 +114,15 @@ class ZipArchiver implements Service, ArchiverInterface
 
     public function closeArchive()
     {
-        $this->archive->getAdapter()->getArchive()->close();
+        try {
+            $adapter = $this->archive->getAdapter();
+            // Close the ZipArchive
+            if (method_exists($adapter, 'getArchive')) {
+                $adapter->getArchive()->close();
+            }
+        } catch (\Exception $e) {
+            // Archive may already be closed
+        }
 
         foreach ($this->tmp_files as $file) {
             $this->tmpfs->remove($file);
@@ -130,19 +140,5 @@ class ZipArchiver implements Service, ArchiverInterface
         }
 
         $this->tmpfs->remove($this->uniqid);
-    }
-}
-
-class ZipAdapter extends ZipArchiveAdapter
-{
-    public function write($path, $contents, Flyconfig $config)
-    {
-        $location = $this->applyPathPrefix($path);
-
-        // using addFile instead of addFromString
-        // is more memory efficient
-        $this->archive->addFile($contents, $location);
-
-        return compact('path', 'contents');
     }
 }

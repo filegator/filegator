@@ -12,7 +12,7 @@ namespace Filegator\Services\Storage;
 
 use Filegator\Services\Service;
 use League\Flysystem\Filesystem as Flysystem;
-use League\Flysystem\Util;
+use League\Flysystem\StorageAttributes;
 
 class Filesystem implements Service
 {
@@ -37,36 +37,36 @@ class Filesystem implements Service
     {
         $destination = $this->joinPaths($this->applyPathPrefix($path), $name);
 
-        while (! empty($this->storage->listContents($destination, true))) {
+        while ($this->hasContents($destination)) {
             $destination = $this->upcountName($destination);
         }
 
-        return $this->storage->createDir($destination);
+        return $this->storage->createDirectory($destination);
     }
 
     public function createFile(string $path, string $name)
     {
         $destination = $this->joinPaths($this->applyPathPrefix($path), $name);
 
-        while ($this->storage->has($destination)) {
+        while ($this->storage->fileExists($destination)) {
             $destination = $this->upcountName($destination);
         }
 
-        $this->storage->put($destination, '');
+        $this->storage->write($destination, '');
     }
 
     public function fileExists(string $path)
     {
         $path = $this->applyPathPrefix($path);
 
-        return $this->storage->has($path);
+        return $this->storage->fileExists($path);
     }
 
     public function isDir(string $path)
     {
         $path = $this->applyPathPrefix($path);
 
-        return $this->storage->getSize($path) === false;
+        return $this->storage->directoryExists($path);
     }
 
     public function copyFile(string $source, string $destination)
@@ -74,7 +74,7 @@ class Filesystem implements Service
         $source = $this->applyPathPrefix($source);
         $destination = $this->joinPaths($this->applyPathPrefix($destination), $this->getBaseName($source));
 
-        while ($this->storage->has($destination)) {
+        while ($this->storage->fileExists($destination)) {
             $destination = $this->upcountName($destination);
         }
 
@@ -88,35 +88,35 @@ class Filesystem implements Service
         $source_dir = $this->getBaseName($source);
         $real_destination = $this->joinPaths($destination, $source_dir);
 
-        while (! empty($this->storage->listContents($real_destination, true))) {
+        while ($this->hasContents($real_destination)) {
             $real_destination = $this->upcountName($real_destination);
         }
 
-        $contents = $this->storage->listContents($source, true);
+        $contents = iterator_to_array($this->storage->listContents($source, true));
 
         if (empty($contents)) {
-            $this->storage->createDir($real_destination);
+            $this->storage->createDirectory($real_destination);
         }
 
         foreach ($contents as $file) {
-            $source_path = $this->separator.ltrim($file['path'], $this->separator);
+            $source_path = $this->separator.ltrim($file->path(), $this->separator);
             $path = substr($source_path, strlen($source), strlen($source_path));
 
-            if ($file['type'] == 'dir') {
-                $this->storage->createDir($this->joinPaths($real_destination, $path));
+            if ($file->isDir()) {
+                $this->storage->createDirectory($this->joinPaths($real_destination, $path));
 
                 continue;
             }
 
-            if ($file['type'] == 'file') {
-                $this->storage->copy($file['path'], $this->joinPaths($real_destination, $path));
+            if ($file->isFile()) {
+                $this->storage->copy($file->path(), $this->joinPaths($real_destination, $path));
             }
         }
     }
 
     public function deleteDir(string $path)
     {
-        return $this->storage->deleteDir($this->applyPathPrefix($path));
+        return $this->storage->deleteDirectory($this->applyPathPrefix($path));
     }
 
     public function deleteFile(string $path)
@@ -135,7 +135,7 @@ class Filesystem implements Service
         return [
             'filename' => $this->getBaseName($path),
             'stream' => $this->storage->readStream($path),
-            'filesize' => $this->storage->getSize($path),
+            'filesize' => $this->getFileSize($path),
         ];
     }
 
@@ -144,11 +144,11 @@ class Filesystem implements Service
         $from = $this->applyPathPrefix($from);
         $to = $this->applyPathPrefix($to);
 
-        while ($this->storage->has($to)) {
+        while ($this->storage->fileExists($to)) {
             $to = $this->upcountName($to);
         }
 
-        return $this->storage->rename($from, $to);
+        return $this->storage->move($from, $to) ? true : false;
     }
 
     public function rename(string $destination, string $from, string $to): bool
@@ -156,18 +156,18 @@ class Filesystem implements Service
         $from = $this->joinPaths($this->applyPathPrefix($destination), $from);
         $to = $this->joinPaths($this->applyPathPrefix($destination), $to);
 
-        while ($this->storage->has($to)) {
+        while ($this->storage->fileExists($to)) {
             $to = $this->upcountName($to);
         }
 
-        return $this->storage->rename($from, $to);
+        return $this->storage->move($from, $to) ? true : false;
     }
 
     public function store(string $path, string $name, $resource, bool $overwrite = false): bool
     {
         $destination = $this->joinPaths($this->applyPathPrefix($path), $name);
 
-        while ($this->storage->has($destination)) {
+        while ($this->storage->fileExists($destination)) {
             if ($overwrite) {
                 $this->storage->delete($destination);
             } else {
@@ -175,7 +175,7 @@ class Filesystem implements Service
             }
         }
 
-        return $this->storage->putStream($destination, $resource);
+        return $this->storage->writeStream($destination, $resource) ? true : false;
     }
     
     /**
@@ -190,7 +190,7 @@ class Filesystem implements Service
     public function chmod(string $path, int $permissions, string $recursive = null)
     {
         $path = $this->applyPathPrefix($path);
-        $path = Util::normalizePath($path);
+        $path = $this->normalizePath($path);
         $adapter = $this->storage->getAdapter();
         
         $mainResult = $this->chmodItem($path, $permissions);
@@ -198,14 +198,14 @@ class Filesystem implements Service
             if (method_exists($adapter, 'setRecurseManually')) {
                 $adapter->setRecurseManually(true); // this is needed for ftp driver
             }
-            $contents = $this->storage->listContents($path, true);
+            $contents = iterator_to_array($this->storage->listContents($path, true));
             foreach ($contents as $item) {
                 try {
-                    if ($item['type'] == 'dir' && ($recursive == 'all' || $recursive == 'folders')) {
-                        $this->chmodItem($item['path'], $permissions);
+                    if ($item->isDir() && ($recursive == 'all' || $recursive == 'folders')) {
+                        $this->chmodItem($item->path(), $permissions);
                     }
-                    if ($item['type'] == 'file' && ($recursive == 'all' || $recursive == 'files')) {
-                        $this->chmodItem($item['path'], $permissions);
+                    if ($item->isFile() && ($recursive == 'all' || $recursive == 'files')) {
+                        $this->chmodItem($item->path(), $permissions);
                     }
                 } catch (\Exception $e) {
                     continue;
@@ -215,6 +215,7 @@ class Filesystem implements Service
         
         return $mainResult;
     }
+    
     /**
      * Change file permissions for a single item
      * 
@@ -226,21 +227,35 @@ class Filesystem implements Service
     public function chmodItem(string $path, int $permissions)
     {
         $adapter = $this->storage->getAdapter();
+        $adapterClass = get_class($adapter);
         
-        switch (get_class($adapter)) {
-            case 'League\Flysystem\Adapter\Local':
-                $absolutePath = $adapter->applyPathPrefix($path);
+        switch ($adapterClass) {
+            case 'League\Flysystem\Local\LocalFilesystemAdapter':
+                // Get the absolute path using reflection since applyPathPrefix is private in 3.x
+                $absolutePath = $this->getLocalAdapterPath($adapter, $path);
                 return chmod($absolutePath, octdec($permissions));
-                break;
             case 'League\Flysystem\Sftp\SftpAdapter':
                 return $adapter->getConnection()->chmod($path, octdec($permissions));
-                break;
             case 'Filegator\Services\Storage\Adapters\FilegatorFtp':
                 return ftp_chmod($adapter->getConnection(), octdec($permissions), $path) !== false;
-                break;
             default:
                 throw new \Exception('Selected adapter does not support unix permissions');
-                break;
+        }
+    }
+    
+    /**
+     * Get absolute path for Local adapter using reflection
+     */
+    private function getLocalAdapterPath($adapter, string $path): string
+    {
+        try {
+            $reflection = new \ReflectionClass($adapter);
+            $property = $reflection->getProperty('root');
+            $property->setAccessible(true);
+            $root = $property->getValue($adapter);
+            return rtrim($root, '/') . '/' . ltrim($path, '/');
+        } catch (\Exception $e) {
+            throw new \Exception('Unable to determine absolute path for Local adapter');
         }
     }
 
@@ -264,16 +279,14 @@ class Filesystem implements Service
         $collection = new DirectoryCollection($path);
 
         foreach ($this->storage->listContents($this->applyPathPrefix($path), $recursive) as $entry) {
-            // By default only 'path' and 'type' is present
-
-            $name = $this->getBaseName($entry['path']);
-            $userpath = $this->stripPathPrefix($entry['path']);
-            $dirname = isset($entry['dirname']) ? $entry['dirname'] : $path;
-            $size = isset($entry['size']) ? $entry['size'] : 0;
-            $timestamp = isset($entry['timestamp']) ? $entry['timestamp'] : 0;
+            $name = $this->getBaseName($entry->path());
+            $userpath = $this->stripPathPrefix($entry->path());
+            $size = $entry->fileSize() ?? 0;
+            $timestamp = $entry->lastModified()?->getTimestamp() ?? 0;
             $permissions = $this->getPermissions($entry);
 
-            $collection->addFile($entry['type'], $userpath, $name, $size, $timestamp, $permissions);
+            $type = $entry->isDir() ? 'dir' : 'file';
+            $collection->addFile($type, $userpath, $name, $size, $timestamp, $permissions);
         }
 
         if (! $recursive && $this->addSeparators($path) !== $this->separator) {
@@ -283,24 +296,22 @@ class Filesystem implements Service
         return $collection;
     }
     
-    protected function getPermissions(array $entry): int
+    protected function getPermissions(StorageAttributes $entry): int
     {
         $adapter = $this->storage->getAdapter();
-        $path = $entry['path'];
+        $path = $entry->path();
+        $adapterClass = get_class($adapter);
         
-        switch (get_class($adapter)) {
-            case 'League\Flysystem\Adapter\Local':
-                $path = $adapter->applyPathPrefix($path); // get the full path
-                $permissions = substr(sprintf('%o', fileperms($path)), -3);
-                return $permissions;
-                break;
+        switch ($adapterClass) {
+            case 'League\Flysystem\Local\LocalFilesystemAdapter':
+                $absolutePath = $this->getLocalAdapterPath($adapter, $path);
+                $permissions = substr(sprintf('%o', fileperms($absolutePath)), -3);
+                return (int) $permissions;
             case 'League\Flysystem\Sftp\SftpAdapter':
                 $stat = $adapter->getConnection()->stat($path);
-                return $stat && isset($stat['permissions']) ? substr(decoct($stat['permissions']), -3) : -1;
-                break;
+                return $stat && isset($stat['permissions']) ? (int) substr(decoct($stat['permissions']), -3) : -1;
             case 'Filegator\Services\Storage\Adapters\FilegatorFtp':
-                return isset($entry['permissions']) ? $entry['permissions'] : -1;
-                break;
+                return isset($entry->extraMetadata()['permissions']) ? (int) $entry->extraMetadata()['permissions'] : -1;
         }
         return -1;
     }
@@ -399,4 +410,47 @@ class Filesystem implements Service
 
         return $path;
     }
-}
+
+    private function normalizePath(string $path): string
+    {
+        $path = str_replace('\\', '/', $path);
+        $path = preg_replace('|/+|', '/', $path);
+        
+        if (strpos($path, '/') === 0) {
+            $parts = array_filter(explode('/', substr($path, 1)), 'strlen');
+            $path = '/' . implode('/', $parts);
+        } else {
+            $parts = array_filter(explode('/', $path), 'strlen');
+            $path = implode('/', $parts);
+        }
+
+        return $path;
+    }
+
+    private function hasContents(string $path): bool
+    {
+        try {
+            $contents = iterator_to_array($this->storage->listContents($path, true), false);
+            return ! empty($contents);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    private function getFileSize(string $path): int
+    {
+        try {
+            // Try to get file size directly via a meta query
+            // In 3.x, we need to use an alternative approach
+            $stream = $this->storage->readStream($path);
+            if (is_resource($stream)) {
+                $stat = fstat($stream);
+                $size = $stat['size'] ?? 0;
+                fclose($stream);
+                return $size;
+            }
+            return 0;
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }

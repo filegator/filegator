@@ -13,8 +13,7 @@ namespace Tests\Unit;
 use Filegator\Services\Archiver\Adapters\ZipArchiver;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\Adapters\Tmpfs;
-use League\Flysystem\Memory\MemoryAdapter;
-use League\Flysystem\Adapter\NullAdapter;
+use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Tests\TestCase;
 
 /**
@@ -44,7 +43,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new NullAdapter();
+                return new InMemoryFilesystemAdapter();
             },
         ]);
 
@@ -60,7 +59,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new MemoryAdapter();
+                return new InMemoryFilesystemAdapter();
             },
         ]);
 
@@ -82,7 +81,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new MemoryAdapter();
+                return new InMemoryFilesystemAdapter();
             },
         ]);
 

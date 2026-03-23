@@ -12,7 +12,7 @@ namespace Tests\Unit;
 
 use Exception;
 use Filegator\Services\Storage\Filesystem;
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Tests\TestCase;
 
 /**
@@ -36,7 +36,7 @@ class FilesystemTest extends TestCase
         $this->storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new Local(
+                return new LocalFilesystemAdapter(
                     TEST_REPOSITORY
                 );
             },
