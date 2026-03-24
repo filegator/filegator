@@ -21,6 +21,8 @@ class ZipArchiver implements Service, ArchiverInterface
 {
     protected $archive;
 
+    protected $archiveAdapter;
+
     protected $storage;
 
     protected $tmpfs;
@@ -42,9 +44,8 @@ class ZipArchiver implements Service, ArchiverInterface
     {
         $this->uniqid = uniqid();
 
-        $this->archive = new Flysystem(
-            new ZipArchiveAdapter($this->tmpfs->getFileLocation($this->uniqid))
-        );
+        $this->archiveAdapter = new ZipArchiveAdapter($this->tmpfs->getFileLocation($this->uniqid));
+        $this->archive = new Flysystem($this->archiveAdapter);
 
         $this->storage = $storage;
 
@@ -115,7 +116,7 @@ class ZipArchiver implements Service, ArchiverInterface
     public function closeArchive()
     {
         try {
-            $adapter = $this->archive->getAdapter();
+            $adapter = $this->archiveAdapter;
             // Close the ZipArchive
             if (method_exists($adapter, 'getArchive')) {
                 $adapter->getArchive()->close();

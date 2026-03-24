@@ -22,6 +22,8 @@ class Filesystem implements Service
 
     protected $path_prefix;
 
+    protected $adapter;
+
     public function init(array $config = [])
     {
         $this->separator = $config['separator'];
@@ -30,7 +32,8 @@ class Filesystem implements Service
         $adapter = $config['adapter'];
         $config = isset($config['config']) ? $config['config'] : [];
 
-        $this->storage = new Flysystem($adapter(), $config);
+        $this->adapter = $adapter();
+        $this->storage = new Flysystem($this->adapter, $config);
     }
 
     public function createDir(string $path, string $name)
@@ -191,7 +194,7 @@ class Filesystem implements Service
     {
         $path = $this->applyPathPrefix($path);
         $path = $this->normalizePath($path);
-        $adapter = $this->storage->getAdapter();
+        $adapter = $this->adapter;
         
         $mainResult = $this->chmodItem($path, $permissions);
         if ($recursive !== null) {
@@ -226,7 +229,7 @@ class Filesystem implements Service
      */
     public function chmodItem(string $path, int $permissions)
     {
-        $adapter = $this->storage->getAdapter();
+        $adapter = $this->adapter;
         $adapterClass = get_class($adapter);
         
         switch ($adapterClass) {
@@ -244,19 +247,23 @@ class Filesystem implements Service
     }
     
     /**
-     * Get absolute path for Local adapter using reflection
+     * Get absolute path for Local adapter
      */
     private function getLocalAdapterPath($adapter, string $path): string
     {
-        try {
-            $reflection = new \ReflectionClass($adapter);
-            $property = $reflection->getProperty('root');
-            $property->setAccessible(true);
-            $root = $property->getValue($adapter);
-            return rtrim($root, '/') . '/' . ltrim($path, '/');
-        } catch (\Exception $e) {
-            throw new \Exception('Unable to determine absolute path for Local adapter');
+        if (method_exists($adapter, 'getRootPath')) {
+            $root = $adapter->getRootPath();
+        } else {
+            try {
+                $reflection = new \ReflectionClass($adapter);
+                $property = $reflection->getProperty('root');
+                $property->setAccessible(true);
+                $root = $property->getValue($adapter);
+            } catch (\Exception $e) {
+                throw new \Exception('Unable to determine absolute path for Local adapter');
+            }
         }
+        return rtrim($root, '/') . '/' . ltrim($path, '/');
     }
 
     public function setPathPrefix(string $path_prefix)
@@ -299,7 +306,7 @@ class Filesystem implements Service
     
     protected function getPermissions(StorageAttributes $entry): int
     {
-        $adapter = $this->storage->getAdapter();
+        $adapter = $this->adapter;
         $path = $entry->path();
         $adapterClass = get_class($adapter);
         
