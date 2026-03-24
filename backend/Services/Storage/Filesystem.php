@@ -282,7 +282,8 @@ class Filesystem implements Service
             $name = $this->getBaseName($entry->path());
             $userpath = $this->stripPathPrefix($entry->path());
             $size = $entry->fileSize() ?? 0;
-            $timestamp = $entry->lastModified()?->getTimestamp() ?? 0;
+            $lastModified = $entry->lastModified();
+            $timestamp = $lastModified instanceof \DateTimeInterface ? $lastModified->getTimestamp() : (int) $lastModified ?? 0;
             $permissions = $this->getPermissions($entry);
 
             $type = $entry->isDir() ? 'dir' : 'file';
