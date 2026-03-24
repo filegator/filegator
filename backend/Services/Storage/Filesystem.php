@@ -256,7 +256,7 @@ class Filesystem implements Service
         } else {
             try {
                 $reflection = new \ReflectionClass($adapter);
-                $property = $reflection->getProperty('root');
+                $property = $reflection->getProperty('rootLocation');
                 $property->setAccessible(true);
                 $root = $property->getValue($adapter);
             } catch (\Exception $e) {
