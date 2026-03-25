@@ -15,6 +15,7 @@ use Filegator\Services\Service;
 use Filegator\Services\Storage\Filesystem as Storage;
 use Filegator\Services\Tmpfs\TmpfsInterface;
 use League\Flysystem\Filesystem as Flysystem;
+use League\Flysystem\ZipArchive\FilesystemZipArchiveProvider;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 
 class ZipArchiver implements Service, ArchiverInterface
@@ -44,7 +45,8 @@ class ZipArchiver implements Service, ArchiverInterface
     {
         $this->uniqid = uniqid();
 
-        $this->archiveAdapter = new ZipArchiveAdapter($this->tmpfs->getFileLocation($this->uniqid));
+        $provider = new FilesystemZipArchiveProvider($this->tmpfs->getFileLocation($this->uniqid));
+        $this->archiveAdapter = new ZipArchiveAdapter($provider);
         $this->archive = new Flysystem($this->archiveAdapter);
 
         $this->storage = $storage;
@@ -85,9 +87,8 @@ class ZipArchiver implements Service, ArchiverInterface
         $remote_archive = $storage->readStream($source);
         $this->tmpfs->write($name, $remote_archive['stream']);
 
-        $archive = new Flysystem(
-            new ZipArchiveAdapter($this->tmpfs->getFileLocation($name))
-        );
+        $provider = new FilesystemZipArchiveProvider($this->tmpfs->getFileLocation($name));
+        $archive = new Flysystem(new ZipArchiveAdapter($provider));
 
         $contents = iterator_to_array($archive->listContents('/', true));
 
@@ -115,15 +116,8 @@ class ZipArchiver implements Service, ArchiverInterface
 
     public function closeArchive()
     {
-        try {
-            $adapter = $this->archiveAdapter;
-            // Close the ZipArchive
-            if (method_exists($adapter, 'getArchive')) {
-                $adapter->getArchive()->close();
-            }
-        } catch (\Exception $e) {
-            // Archive may already be closed
-        }
+        // In Flysystem v2 ZipArchiveAdapter, each operation opens and closes the zip file internally.
+        // No explicit archive handle is required here.
 
         foreach ($this->tmp_files as $file) {
             $this->tmpfs->remove($file);

@@ -103,7 +103,7 @@ class ArchiverTest extends TestCase
         $storage->init([
             'separator' => '/',
             'adapter' => function () {
-                return new MemoryAdapter();
+                return new InMemoryFilesystemAdapter();
             },
         ]);
 
