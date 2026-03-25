@@ -15,8 +15,8 @@ use Filegator\Services\Service;
 use Filegator\Services\Storage\Filesystem as Storage;
 use Filegator\Services\Tmpfs\TmpfsInterface;
 use League\Flysystem\Filesystem as Flysystem;
-use League\Flysystem\ZipArchive\FilesystemZipArchiveProvider;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
+use League\Flysystem\ZipArchive\FilesystemZipArchiveProvider;
 
 class ZipArchiver implements Service, ArchiverInterface
 {
@@ -45,8 +45,7 @@ class ZipArchiver implements Service, ArchiverInterface
     {
         $this->uniqid = uniqid();
 
-        $provider = new FilesystemZipArchiveProvider($this->tmpfs->getFileLocation($this->uniqid));
-        $this->archiveAdapter = new ZipArchiveAdapter($provider);
+        $this->archiveAdapter = new ZipArchiveAdapter(new FilesystemZipArchiveProvider($this->tmpfs->getFileLocation($this->uniqid)));
         $this->archive = new Flysystem($this->archiveAdapter);
 
         $this->storage = $storage;
@@ -87,8 +86,9 @@ class ZipArchiver implements Service, ArchiverInterface
         $remote_archive = $storage->readStream($source);
         $this->tmpfs->write($name, $remote_archive['stream']);
 
-        $provider = new FilesystemZipArchiveProvider($this->tmpfs->getFileLocation($name));
-        $archive = new Flysystem(new ZipArchiveAdapter($provider));
+        $archive = new Flysystem(
+            new ZipArchiveAdapter(new FilesystemZipArchiveProvider($this->tmpfs->getFileLocation($name)))
+        );
 
         $contents = iterator_to_array($archive->listContents('/', true));
 
@@ -116,8 +116,15 @@ class ZipArchiver implements Service, ArchiverInterface
 
     public function closeArchive()
     {
-        // In Flysystem v2 ZipArchiveAdapter, each operation opens and closes the zip file internally.
-        // No explicit archive handle is required here.
+        try {
+            $adapter = $this->archiveAdapter;
+            // Close the ZipArchive
+            if (method_exists($adapter, 'getArchive')) {
+                $adapter->getArchive()->close();
+            }
+        } catch (\Exception $e) {
+            // Archive may already be closed
+        }
 
         foreach ($this->tmp_files as $file) {
             $this->tmpfs->remove($file);

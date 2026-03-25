@@ -119,12 +119,20 @@ class Filesystem implements Service
 
     public function deleteDir(string $path)
     {
-        return $this->storage->deleteDirectory($this->applyPathPrefix($path));
+        $fullPath = $this->applyPathPrefix($path);
+        if (!$this->storage->directoryExists($fullPath)) {
+            throw new \Exception('Directory not found: ' . $path);
+        }
+        return $this->storage->deleteDirectory($fullPath);
     }
 
     public function deleteFile(string $path)
     {
-        return $this->storage->delete($this->applyPathPrefix($path));
+        $fullPath = $this->applyPathPrefix($path);
+        if (!$this->storage->fileExists($fullPath)) {
+            throw new \Exception('File not found: ' . $path);
+        }
+        return $this->storage->delete($fullPath);
     }
 
     public function readStream(string $path): array
