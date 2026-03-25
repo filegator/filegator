@@ -178,7 +178,12 @@ class Filesystem implements Service
             }
         }
 
-        return $this->storage->writeStream($destination, $resource) ? true : false;
+        try {
+            $this->storage->writeStream($destination, $resource);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
     
     /**

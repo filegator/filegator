@@ -156,7 +156,7 @@ class FilesystemTest extends TestCase
                     'type' => 'dir',
                     'path' => '/johnsub',
                     'name' => 'johnsub',
-                    'permissions' => 755,
+                    'permissions' => 700,
                     'size' => 0,
                     'time' => -1,
                 ],
