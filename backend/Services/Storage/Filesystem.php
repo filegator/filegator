@@ -309,19 +309,66 @@ class Filesystem implements Service
         $adapter = $this->adapter;
         $path = $entry->path();
         $adapterClass = get_class($adapter);
-        
+
         switch ($adapterClass) {
             case 'League\Flysystem\Local\LocalFilesystemAdapter':
                 $absolutePath = $this->getLocalAdapterPath($adapter, $path);
                 $permissions = substr(sprintf('%o', fileperms($absolutePath)), -3);
                 return (int) $permissions;
+
             case 'League\Flysystem\Sftp\SftpAdapter':
-                $stat = $adapter->getConnection()->stat($path);
-                return $stat && isset($stat['permissions']) ? (int) substr(decoct($stat['permissions']), -3) : -1;
+            case 'League\Flysystem\PhpseclibV2\SftpAdapter':
+            case 'League\Flysystem\PhpseclibV3\SftpAdapter':
+                $connection = null;
+
+                if (method_exists($adapter, 'getConnection')) {
+                    $connection = $adapter->getConnection();
+                } else {
+                    try {
+                        $reflection = new \ReflectionClass($adapter);
+                        if ($reflection->hasProperty('connectionProvider')) {
+                            $prop = $reflection->getProperty('connectionProvider');
+                            $prop->setAccessible(true);
+                            $provider = $prop->getValue($adapter);
+                            if ($provider && method_exists($provider, 'provideConnection')) {
+                                $connection = $provider->provideConnection();
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        $connection = null;
+                    }
+                }
+
+                if ($connection && method_exists($connection, 'stat')) {
+                    foreach ([$this->applyPathPrefix($path), $path, ltrim($path, '/'), '/'.ltrim($path, '/')] as $statPath) {
+                        if (! $statPath) {
+                            continue;
+                        }
+
+                        $stat = $connection->stat($statPath);
+                        if ($stat && isset($stat['permissions'])) {
+                            return (int) substr(decoct($stat['permissions']), -3);
+                        }
+                    }
+                }
+
+                if (method_exists($entry, 'visibility') && $entry->visibility() !== null) {
+                    $converter = new \League\Flysystem\UnixVisibility\PortableVisibilityConverter();
+                    $permissions = $entry->isDir()
+                        ? $converter->forDirectory($entry->visibility())
+                        : $converter->forFile($entry->visibility());
+
+                    return (int) substr(sprintf('%o', $permissions), -3);
+                }
+
+                return -1;
+
             case 'Filegator\Services\Storage\Adapters\FilegatorFtp':
                 return isset($entry->extraMetadata()['permissions']) ? (int) $entry->extraMetadata()['permissions'] : -1;
+
+            default:
+                return -1;
         }
-        return -1;
     }
 
     protected function upcountCallback($matches)
