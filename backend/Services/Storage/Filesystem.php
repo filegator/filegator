@@ -288,7 +288,7 @@ class Filesystem implements Service
         foreach ($this->storage->listContents($this->applyPathPrefix($path), $recursive) as $entry) {
             $name = $this->getBaseName($entry->path());
             $userpath = $this->stripPathPrefix($entry->path());
-            $size = $entry->fileSize() ?? 0;
+            $size = $entry->isDir() ? 0 : ($entry->fileSize() ?? 0);
             $lastModified = $entry->lastModified();
             $timestamp = $lastModified instanceof \DateTimeInterface ? $lastModified->getTimestamp() : (int) $lastModified ?? 0;
             $permissions = $this->getPermissions($entry);
