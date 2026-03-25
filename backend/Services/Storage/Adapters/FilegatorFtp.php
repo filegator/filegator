@@ -10,82 +10,110 @@
 
 namespace Filegator\Services\Storage\Adapters;
 
-use League\Flysystem\Adapter\Ftp;
-use League\Flysystem\NotSupportedException;
+use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\StorageAttributes;
 
-class FilegatorFtp extends Ftp
+/**
+ * Custom FTP adapter for Filegator
+ * 
+ * Note: The FTP adapter was removed from Flysystem 3.x core library
+ * For FTP support in 3.x, you would need a separate FTP adapter package
+ * or implement this class to work with a custom FTP implementation.
+ * 
+ * This is a placeholder for now - functionality requires a separate FTP adapter.
+ */
+class FilegatorFtp implements FilesystemAdapter
 {
+    // This adapter requires a separate FTP implementation
+    // The official Flysystem only provides SFTP in 3.x
 
-    /**
-     * Normalize a file entry.
-     *
-     * @param string $item
-     * @param string $base
-     *
-     * @return array normalized file array
-     *
-     * @throws NotSupportedException
-     */
-    protected function normalizeObject($item, $base)
+    public function fileExists(string $path): bool
     {
-        $systemType = $this->systemType ?: $this->detectSystemType($item);
-
-        if ($systemType === 'unix') {
-            $result = $this->normalizeUnixObject($item, $base);
-            return $this->afterNormalizeUnixObject($result, $item, $base);
-        } elseif ($systemType === 'windows') {
-            $result = $this->normalizeWindowsObject($item, $base);
-            return $this->afterNormalizeWindowsObject($result, $item, $base);
-        }
-
-        throw NotSupportedException::forFtpSystemType($systemType);
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    /**
-     * Normalize a Unix file entry, with permissions.
-     *
-     * Given $item contains:
-     *    '-rw-r--r--   1 ftp      ftp           409 Aug 19 09:01 file1.txt'
-     *
-     * This function will return:
-     * [
-     *   'type' => 'file',
-     *   'path' => 'file1.txt',
-     *   'visibility' => 'public',
-     *   'size' => 409,
-     *   'timestamp' => 1566205260,
-     *   'permissions' => 644
-     * ]
-     *
-     * @param array $result original normalized file array
-     * @param string $item
-     * @param string $base
-     *
-     * @return array normalized file array
-     */
-    protected function afterNormalizeUnixObject($result, $item, $base)
+    public function directoryExists(string $path): bool
     {
-        $item = preg_replace('#\s+#', ' ', trim($item), 7);
-        list($permissions, /* $number */, /* $owner */, /* $group */, $size, $month, $day, $timeOrYear, $name) = explode(' ', $item, 9);
-        $permissions = $this->normalizePermissions($permissions);
-
-        $result['permissions'] = decoct($permissions);
-        return $result;
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    /**
-     * Normalize a Windows/DOS file entry, with permissions.
-     *
-     * @param array $result original normalized file array
-     * @param string $item
-     * @param string $base
-     *
-     * @return array normalized file array
-     */
-    protected function afterNormalizeWindowsObject($result, $item, $base)
+    public function write(string $path, string $contents, array $options = []): void
     {
-        $result['permissions'] = 777;
-        return $result;
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
+    public function writeStream(string $path, mixed $contents, array $options = []): void
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function read(string $path): string
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function readStream(string $path): mixed
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function delete(string $path): void
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function deleteDirectory(string $path): void
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function createDirectory(string $path, array $options = []): void
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function setVisibility(string $path, string $visibility): void
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function visibility(string $path): array
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function mimeType(string $path): array
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function lastModified(string $path): array
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function fileSize(string $path): array
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function listContents(string $path, bool $deep = false): iterable
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function move(string $source, string $destination, array $options = []): void
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function copy(string $source, string $destination, array $options = []): void
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
+
+    public function getConnection(): mixed
+    {
+        throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
+    }
 }
