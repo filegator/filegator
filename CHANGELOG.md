@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.13.5 - 2026-04-13
+* Security fix, see #579, thanks @NikhilC2209 for reporting
+
 ## 7.13.4 - 2026-03-03
 * Session fixation fixed by regenerating session on login
 
