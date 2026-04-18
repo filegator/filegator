@@ -18,9 +18,34 @@ class DirectoryCollection implements \JsonSerializable
 
     protected $location;
 
+    /**
+     * @var array Path-specific permissions for the current directory
+     */
+    protected $pathPermissions = [];
+
     public function __construct($location)
     {
         $this->location = $location;
+    }
+
+    /**
+     * Set path-specific permissions for the current directory
+     *
+     * @param array $permissions Array of permission strings (e.g., ['read', 'upload', 'download'])
+     */
+    public function setPathPermissions(array $permissions): void
+    {
+        $this->pathPermissions = $permissions;
+    }
+
+    /**
+     * Get path-specific permissions for the current directory
+     *
+     * @return array
+     */
+    public function getPathPermissions(): array
+    {
+        return $this->pathPermissions;
     }
 
     public function addFile(string $type, string $path, string $name, int $size, int $timestamp, int $permissions)
@@ -50,9 +75,16 @@ class DirectoryCollection implements \JsonSerializable
     {
         $this->sortByValue('type');
 
-        return [
+        $result = [
             'location' => $this->location,
             'files' => $this->items,
         ];
+
+        // Include path permissions if set (for PathACL support)
+        if (!empty($this->pathPermissions)) {
+            $result['pathPermissions'] = $this->pathPermissions;
+        }
+
+        return $result;
     }
 }

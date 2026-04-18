@@ -74,10 +74,15 @@ This is read-only demo with guest account enabled
 - use as ftp/sftp replacement
 - manage s3 or other 3rd party cloud storage
 - use to quickly zip and download remote files
+- trigger actions on file uploads (send notifications, run virus scans, process files)
 
 
 ## Documentation
 [Check out the documentation](https://docs.filegator.io/)
+
+For plugin event hooks documentation, see [docs/hooks](docs/hooks/index.md).
+
+For path-based ACL (IP and folder permissions) documentation, see [docs/path-acl](docs/path-acl/index.md).
 
 
 ## Features & Goals
@@ -87,6 +92,8 @@ This is read-only demo with guest account enabled
 - Single page front-end (built with [Vuejs](https://github.com/vuejs/vue), [Bulma](https://github.com/jgthms/bulma) and [Buefy](https://github.com/buefy/buefy))
 - Chunked uploads (built with [Resumable.js](https://github.com/23/resumable.js))
 - Zip and bulk download support
+- Plugin event hooks (trigger custom scripts on upload, download, delete and other file operations)
+- Path-based ACL with IP restrictions (control folder access by user, source IP, and path)
 - Highly extensible, decoupled and tested code
 - No database required
 

@@ -1,0 +1,319 @@
+<?php
+
+/**
+ * Path-Based ACL Configuration for Trend Micro File Scanning Example
+ *
+ * ============================================================================
+ * IMPORTANT: DENY BY DEFAULT SECURITY MODEL
+ * ============================================================================
+ * When PathACL is enabled, ALL access is DENIED unless there is a matching
+ * rule that explicitly grants permissions. This is a security-first design.
+ *
+ * If a user has NO matching rules, they will be completely locked out.
+ * You MUST configure rules for every user who needs access.
+ *
+ * To grant baseline access to all authenticated users, add a wildcard rule:
+ *   'users' => ['*'],  // Matches all authenticated users
+ *   'ip_inclusions' => ['*'],  // From any IP
+ *   'permissions' => ['read'],  // Read-only baseline
+ *
+ * ============================================================================
+ *
+ * This configuration implements a three-zone security architecture:
+ * - Gateway IP: Can upload and monitor files in staging area
+ * - Internal Network: Can download scanned files
+ * - File scanning pipeline: Automated via hooks
+ *
+ * User: john (restricted user with IP-based folder visibility)
+ * User: admin (full access from any IP)
+ * Gateway IP: {{GATEWAY_IP}} (replaced by installer)
+ * Internal Network: All other local IPs
+ *
+ * Permission Matrix for 'john':
+ * - / (home):     Gateway=Read, Internal=Read
+ * - /upload:      Gateway=Upload+Read+Download, Internal=Hidden
+ * - /scanned:     Gateway=Hidden, Internal=Read+Download
+ * - /download:    Gateway=Hidden, Internal=Read+Upload
+ *
+ * Permission Matrix for 'admin':
+ * - Full access to all paths from any IP
+ *
+ * See: /mnt/ai/filegator/docs/examples/trend-micro-file-scanning/DESIGN.md
+ */
+
+return [
+    /**
+     * NOTE: This 'enabled' flag is NOT used by the system.
+     * PathACL is enabled/disabled via the 'enabled' setting in configuration.php:
+     *
+     *   'Filegator\Services\PathACL\PathACLInterface' => [
+     *       'config' => [
+     *           'enabled' => true,  // <-- THIS controls PathACL activation
+     *           'acl_config_file' => __DIR__.'/private/acl_config.php',
+     *       ],
+     *   ],
+     *
+     * The installer (install.php) adds this configuration automatically.
+     */
+    'enabled' => true,
+
+    /**
+     * Global ACL settings
+     */
+    'settings' => [
+        /**
+         * Evaluation mode: most specific path rules override parent rules
+         */
+        'evaluation_mode' => 'most_specific_wins',
+
+        /**
+         * Default inheritance behavior
+         */
+        'default_inherit' => true,
+
+        /**
+         * Security: deny always overrides allow
+         */
+        'deny_overrides_allow' => true,
+
+        /**
+         * Enable caching for performance
+         */
+        'cache_enabled' => true,
+
+        /**
+         * Cache TTL in seconds
+         */
+        'cache_ttl' => 300, // 5 minutes
+
+        /**
+         * Trusted proxies for X-Forwarded-For header validation
+         * Add your reverse proxy/gateway IP here
+         */
+        'trusted_proxies' => [
+            '127.0.0.1',
+            '::1',
+            '{{GATEWAY_IP}}', // Gateway server
+        ],
+
+        /**
+         * Fail secure: deny access on configuration errors
+         */
+        'fail_mode' => 'deny',
+    ],
+
+    /**
+     * Default permissions when no rules match
+     * Empty = most secure (deny all)
+     */
+    'default_permissions' => [],
+
+    /**
+     * Group definitions
+     * Groups are not used in this example (IP-based only)
+     */
+    'groups' => [
+        'gateway' => [],      // Checked via IP rules
+        'internal' => [],     // Checked via IP rules
+    ],
+
+    /**
+     * Path-based ACL rules
+     *
+     * Rules are evaluated from most specific path to least specific.
+     * Higher priority rules are evaluated first within the same path.
+     */
+    'path_rules' => [
+
+        /**
+         * ROOT LEVEL (/)
+         * Base permissions for all users
+         *
+         * IMPORTANT: Rules are evaluated by priority (highest first).
+         * Admin gets full access, john gets read, others get read-only baseline.
+         */
+        '/' => [
+            'inherit' => false, // Root has no parent
+            'rules' => [
+                // ADMIN: Full access from any IP (highest priority)
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
+                // JOHN: Read access from any IP (specific user)
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['*'], // All IPs
+                    'ip_exclusions' => [],
+                    'permissions' => ['read'],
+                    'priority' => 10,
+                    'description' => 'John has read access to home directory',
+                ],
+                // WILDCARD: All other authenticated users get read-only baseline
+                // Remove or modify this rule to lock out unconfigured users
+                [
+                    'users' => ['*'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read'],
+                    'priority' => 0, // Lowest priority - specific rules override
+                    'description' => 'Baseline read access for all authenticated users',
+                ],
+            ],
+        ],
+
+        /**
+         * UPLOAD FOLDER (/upload)
+         * Visible ONLY to gateway IP (for john)
+         * Gateway can upload, read, and download files in staging area
+         * Internal network cannot see this folder at all
+         * Admin has full access from any IP
+         */
+        '/upload' => [
+            'inherit' => false,
+            'rules' => [
+                // ADMIN: Full access from any IP
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
+                // Gateway IP: Full access to upload folder
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['{{GATEWAY_IP}}'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'upload', 'download'],
+                    'priority' => 50,
+                    'override_inherited' => true,
+                    'description' => 'Gateway can upload and monitor files in staging area',
+                ],
+                // Internal network: Explicitly denied (folder hidden)
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => ['{{GATEWAY_IP}}'],
+                    'permissions' => [], // No permissions = folder is hidden
+                    'priority' => 40,
+                    'override_inherited' => true,
+                    'description' => 'Internal network cannot see upload folder',
+                ],
+            ],
+        ],
+
+        /**
+         * SCANNED FOLDER (/scanned)
+         * Visible ONLY to internal network (for john)
+         * Contains clean files that passed Trend Micro scanning
+         * Gateway cannot see this folder
+         * Admin has full access from any IP
+         */
+        '/scanned' => [
+            'inherit' => false,
+            'rules' => [
+                // ADMIN: Full access from any IP
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
+                // Internal network: Read and download clean files
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => ['{{GATEWAY_IP}}'],
+                    'permissions' => ['read', 'download'],
+                    'priority' => 50,
+                    'override_inherited' => true,
+                    'description' => 'Internal users can download scanned files',
+                ],
+                // Gateway: Explicitly denied (folder hidden)
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['{{GATEWAY_IP}}'],
+                    'ip_exclusions' => [],
+                    'permissions' => [], // No permissions = folder is hidden
+                    'priority' => 40,
+                    'override_inherited' => true,
+                    'description' => 'Gateway cannot see scanned folder',
+                ],
+            ],
+        ],
+
+        /**
+         * DOWNLOAD FOLDER (/download)
+         * Upload destination for INTERNAL NETWORK ONLY (for john)
+         * Files uploaded here are automatically moved to /upload by hooks
+         * Gateway cannot see this folder - they upload directly to /upload
+         * Admin has full access from any IP
+         */
+        '/download' => [
+            'inherit' => false,
+            'rules' => [
+                // ADMIN: Full access from any IP
+                [
+                    'users' => ['admin'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => [],
+                    'permissions' => ['read', 'write', 'upload', 'download', 'delete', 'zip', 'chmod'],
+                    'priority' => 100,
+                    'description' => 'Admin has full access from any IP',
+                ],
+                // Internal network: Read and upload
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['*'],
+                    'ip_exclusions' => ['{{GATEWAY_IP}}'],
+                    'permissions' => ['read', 'upload'],
+                    'priority' => 50,
+                    'override_inherited' => true,
+                    'description' => 'Internal users upload here for outbound file transfer',
+                ],
+                // Gateway: Explicitly denied (folder hidden)
+                [
+                    'users' => ['john'],
+                    'ip_inclusions' => ['{{GATEWAY_IP}}'],
+                    'ip_exclusions' => [],
+                    'permissions' => [], // No permissions = folder is hidden
+                    'priority' => 40,
+                    'override_inherited' => true,
+                    'description' => 'Gateway cannot see download folder',
+                ],
+            ],
+        ],
+    ],
+
+    /**
+     * WORKFLOW SUMMARY:
+     *
+     * External Upload Flow:
+     * 1. Gateway uploads to /download
+     * 2. Hook moves file to /upload
+     * 3. Hook scans with Trend Micro
+     * 4. Clean: moved to /scanned
+     * 5. Malware: deleted and admin notified
+     *
+     * Internal Upload Flow:
+     * 1. Internal user uploads to /download
+     * 2. Hook moves file to /upload
+     * 3. Hook scans with Trend Micro
+     * 4. Clean: moved to /scanned (user can download)
+     * 5. Malware: deleted and admin notified
+     *
+     * SECURITY NOTES:
+     * - Gateway cannot download from /scanned (data exfiltration prevention)
+     * - Internal users cannot see /upload (staging area isolation)
+     * - All uploads are scanned before becoming available
+     * - Malware is deleted immediately and logged
+     */
+];

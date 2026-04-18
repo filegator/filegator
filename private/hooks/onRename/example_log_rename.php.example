@@ -1,0 +1,38 @@
+<?php
+/**
+ * Example onRename hook - Log file/directory renames
+ *
+ * This hook is triggered when a file or directory is renamed.
+ *
+ * Available data in $hookData:
+ *   - old_path: Original full path
+ *   - new_path: New full path
+ *   - old_name: Original name
+ *   - new_name: New name
+ *   - directory: Parent directory
+ *   - user: Username of the user who renamed the item
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/renames.log';
+$timestamp = date('Y-m-d H:i:s');
+
+$logEntry = sprintf(
+    "[%s] RENAME: User '%s' renamed '%s' to '%s' in '%s'\n",
+    $timestamp,
+    $hookData['user'],
+    $hookData['old_name'],
+    $hookData['new_name'],
+    $hookData['directory']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;

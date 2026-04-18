@@ -10,6 +10,7 @@ const data = {
   'Please enter username and password': 'Please enter username and password.',
   'Not Found': 'Not Found',
   'Not Allowed': 'Not Allowed',
+  'Access denied': 'Access denied',
   'Please log in': 'Please log in',
   'Unknown error': 'Unknown error',
   'Add files': 'Add files',
@@ -77,6 +78,7 @@ const data = {
   'Show hidden': 'Show hidden',
   'Show symbolic format': 'Show symbolic format',
   'Hide symbolic format': 'Hide symbolic format',
+  'No upload permission for this folder': 'No upload permission for this folder',
 }
 
 export default data

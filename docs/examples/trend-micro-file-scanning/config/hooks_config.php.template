@@ -1,0 +1,261 @@
+<?php
+
+/**
+ * Trend Micro File Scanning - Hooks Configuration
+ *
+ * This file contains configuration for the automated file scanning pipeline.
+ * Hook scripts load these settings using:
+ *
+ *   $config = include __DIR__ . '/config.php';
+ *
+ * Environment Variables:
+ * - TREND_MICRO_API_KEY: Your Trend Micro Cloud One API key
+ * - TREND_MICRO_REGION: API region (us-1, eu-1, sg-1, au-1)
+ * - ADMIN_EMAIL: Email address for malware alerts
+ * - SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS: Email notification settings
+ *
+ * See: /mnt/ai/filegator/docs/examples/trend-micro-file-scanning/DESIGN.md
+ */
+
+/*
+|--------------------------------------------------------------------------
+| Load Environment Variables from .env file
+|--------------------------------------------------------------------------
+|
+| PHP/Apache doesn't automatically load .env files. We need to parse it
+| manually to make environment variables available to getenv().
+|
+*/
+$envFile = dirname(__DIR__, 2) . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        // Skip comments
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        // Parse KEY=value
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            // Only set if not already set in environment
+            if (!getenv($key)) {
+                putenv("$key=$value");
+            }
+        }
+    }
+}
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Global Settings
+    |--------------------------------------------------------------------------
+    |
+    | Settings that apply to all hooks
+    |
+    */
+    'global' => [
+        // Enable verbose logging for debugging
+        'debug' => false,
+
+        // Log file path for hook activity
+        'log_file' => __DIR__ . '/../logs/hooks.log',
+
+        // Default timeout for external HTTP requests (seconds)
+        'http_timeout' => 30,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Trend Micro Cloud One File Security
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for Trend Micro API integration
+    | Sign up at: https://cloudone.trendmicro.com/
+    |
+    */
+    'trend_micro' => [
+        // Enable/disable Trend Micro scanning
+        'enabled' => true,
+
+        // API Configuration
+        // Store API key in environment variable (not in this file)
+        'api_key' => getenv('TREND_MICRO_API_KEY') ?: '',
+
+        // Vision One region: us, eu, jp, sg, au, in
+        // Reference: https://docs.trendmicro.com/en-us/documentation/article/trend-micro-vision-one-automation-center-regional-domains
+        'region' => getenv('TREND_MICRO_REGION') ?: 'us',
+
+        // Vision One API endpoints by region
+        'endpoints' => [
+            'us' => 'https://api.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'eu' => 'https://api.eu.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'jp' => 'https://api.xdr.trendmicro.co.jp/v3.0/sandbox/fileSecurity/file',
+            'sg' => 'https://api.sg.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'au' => 'https://api.au.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+            'in' => 'https://api.in.xdr.trendmicro.com/v3.0/sandbox/fileSecurity/file',
+        ],
+
+        // Scan settings
+        'scan_timeout' => 120,  // Maximum time to wait for scan result (seconds)
+        'max_file_size' => 100 * 1024 * 1024,  // 100MB limit
+        'skip_extensions' => [],  // Extensions to skip (empty = scan all)
+
+        // Action on malware detection
+        'on_malware' => [
+            'action' => 'delete',  // 'delete' or 'quarantine'
+            'quarantine_dir' => __DIR__ . '/../quarantine',
+            'log_file' => __DIR__ . '/../logs/malware_detections.log',
+        ],
+
+        // Action on scan errors
+        'on_error' => [
+            'action' => 'quarantine',  // 'quarantine', 'allow', or 'delete'
+            'log_file' => __DIR__ . '/../logs/scan_errors.log',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email Notifications
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for email alerts on malware detection
+    |
+    */
+    'notifications' => [
+        'email' => [
+            // Enable email notifications
+            'enabled' => true,
+
+            // SMTP settings
+            'smtp' => [
+                'host' => getenv('SMTP_HOST') ?: 'localhost',
+                'port' => getenv('SMTP_PORT') ?: 587,
+                'username' => getenv('SMTP_USER') ?: '',
+                'password' => getenv('SMTP_PASS') ?: '',
+                'encryption' => 'tls', // 'tls', 'ssl', or null
+            ],
+
+            // Sender information
+            'from' => [
+                'address' => getenv('ADMIN_EMAIL') ?: 'filegator@example.com',
+                'name' => 'FileGator Security',
+            ],
+
+            // Recipients for malware alerts
+            'malware_recipients' => [
+                getenv('ADMIN_EMAIL') ?: 'admin@example.com',
+            ],
+
+            // Email subject templates
+            'subjects' => [
+                'malware_detected' => 'SECURITY ALERT: Malware Detected - {filename}',
+                'scan_error' => 'FileGator: Scan Error - {filename}',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | File Movement Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for automatic file movement between folders
+    |
+    */
+    'file_movement' => [
+        // Settings for moving files from /download to /upload
+        'download_to_upload' => [
+            'enabled' => true,
+            'delete_source' => true,  // Remove from /download after move
+        ],
+
+        // Destination for scanned (clean) files
+        'scanned_destination' => [
+            'folder' => '/scanned',
+            'preserve_structure' => false,  // Flatten directory structure
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Audit Logging
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for audit trail logging
+    |
+    */
+    'audit' => [
+        // Enable audit logging
+        'enabled' => true,
+
+        // Log file for audit trail
+        'log_file' => __DIR__ . '/../logs/audit.log',
+
+        // Events to log
+        'events' => [
+            'upload' => true,
+            'scan_clean' => true,
+            'scan_malware' => true,
+            'scan_error' => true,
+            'file_moved' => true,
+        ],
+
+        // Include user IP in logs
+        'log_ip' => true,
+
+        // Log format: 'text' or 'json'
+        'format' => 'text',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Security Settings
+    |--------------------------------------------------------------------------
+    |
+    | Additional security configuration
+    |
+    */
+    'security' => [
+        // Validate file extensions
+        'validate_extensions' => true,
+
+        // Blocked file extensions (always rejected)
+        'blocked_extensions' => [
+            'exe', 'bat', 'cmd', 'sh', 'php', 'phar',
+            'jar', 'vbs', 'ps1', 'dll', 'msi', 'scr',
+        ],
+
+        // Check MIME type matches extension
+        'verify_mime' => true,
+
+        // Maximum path depth to prevent directory traversal
+        'max_path_depth' => 10,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Performance Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for optimization
+    |
+    */
+    'performance' => [
+        // Enable parallel processing (requires pcntl extension)
+        'parallel_processing' => false,
+
+        // Maximum concurrent scans
+        'max_concurrent_scans' => 3,
+
+        // Retry failed scans
+        'retry_on_error' => true,
+        'max_retries' => 2,
+        'retry_delay' => 5, // seconds
+    ],
+
+];
