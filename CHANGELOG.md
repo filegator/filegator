@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.14.0 - 2026-04-18
 * Reworked bottom pane for file uploads by @NikhilC2209 (see #580)
 
 ## 7.13.5 - 2026-04-13
