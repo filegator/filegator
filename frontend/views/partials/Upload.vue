@@ -241,8 +241,8 @@ export default {
         isComplete,
         isError,
         speedBytesPerSecond: 0,
-        lastUploadedBytes: 0,
-        lastProgressAt: null,
+        speedStartBytes: 0,
+        speedStartAt: null,
         createdAt: Date.now() + this.nextUploadEntryId,
       }
 
@@ -276,8 +276,8 @@ export default {
       const bytesUploaded = this.currentUploadedBytes(entry)
 
       entry.speedBytesPerSecond = 0
-      entry.lastUploadedBytes = bytesUploaded
-      entry.lastProgressAt = Date.now()
+      entry.speedStartBytes = bytesUploaded
+      entry.speedStartAt = Date.now()
     },
     refreshEntrySpeed(entry) {
       if (!entry) return
@@ -285,28 +285,23 @@ export default {
       const now = Date.now()
       const bytesUploaded = this.currentUploadedBytes(entry)
 
-      if (!entry.lastProgressAt) {
+      if (!entry.speedStartAt) {
         this.resetEntrySpeed(entry)
         return
       }
 
-      const elapsedMs = now - entry.lastProgressAt
-      const deltaBytes = Math.max(0, bytesUploaded - entry.lastUploadedBytes)
-
-      let speedBytesPerSecond = entry.speedBytesPerSecond
-      if (elapsedMs > 0) {
-        const currentSpeed = deltaBytes / (elapsedMs / 1000)
-        speedBytesPerSecond = speedBytesPerSecond > 0
-          ? speedBytesPerSecond * 0.7 + currentSpeed * 0.3
-          : currentSpeed
+      const elapsedMs = now - entry.speedStartAt
+      if (elapsedMs <= 0) {
+        entry.speedBytesPerSecond = 0
+        return
       }
 
-      entry.speedBytesPerSecond = speedBytesPerSecond
-      entry.lastUploadedBytes = bytesUploaded
-      entry.lastProgressAt = now
+      const deltaBytes = Math.max(0, bytesUploaded - entry.speedStartBytes)
+      entry.speedBytesPerSecond = deltaBytes / (elapsedMs / 1000)
     },
     formatSpeed(bytesPerSecond) {
-      return this.formatBytes(bytesPerSecond || 0) + '/s'
+      const decimals = bytesPerSecond >= 1024 * 1024 ? 1 : 0
+      return this.formatBytes(bytesPerSecond || 0, decimals) + '/s'
     },
     entryProgressClass(entry) {
       if (entry.isError) return 'is-danger'
@@ -320,7 +315,7 @@ export default {
       return entry.inProgress && entry.resumableFile
     },
     showEntrySpeed(entry) {
-      return entry.inProgress && entry.resumableFile
+      return entry.inProgress && entry.resumableFile && entry.speedBytesPerSecond > 0
     },
     showRemove(entry) {
       return entry.isError && !entry.retryable
