@@ -269,6 +269,26 @@ return [
     ],
     [
         'route' => [
+            'GET', '/admin/frontendconfig', '\Filegator\Controllers\AdminController@getFrontendSettings',
+        ],
+        'roles' => [
+            'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/admin/frontendconfig', '\Filegator\Controllers\AdminController@updateFrontendSettings',
+        ],
+        'roles' => [
+            'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
             'POST', '/savecontent', '\Filegator\Controllers\FileController@saveContent',
         ],
         'roles' => [
