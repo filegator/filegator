@@ -11,6 +11,9 @@
               <span v-if="activeUploads">
                 {{ lang('Uploading files', resumable.getSize() > 0 ? Math.round(resumable.progress()*100) : 100, formatBytes(resumable.getSize())) }}
               </span>
+              <span v-if="activeUploads" class="summary-text">
+                ({{ formatSpeed(totalUploadSpeedBytes) }})
+              </span>
               <span v-if="activeUploads && paused">
                 ({{ lang('Paused') }})
               </span>
@@ -36,6 +39,12 @@
           <div v-for="entry in sortedUploadEntries" :key="entry.id">
             <div>
               <div>{{ entry.relativePath != '/' ? entry.relativePath : '' }}/{{ entry.fileName }}</div>
+              <div class="entry-meta">
+                {{ formatBytes(entry.size) }}
+                <span v-if="showEntrySpeed(entry)">
+                  , {{ formatSpeed(entry.speedBytesPerSecond) }}
+                </span>
+              </div>
               <div class="is-flex is-justify-between">
                 <progress :class="[entryProgressClass(entry), 'progress is-large']" :value="entryProgress(entry)" max="100" />
                 <a v-if="showRetry(entry)" class="progress-icon" @click="retryEntry(entry)">
@@ -92,6 +101,9 @@ export default {
     },
     failedUploadsCount() {
       return _.filter(this.uploadEntries, entry => entry.isError).length
+    },
+    totalUploadSpeedBytes() {
+      return _.sumBy(this.uploadEntries, entry => entry.inProgress ? entry.speedBytesPerSecond : 0)
     },
     sortedUploadEntries() {
       return _.orderBy(this.uploadEntries, [
@@ -168,6 +180,7 @@ export default {
         isComplete: false,
         isError: false,
       })
+      this.resetEntrySpeed(entry)
       file.file.uploadEntryId = entry.id
 
       if (!this.paused) {
@@ -200,6 +213,7 @@ export default {
       file.file.uploadingError = true
       this.progressVisible = true
       this.updateEntry(file, {
+        speedBytesPerSecond: 0,
         inProgress: false,
         isComplete: true,
         isError: true,
@@ -207,6 +221,7 @@ export default {
       this.$forceUpdate()
     })
     this.resumable.on('fileProgress', (file) => {
+      this.refreshEntrySpeed(this.findEntry(file))
       this.updateEntry(file, {
         inProgress: true,
       })
@@ -225,6 +240,9 @@ export default {
         inProgress,
         isComplete,
         isError,
+        speedBytesPerSecond: 0,
+        speedStartBytes: 0,
+        speedStartAt: null,
         createdAt: Date.now() + this.nextUploadEntryId,
       }
 
@@ -247,6 +265,44 @@ export default {
 
       return entry.resumableFile.progress() * 100
     },
+    currentUploadedBytes(entry) {
+      if (!entry || !entry.resumableFile || entry.size <= 0) return 0
+
+      return Math.min(entry.size, Math.max(0, entry.resumableFile.progress() * entry.size))
+    },
+    resetEntrySpeed(entry) {
+      if (!entry) return
+
+      const bytesUploaded = this.currentUploadedBytes(entry)
+
+      entry.speedBytesPerSecond = 0
+      entry.speedStartBytes = bytesUploaded
+      entry.speedStartAt = Date.now()
+    },
+    refreshEntrySpeed(entry) {
+      if (!entry) return
+
+      const now = Date.now()
+      const bytesUploaded = this.currentUploadedBytes(entry)
+
+      if (!entry.speedStartAt) {
+        this.resetEntrySpeed(entry)
+        return
+      }
+
+      const elapsedMs = now - entry.speedStartAt
+      if (elapsedMs <= 0) {
+        entry.speedBytesPerSecond = 0
+        return
+      }
+
+      const deltaBytes = Math.max(0, bytesUploaded - entry.speedStartBytes)
+      entry.speedBytesPerSecond = deltaBytes / (elapsedMs / 1000)
+    },
+    formatSpeed(bytesPerSecond) {
+      const decimals = bytesPerSecond >= 1024 * 1024 ? 1 : 0
+      return this.formatBytes(bytesPerSecond || 0, decimals) + '/s'
+    },
     entryProgressClass(entry) {
       if (entry.isError) return 'is-danger'
       if (entry.isComplete) return 'is-success'
@@ -258,6 +314,9 @@ export default {
     showCancel(entry) {
       return entry.inProgress && entry.resumableFile
     },
+    showEntrySpeed(entry) {
+      return entry.inProgress && entry.resumableFile && entry.speedBytesPerSecond > 0
+    },
     showRemove(entry) {
       return entry.isError && !entry.retryable
     },
@@ -268,6 +327,7 @@ export default {
       entry.isComplete = false
       entry.inProgress = true
       entry.resumableFile.file.uploadingError = false
+      this.resetEntrySpeed(entry)
       entry.resumableFile.retry()
 
       if (!this.paused) {
@@ -309,10 +369,20 @@ export default {
     },
     togglePause() {
       if (this.paused) {
+        _.forEach(this.uploadEntries, entry => {
+          if (entry.inProgress) {
+            this.resetEntrySpeed(entry)
+          }
+        })
         this.resumable.upload()
         this.paused = false
       } else {
         this.resumable.pause()
+        _.forEach(this.uploadEntries, entry => {
+          if (entry.inProgress) {
+            this.resetEntrySpeed(entry)
+          }
+        })
         this.paused = true
       }
     },
@@ -326,6 +396,11 @@ export default {
 }
 .summary-text {
   margin-left: 6px;
+}
+.entry-meta {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
 }
 .progress-box {
   position: fixed;
