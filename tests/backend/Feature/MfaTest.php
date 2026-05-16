@@ -372,4 +372,188 @@ class MfaTest extends TestCase
         // mfa_enabled flag is fine to expose
         $this->assertStringContainsString('mfa_enabled', $body);
     }
+
+    // ---------------------------------------------------------------------
+    // Test gap closure: #19 (listusers MFA-fields shape)
+    // ---------------------------------------------------------------------
+
+    public function testListUsersAssertsInitialMfaFieldsForEveryUser()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+        $this->sendRequest('GET', '/listusers');
+        $this->assertOk();
+        $rows = $this->decodeResponseJson()['data'];
+
+        // MockUsers seeds exactly four (guest, admin, john, jane).
+        $this->assertCount(4, $rows, 'Test isolation drifted — expected exactly the 4 seeded users');
+        foreach ($rows as $row) {
+            $this->assertArrayHasKey('mfa_enabled', $row, "User {$row['username']} missing mfa_enabled");
+            $this->assertArrayHasKey('backup_codes_remaining', $row, "User {$row['username']} missing backup_codes_remaining");
+            $this->assertArrayHasKey('email', $row, "User {$row['username']} missing email");
+            $this->assertFalse($row['mfa_enabled'], "User {$row['username']} unexpectedly enrolled — state leak from prior test");
+            $this->assertSame(0, $row['backup_codes_remaining'], "User {$row['username']} unexpectedly has backup codes");
+            $this->assertNull($row['email'], "User {$row['username']} unexpectedly has email set");
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Test gap closure: #27 (MFA step-2 lockout)
+    // ---------------------------------------------------------------------
+
+    public function testMfaStep2LocksOutAfterTooManyBadCodes()
+    {
+        $this->overrideConfig(['lockout_attempts' => 3, 'lockout_timeout' => 60]);
+        $this->enrollMfa('john@example.com');
+
+        // Step-1: enter pending state on a single IP. Each /login/mfa call
+        // is single-use, so we must re-enter the password step between
+        // failed code attempts.
+        $ip = ['REMOTE_ADDR' => '9.9.9.9'];
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->signOut();
+            $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], $ip);
+            $this->captureSession();
+            $this->sendRequest('POST', '/login/mfa', ['code' => '000000'], [], $ip);
+            $this->assertUnprocessable();
+        }
+
+        // The 4th attempt from this IP should be blocked by the per-IP MFA lock.
+        $this->signOut();
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], $ip);
+        $this->captureSession();
+        $this->sendRequest('POST', '/login/mfa', ['code' => '111111'], [], $ip);
+        $this->assertStatus(429);
+    }
+
+    // ---------------------------------------------------------------------
+    // Test gap closure: #28 (/me/email happy + invalid + duplicate)
+    // ---------------------------------------------------------------------
+
+    public function testUpdateOwnEmailHappyPath()
+    {
+        $this->signIn('john@example.com', 'john123');
+
+        $this->sendRequest('POST', '/me/email', ['email' => 'New.John@Reset.Test']);
+        $this->assertOk();
+        $this->assertResponseJsonHas(['data' => ['email' => 'new.john@reset.test']]);
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $this->assertSame('new.john@reset.test', $auth->getEmail('john@example.com'));
+    }
+
+    public function testUpdateOwnEmailRejectsInvalidFormat()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->sendRequest('POST', '/me/email', ['email' => 'not-an-email']);
+        $this->assertUnprocessable();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $this->assertNull($auth->getEmail('john@example.com'));
+    }
+
+    public function testUpdateOwnEmailRejectsDuplicate()
+    {
+        // Pre-seed jane's email.
+        $app = $this->sendRequest('GET', '/getuser');
+        $app->resolve(AuthInterface::class)->setEmail('jane@example.com', 'shared@example.test');
+
+        $this->signIn('john@example.com', 'john123');
+        $this->sendRequest('POST', '/me/email', ['email' => 'shared@example.test']);
+        $this->assertUnprocessable();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $this->assertNull($app->resolve(AuthInterface::class)->getEmail('john@example.com'));
+    }
+
+    public function testUpdateOwnEmailAllowsClearing()
+    {
+        $app = $this->sendRequest('GET', '/getuser');
+        $app->resolve(AuthInterface::class)->setEmail('john@example.com', 'existing@example.test');
+
+        $this->signIn('john@example.com', 'john123');
+        $this->sendRequest('POST', '/me/email', ['email' => '']);
+        $this->assertOk();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $this->assertNull($app->resolve(AuthInterface::class)->getEmail('john@example.com'));
+    }
+
+    // ---------------------------------------------------------------------
+    // Test gap closure: #29 (/mfa/backup_codes/regenerate)
+    // ---------------------------------------------------------------------
+
+    public function testRegenerateBackupCodesReturnsTenAndInvalidatesOld()
+    {
+        $oldCodes = ['OLDAA-11111', 'OLDBB-22222'];
+        $info = $this->enrollMfa('john@example.com', null, $oldCodes);
+        $this->establishSessionFor('john@example.com');
+
+        $this->sendRequest('POST', '/mfa/backup_codes/regenerate', [
+            'password' => 'john123',
+            'code' => $this->totpFor($info['secret']),
+        ]);
+        $this->assertOk();
+        $newCodes = $this->decodeResponseJson()['data']['backup_codes'];
+        $this->assertCount(10, $newCodes);
+        // Brand-new codes should not include the originals.
+        $this->assertEmpty(array_intersect($oldCodes, $newCodes));
+
+        // Old codes must no longer log the user in via the backup-code path.
+        $this->signOut();
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
+        $this->captureSession();
+        $this->sendRequest('POST', '/login/mfa', ['code' => 'OLDAA-11111', 'use_backup' => true]);
+        $this->assertUnprocessable();
+    }
+
+    public function testRegenerateBackupCodesRejectsWrongPassword()
+    {
+        $info = $this->enrollMfa('john@example.com');
+        $this->establishSessionFor('john@example.com');
+
+        $this->sendRequest('POST', '/mfa/backup_codes/regenerate', [
+            'password' => 'wrong',
+            'code' => $this->totpFor($info['secret']),
+        ]);
+        $this->assertUnprocessable();
+    }
+
+    public function testRegenerateBackupCodesRejectsWrongTotp()
+    {
+        $this->enrollMfa('john@example.com');
+        $this->establishSessionFor('john@example.com');
+
+        $this->sendRequest('POST', '/mfa/backup_codes/regenerate', [
+            'password' => 'john123',
+            'code' => '000000',
+        ]);
+        $this->assertUnprocessable();
+    }
+
+    // ---------------------------------------------------------------------
+    // Test gap closure: #31 (session-validity true negative)
+    // ---------------------------------------------------------------------
+
+    public function testSessionRemainsValidWhenNonHashedFieldChanges()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->sendRequest('GET', '/getuser');
+        $this->assertResponseJsonHas(['data' => ['username' => 'john@example.com']]);
+
+        // Mutate a field that is NOT part of buildSessionHash (display name only).
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $user = $auth->find('john@example.com');
+        $user->setName('Johnathan Doe');
+        $auth->update('john@example.com', $user, '');
+
+        $this->sendRequest('GET', '/getuser');
+        $data = $this->decodeResponseJson()['data'];
+        // Still authenticated as john, not logged out.
+        $this->assertSame('john@example.com', $data['username']);
+        $this->assertSame('user', $data['role']);
+    }
 }

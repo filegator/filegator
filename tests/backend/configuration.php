@@ -44,6 +44,21 @@ return [
                 },
             ],
         ],
+        'Filegator\Services\Security\Security' => [
+            'handler' => '\Filegator\Services\Security\Security',
+            'config' => [
+                // CSRF is OFF in the default test config so existing tests do not
+                // need to plumb tokens through every helper. The exempt-path
+                // contract is exercised explicitly by tests that overrideConfig
+                // to flip csrf_protection on.
+                'csrf_protection' => false,
+                'csrf_key' => 'test-csrf-key',
+                'csrf_exempt_paths' => ['/password/forgot', '/password/reset/validate', '/password/reset'],
+                'ip_allowlist' => [],
+                'ip_denylist' => [],
+                'allow_insecure_overlays' => true,
+            ],
+        ],
         'Filegator\Services\Tmpfs\TmpfsInterface' => [
             'handler' => '\Filegator\Services\Tmpfs\Adapters\Tmpfs',
             'config' => [

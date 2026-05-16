@@ -58,7 +58,16 @@ class Security implements Service
 
                 if (! $csrfManager->isTokenValid($token)) {
                     $this->logger->log("Csrf token not valid");
-                    die;
+                    $this->response->setStatusCode(403);
+                    $this->response->setContent(json_encode(['data' => 'CSRF token invalid']));
+                    $this->response->headers->set('Content-Type', 'application/json');
+                    if (defined('APP_ENV') && APP_ENV === 'test') {
+                        // Test harness will catch this in sendRequest() so it can
+                        // read $this->response without PHPUnit aborting on exit.
+                        throw new CsrfFailedException('CSRF token not valid');
+                    }
+                    $this->response->send();
+                    exit;
                 }
             }
         }

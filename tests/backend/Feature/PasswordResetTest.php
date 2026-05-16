@@ -156,11 +156,76 @@ class PasswordResetTest extends TestCase
         $this->assertStatus(429);
     }
 
+    public function testPerEmailRateLimit()
+    {
+        // Tighten the per-email limit and loosen per-IP so the IP throttle never fires first.
+        $this->overrideConfig([
+            'password_reset_max_per_hour_per_ip' => 100,
+            'password_reset_max_per_day_per_email' => 2,
+        ]);
+        $this->setEmail('john@example.com', 'john@reset.test');
+
+        // Three different IPs all targeting the same email. The third should
+        // bypass the per-IP throttle but trip the per-email throttle, which
+        // returns generic 200 (no mail sent) — NOT 429 — to preserve the
+        // anti-enumeration property.
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'john@reset.test'], [], ['REMOTE_ADDR' => '1.1.1.1']);
+        $this->assertOk();
+        $this->assertNotNull(InMemoryMailer::last(), 'first attempt should send');
+
+        $sentSoFar = count(InMemoryMailer::$messages);
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'john@reset.test'], [], ['REMOTE_ADDR' => '2.2.2.2']);
+        $this->assertOk();
+        $this->assertCount($sentSoFar + 1, InMemoryMailer::$messages, 'second attempt should send');
+
+        $sentBefore = count(InMemoryMailer::$messages);
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'john@reset.test'], [], ['REMOTE_ADDR' => '3.3.3.3']);
+        $this->assertOk(); // generic OK, NOT 429
+        $this->assertCount($sentBefore, InMemoryMailer::$messages, 'third attempt over per-email limit must not send mail');
+    }
+
+    public function testRateLimitAtMaxStillAllowsLastRequest()
+    {
+        // Regression for off-by-one on the per-IP threshold: with max=2, the
+        // 2nd request must succeed and the 3rd must fail.
+        $this->overrideConfig([
+            'password_reset_max_per_hour_per_ip' => 2,
+            'password_reset_max_per_day_per_email' => 100,
+        ]);
+        $ip = ['REMOTE_ADDR' => '7.7.7.7'];
+
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'a@example.com'], [], $ip);
+        $this->assertOk();
+        // Second request should still pass (==max, not > max).
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'b@example.com'], [], $ip);
+        $this->assertOk();
+        // Third must be blocked.
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'c@example.com'], [], $ip);
+        $this->assertStatus(429);
+    }
+
     public function testForgotPasswordIsCsrfExempt()
     {
-        // No CSRF token is sent. The route should still succeed.
+        // Enable CSRF for this test only. The default test config has it off
+        // so other suites do not have to plumb tokens through every helper.
+        $this->overrideConfig(['services' => ['Filegator\\Services\\Security\\Security' => ['config' => ['csrf_protection' => true]]]]);
+
+        // No X-CSRF-Token header — but /password/forgot is on the exempt list,
+        // so it should still succeed instead of returning 403.
         $this->sendRequest('POST', '/password/forgot', ['email' => 'nobody@example.com']);
         $this->assertOk();
+    }
+
+    public function testNonExemptPostIsBlockedWithoutCsrfToken()
+    {
+        // With CSRF protection on and no token in the request, a non-exempt
+        // POST must be refused with 403. This is the negative side of the
+        // CSRF-exemption contract — without this assertion the exempt test
+        // above could pass vacuously even if the middleware never ran.
+        $this->overrideConfig(['services' => ['Filegator\\Services\\Security\\Security' => ['config' => ['csrf_protection' => true]]]]);
+
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
+        $this->assertStatus(403);
     }
 
     public function testResetLinkIgnoresAttackerSuppliedHostHeader()

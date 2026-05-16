@@ -95,13 +95,32 @@ class TestCase extends BaseTestCase
             $fakeRequest->setSession(new Session($sessionStorage));
         }
 
-        $app = $this->bootFreshApp(null, $fakeRequest, null, true);
+        try {
+            $app = $this->bootFreshApp(null, $fakeRequest, null, true);
+        } catch (\Filegator\Services\Security\CsrfFailedException $e) {
+            // Security middleware already set 403 + JSON on the shared response.
+            // Build a minimal app wrapper that resolves the response so the
+            // existing test API (sendRequest returning an "app" with resolve())
+            // continues to work for failure-path assertions.
+            $this->last_request = $fakeRequest;
+            $this->response = $this->_csrf_failed_response();
+            $this->streamedResponse = new FakeStreamedResponse();
+            return null;
+        }
 
         $this->response = $app->resolve(Response::class);
         $this->streamedResponse = $app->resolve(StreamedResponse::class);
         $this->last_request = $fakeRequest;
 
         return $app;
+    }
+
+    private function _csrf_failed_response()
+    {
+        $r = new FakeResponse();
+        $r->setStatusCode(403);
+        $r->setContent(json_encode(['data' => 'CSRF token invalid']));
+        return $r;
     }
 
     public function captureSession(): void
