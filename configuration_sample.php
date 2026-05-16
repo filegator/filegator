@@ -126,14 +126,18 @@ return [
             'handler' => '\Filegator\Services\Mailer\Adapters\SymfonyMailer',
             'config' => [
                 // Symfony Mailer DSN. Use 'null://null' to disable sending (feature stays hidden).
-                // ALWAYS include a small `timeout` query param so a slow/unreachable SMTP
-                // server does not hang the PHP-FPM worker for PHP's 60s default_socket_timeout.
                 // Examples:
-                //   'smtp://user:pass@smtp.example.com:587?encryption=tls&timeout=5'
+                //   'smtp://user:pass@smtp.example.com:587?encryption=tls'
                 //   'sendmail://default'
                 'dsn' => 'null://null',
                 'from_email' => 'no-reply@example.com',
                 'from_name' => 'FileGator',
+                // Hard cap (seconds) we force on every SMTP socket so a slow / unreachable
+                // mail server cannot hang a PHP-FPM worker for PHP's default_socket_timeout
+                // (60s by default). Appended to the DSN automatically if not already set,
+                // and also enforced via a per-request default_socket_timeout clamp. Tune up
+                // for very slow servers; do not set to 0.
+                'timeout' => 5,
             ],
         ],
         'Filegator\Services\Mfa\MfaService' => [
