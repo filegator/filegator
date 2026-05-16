@@ -37,16 +37,18 @@ class AdminController
     public function listUsers(Request $request, Response $response)
     {
         $collection = $this->auth->allUsers();
-        $supportsMfa = $this->auth instanceof MfaCapableInterface;
+        // Adapter-specific batch read of MFA metadata in a single file scan,
+        // avoiding 2N getMfaState+getEmail calls.
+        $meta = method_exists($this->auth, 'allUsersMeta') ? $this->auth->allUsersMeta() : [];
 
         $rows = [];
         foreach ($collection->all() as $user) {
             $row = $user->jsonSerialize();
-            if ($supportsMfa) {
-                $state = $this->auth->getMfaState($user->getUsername());
-                $row['email'] = $this->auth->getEmail($user->getUsername());
-                $row['mfa_enabled'] = (bool) $state['enabled'];
-                $row['backup_codes_remaining'] = (int) $state['backup_codes_remaining'];
+            $u = $meta[$user->getUsername()] ?? null;
+            if ($u !== null) {
+                $row['email'] = $u['email'];
+                $row['mfa_enabled'] = (bool) $u['enabled'];
+                $row['backup_codes_remaining'] = (int) $u['backup_codes_remaining'];
             }
             $rows[] = $row;
         }
@@ -71,7 +73,7 @@ class AdminController
         }
 
         $email = $request->input('email', null);
-        if ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! $this->emailValid($email)) {
             return $response->json(['email' => 'Invalid email address'], 422);
         }
 
@@ -127,7 +129,7 @@ class AdminController
         }
 
         $email = $request->input('email', null);
-        if ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! $this->emailValid($email)) {
             return $response->json(['email' => 'Invalid email address'], 422);
         }
 
@@ -186,5 +188,11 @@ class AdminController
         ));
 
         return $response->json('ok');
+    }
+
+    protected function emailValid($email): bool
+    {
+        if ($email === null || $email === '') return true;
+        return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
     }
 }

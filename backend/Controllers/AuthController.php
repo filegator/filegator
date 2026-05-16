@@ -44,57 +44,10 @@ class AuthController
             return $response->json('Not Allowed', 429);
         }
 
+        // Legacy path first: adapters without the MFA capability go through
+        // the original single-step authenticate().
         $supportsMfa = ($auth instanceof MfaCapableInterface) && $mfa->isSupported();
-
-        if ($supportsMfa) {
-            // Password-only check; do not yet grant a session.
-            if (! $auth->verifyPasswordOnly($username, $password)) {
-                return $this->failLogin($tmpfs, $response, $username, $ip);
-            }
-
-            $user = $auth->find($username);
-            if (! $user) {
-                return $this->failLogin($tmpfs, $response, $username, $ip);
-            }
-
-            try {
-                $mfaState = $auth->getMfaState($username);
-            } catch (\Throwable $e) {
-                $this->logger->log("getMfaState failed for {$username}: ".$e->getMessage());
-                return $this->failLogin($tmpfs, $response, $username, $ip);
-            }
-            $mfaEnabled = (bool) $mfaState['enabled'];
-            $mfaRequired = $mfa->isRequiredForUser($username, $user->getRole());
-
-            if ($mfaEnabled) {
-                // Stash pending and prompt for TOTP.
-                $session->set(self::MFA_PENDING_KEY, [
-                    'username' => $username,
-                    'expires' => time() + self::MFA_PENDING_TTL,
-                    'phase' => 'verify',
-                ]);
-                $session->migrate(true);
-                $this->logger->log("Password ok for {$username} from {$ip}; awaiting MFA");
-                return $response->json(['mfa_required' => true]);
-            }
-
-            if ($mfaRequired) {
-                // Admin without MFA enrolled: force enrollment.
-                $enrollment = $mfa->beginEnrollment($username);
-                $session->set(self::MFA_PENDING_KEY, [
-                    'username' => $username,
-                    'expires' => time() + self::MFA_PENDING_TTL,
-                    'phase' => 'setup',
-                ]);
-                $session->migrate(true);
-                $this->logger->log("Admin {$username} from {$ip} forced into MFA setup");
-                return $response->json([
-                    'mfa_setup_required' => true,
-                    'enrollment' => $enrollment,
-                ]);
-            }
-
-            // Plain login — no MFA needed.
+        if (! $supportsMfa) {
             if ($auth->authenticate($username, $password)) {
                 $this->logger->log("Logged in {$username} from IP ".$ip);
                 return $response->json($auth->user());
@@ -102,13 +55,55 @@ class AuthController
             return $this->failLogin($tmpfs, $response, $username, $ip);
         }
 
-        // Adapter without MFA support — legacy path.
-        if ($auth->authenticate($username, $password)) {
-            $this->logger->log("Logged in {$username} from IP ".$ip);
-            return $response->json($auth->user());
+        // MFA-capable path: verify password without granting a session, then
+        // branch on whether MFA is enabled, required-but-not-enrolled, or off.
+        if (! $auth->verifyPasswordOnly($username, $password)) {
+            return $this->failLogin($tmpfs, $response, $username, $ip);
         }
 
-        return $this->failLogin($tmpfs, $response, $username, $ip);
+        $user = $auth->find($username);
+        if (! $user) {
+            return $this->failLogin($tmpfs, $response, $username, $ip);
+        }
+
+        try {
+            $mfaState = $auth->getMfaState($username);
+        } catch (\Throwable $e) {
+            $this->logger->log("getMfaState failed for {$username}: ".$e->getMessage());
+            return $this->failLogin($tmpfs, $response, $username, $ip);
+        }
+
+        if ($mfaState['enabled']) {
+            $session->set(self::MFA_PENDING_KEY, [
+                'username' => $username,
+                'expires' => time() + self::MFA_PENDING_TTL,
+                'phase' => 'verify',
+            ]);
+            $session->migrate(true);
+            $this->logger->log("Password ok for {$username} from {$ip}; awaiting MFA");
+            return $response->json(['mfa_required' => true]);
+        }
+
+        if ($mfa->isRequiredForUser($username, $user->getRole())) {
+            $enrollment = $mfa->beginEnrollment($username);
+            $session->set(self::MFA_PENDING_KEY, [
+                'username' => $username,
+                'expires' => time() + self::MFA_PENDING_TTL,
+                'phase' => 'setup',
+            ]);
+            $session->migrate(true);
+            $this->logger->log("Admin {$username} from {$ip} forced into MFA setup");
+            return $response->json([
+                'mfa_setup_required' => true,
+                'enrollment' => $enrollment,
+            ]);
+        }
+
+        // Plain login: password already verified above, so bypass authenticate()'s
+        // bcrypt rerun and use establishSessionFor to finalise the session.
+        $auth->establishSessionFor($username);
+        $this->logger->log("Logged in {$username} from IP ".$ip);
+        return $response->json($auth->user());
     }
 
     public function loginMfa(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)

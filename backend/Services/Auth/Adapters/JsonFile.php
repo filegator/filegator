@@ -237,6 +237,26 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
         return $users;
     }
 
+    /**
+     * Adapter-specific batch accessor for callers (admin /listusers) that need
+     * MFA + email metadata for every user. Returns one row per user via a
+     * single file read, avoiding the N+1 of getMfaState/getEmail per user.
+     *
+     * @return array<string, array{enabled: bool, backup_codes_remaining: int, email: string|null}>
+     */
+    public function allUsersMeta(): array
+    {
+        $meta = [];
+        foreach ($this->getUsers() as $u) {
+            $meta[$u['username']] = [
+                'enabled' => (bool) ($u['mfa_enabled'] ?? false),
+                'backup_codes_remaining' => is_array($u['mfa_backup_codes'] ?? null) ? count($u['mfa_backup_codes']) : 0,
+                'email' => $u['email'] ?? null,
+            ];
+        }
+        return $meta;
+    }
+
     public function getMfaState(string $username): array
     {
         foreach ($this->getUsers() as $u) {
@@ -247,6 +267,7 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
                     'backup_codes_remaining' => is_array($u['mfa_backup_codes'] ?? null) ? count($u['mfa_backup_codes']) : 0,
                     'enrolled_at' => $u['mfa_enrolled_at'] ?? null,
                     'has_email' => ! empty($u['email']),
+                    'email' => $u['email'] ?? null,
                 ];
             }
         }

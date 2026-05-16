@@ -43,7 +43,7 @@ class MfaController
             'has_email' => $state['has_email'],
             'backup_codes_remaining' => $state['backup_codes_remaining'],
             'enrolled_at' => $state['enrolled_at'],
-            'email' => $auth->getEmail($username),
+            'email' => $state['email'],
             'required_by_role' => $mfa->isRequiredForUser($username, $user->getRole()),
             'mfa_required_for_admins' => (bool) $config->get('mfa_required_for_admins', true),
         ]);
@@ -90,7 +90,7 @@ class MfaController
         return $response->json(['backup_codes' => $codes]);
     }
 
-    public function disable(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, Config $config)
+    public function disable(Request $request, Response $response, AuthInterface $auth, MfaService $mfa)
     {
         if ($this->mfaUnsupported($auth, $mfa)) {
             return $response->json('MFA not supported', 501);
@@ -99,25 +99,12 @@ class MfaController
         $user = $auth->user();
         $username = $user->getUsername();
 
-        $password = (string) $request->input('password', '');
-        $code = (string) $request->input('code', '');
-        $useBackup = (bool) $request->input('use_backup', false);
-
-        if ($password === '' || $code === '') {
-            return $response->json('Password and current MFA code required', 422);
-        }
-
         if ($mfa->isRequiredForUser($username, $user->getRole())) {
             return $response->json('MFA is required for your role and cannot be disabled', 422);
         }
 
-        if (! $auth->verifyPasswordOnly($username, $password)) {
-            return $response->json(['password' => 'Wrong password'], 422);
-        }
-
-        $ok = $useBackup ? $mfa->consumeBackupCode($username, $code) : $mfa->verifyTotp($username, $code);
-        if (! $ok) {
-            return $response->json(['code' => 'Invalid code'], 422);
+        if ($failure = $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
+            return $failure;
         }
 
         $mfa->disable($username);
@@ -135,19 +122,8 @@ class MfaController
         $user = $auth->user();
         $username = $user->getUsername();
 
-        $password = (string) $request->input('password', '');
-        $code = (string) $request->input('code', '');
-        $useBackup = (bool) $request->input('use_backup', false);
-
-        if ($password === '' || $code === '') {
-            return $response->json('Password and current MFA code required', 422);
-        }
-        if (! $auth->verifyPasswordOnly($username, $password)) {
-            return $response->json(['password' => 'Wrong password'], 422);
-        }
-        $ok = $useBackup ? $mfa->consumeBackupCode($username, $code) : $mfa->verifyTotp($username, $code);
-        if (! $ok) {
-            return $response->json(['code' => 'Invalid code'], 422);
+        if ($failure = $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
+            return $failure;
         }
 
         $codes = $mfa->regenerateBackupCodes($username);
@@ -165,21 +141,54 @@ class MfaController
         $username = $user->getUsername();
         $email = $request->input('email', null);
 
-        if ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! $this->emailValid($email)) {
             return $response->json(['email' => 'Invalid email address'], 422);
         }
 
+        $normalized = ($email === '' || $email === null) ? null : strtolower(trim($email));
+
         try {
-            $auth->setEmail($username, $email === '' ? null : $email);
+            $auth->setEmail($username, $normalized);
         } catch (\Exception $e) {
             return $response->json(['email' => $e->getMessage()], 422);
         }
 
-        return $response->json(['email' => $auth->getEmail($username)]);
+        // Echo back the normalized value; no second read of users.json.
+        return $response->json(['email' => $normalized]);
     }
 
     protected function mfaUnsupported(AuthInterface $auth, MfaService $mfa): bool
     {
         return ! ($auth instanceof MfaCapableInterface) || ! $mfa->isSupported();
+    }
+
+    /**
+     * Shared re-auth gate for sensitive MFA actions (disable, regenerate backup codes).
+     * Validates the request carries a password + MFA code, then verifies both.
+     * Returns null on success, or a 422 Response on any failure.
+     */
+    protected function reauthVerify(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, string $username): ?Response
+    {
+        $password = (string) $request->input('password', '');
+        $code = (string) $request->input('code', '');
+        $useBackup = (bool) $request->input('use_backup', false);
+
+        if ($password === '' || $code === '') {
+            return $response->json('Password and current MFA code required', 422);
+        }
+        if (! $auth->verifyPasswordOnly($username, $password)) {
+            return $response->json(['password' => 'Wrong password'], 422);
+        }
+        $ok = $useBackup ? $mfa->consumeBackupCode($username, $code) : $mfa->verifyTotp($username, $code);
+        if (! $ok) {
+            return $response->json(['code' => 'Invalid code'], 422);
+        }
+        return null;
+    }
+
+    protected function emailValid($email): bool
+    {
+        if ($email === null || $email === '') return true;
+        return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
     }
 }

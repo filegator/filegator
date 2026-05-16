@@ -19,6 +19,12 @@ use OTPHP\TOTP;
 
 class MfaService implements Service
 {
+    /** Run the replay-marker GC sweep on roughly 1 in N verifyTotp() calls. */
+    const REPLAY_GC_SAMPLE_RATE = 10;
+
+    /** TTL for individual mfa_used_*.lock replay markers, in seconds. */
+    const REPLAY_MARKER_TTL = 90;
+
     protected $auth;
 
     protected $tmpfs;
@@ -176,9 +182,9 @@ class MfaService implements Service
      */
     protected function gcExpiredReplayMarkers(): void
     {
-        if (random_int(1, 10) !== 1) return;
+        if (random_int(1, self::REPLAY_GC_SAMPLE_RATE) !== 1) return;
         foreach ($this->tmpfs->findAll('mfa_used_*.lock') as $entry) {
-            if (time() - $entry['time'] >= 90) {
+            if (time() - $entry['time'] >= self::REPLAY_MARKER_TTL) {
                 $this->tmpfs->remove($entry['name']);
             }
         }

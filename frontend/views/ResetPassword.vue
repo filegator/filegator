@@ -1,54 +1,52 @@
 <template>
-  <div>
-    <div id="login" class="columns is-centered">
-      <div class="column is-narrow">
-        <div class="box" style="max-width: 480px">
-          <div class="has-text-centered">
-            <img :src="$store.state.config.logo" class="logo">
-          </div>
+  <div id="login" class="columns is-centered">
+    <div class="column is-narrow">
+      <div class="box" style="max-width: 480px">
+        <div class="has-text-centered">
+          <img :src="$store.state.config.logo" class="logo">
+        </div>
 
-          <div v-if="state === 'validating'" class="has-text-centered" style="margin-top: 1em">
-            <p>{{ lang('Validating link…') }}</p>
-          </div>
+        <div v-if="state === 'validating'" class="has-text-centered" style="margin-top: 1em">
+          <p>{{ lang('Validating link…') }}</p>
+        </div>
 
-          <div v-else-if="state === 'invalid'">
-            <h3 class="is-size-5" style="margin: 1em 0">
-              {{ lang('Link not valid') }}
-            </h3>
-            <p>{{ lang('This password reset link is invalid or has expired. Please request a new one.') }}</p>
-            <br>
-            <button class="button is-primary" @click="$router.push('/forgot-password').catch(() => {})">
-              {{ lang('Request new link') }}
+        <div v-else-if="state === 'invalid'">
+          <h3 class="is-size-5" style="margin: 1em 0">
+            {{ lang('Link not valid') }}
+          </h3>
+          <p>{{ lang('This password reset link is invalid or has expired. Please request a new one.') }}</p>
+          <br>
+          <button class="button is-primary" @click="$router.push('/forgot-password').catch(() => {})">
+            {{ lang('Request new link') }}
+          </button>
+        </div>
+
+        <form v-else-if="state === 'form'" @submit.prevent="submit">
+          <h3 class="is-size-5" style="margin: 1em 0">
+            {{ lang('Choose a new password') }}
+          </h3>
+          <b-field :label="lang('New password')" :type="error ? 'is-danger' : ''" :message="error">
+            <b-input v-model="newPassword" type="password" required password-reveal />
+          </b-field>
+          <b-field :label="lang('Confirm password')">
+            <b-input v-model="confirm" type="password" required password-reveal />
+          </b-field>
+          <div class="is-flex is-justify-content-end">
+            <button class="button is-primary">
+              {{ lang('Update password') }}
             </button>
           </div>
+        </form>
 
-          <form v-else-if="state === 'form'" @submit.prevent="submit">
-            <h3 class="is-size-5" style="margin: 1em 0">
-              {{ lang('Choose a new password') }}
-            </h3>
-            <b-field :label="lang('New password')" :type="error ? 'is-danger' : ''" :message="error">
-              <b-input v-model="newPassword" type="password" required password-reveal />
-            </b-field>
-            <b-field :label="lang('Confirm password')">
-              <b-input v-model="confirm" type="password" required password-reveal />
-            </b-field>
-            <div class="is-flex is-justify-content-end">
-              <button class="button is-primary">
-                {{ lang('Update password') }}
-              </button>
-            </div>
-          </form>
-
-          <div v-else-if="state === 'done'">
-            <h3 class="is-size-5" style="margin: 1em 0">
-              {{ lang('Password updated') }}
-            </h3>
-            <p>{{ lang('You can now sign in with your new password.') }}</p>
-            <br>
-            <button class="button is-primary" @click="$router.push('/login').catch(() => {})">
-              {{ lang('Go to login') }}
-            </button>
-          </div>
+        <div v-else-if="state === 'done'">
+          <h3 class="is-size-5" style="margin: 1em 0">
+            {{ lang('Password updated') }}
+          </h3>
+          <p>{{ lang('You can now sign in with your new password.') }}</p>
+          <br>
+          <button class="button is-primary" @click="$router.push('/login').catch(() => {})">
+            {{ lang('Go to login') }}
+          </button>
         </div>
       </div>
     </div>

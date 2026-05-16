@@ -61,13 +61,9 @@ class PasswordResetController
     {
         $token = (string) $request->input('token', '');
         if ($token === '') {
-            $token = (string) ($request->query->get('token') ?? '');
-        }
-        if ($token === '') {
             return $response->json(['valid' => false]);
         }
-        $row = $service->validateToken($token);
-        return $response->json(['valid' => $row !== null]);
+        return $response->json(['valid' => $service->validateToken($token) !== null]);
     }
 
     public function confirm(Request $request, Response $response, PasswordResetService $service, SessionStorageInterface $session)
