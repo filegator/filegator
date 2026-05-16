@@ -7,7 +7,9 @@
             <div class="has-text-centered">
               <img :src="$store.state.config.logo" class="logo">
             </div>
-            <h3 class="is-size-5" style="margin: 1em 0">{{ lang('Reset your password') }}</h3>
+            <h3 class="is-size-5" style="margin: 1em 0">
+              {{ lang('Reset your password') }}
+            </h3>
             <p>{{ lang('Enter your account email and we will send you a link to reset your password.') }}</p>
             <br>
             <b-field :label="lang('Email')">
@@ -15,13 +17,17 @@
             </b-field>
             <div class="is-flex is-justify-content-space-between" style="align-items: center">
               <a @click="$router.push('/login').catch(() => {})">{{ lang('Back to login') }}</a>
-              <button class="button is-primary">{{ lang('Send reset link') }}</button>
+              <button class="button is-primary">
+                {{ lang('Send reset link') }}
+              </button>
             </div>
           </div>
         </form>
 
         <div class="box" v-else style="max-width: 480px">
-          <h3 class="is-size-5">{{ lang('Check your inbox') }}</h3>
+          <h3 class="is-size-5">
+            {{ lang('Check your inbox') }}
+          </h3>
           <p>{{ message }}</p>
           <br>
           <button class="button is-primary" @click="$router.push('/login').catch(() => {})">

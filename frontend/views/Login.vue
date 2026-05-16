@@ -73,7 +73,9 @@
             <div class="has-text-centered">
               <img :src="$store.state.config.logo" class="logo">
             </div>
-            <h3 class="is-size-5" style="margin: 1em 0">{{ lang('MFA setup required') }}</h3>
+            <h3 class="is-size-5" style="margin: 1em 0">
+              {{ lang('MFA setup required') }}
+            </h3>
             <p>{{ lang('Your administrator account requires multi-factor authentication. Scan the QR code with an authenticator app (Google Authenticator, Authy, 1Password), then enter the 6-digit code shown.') }}</p>
             <br>
             <div class="has-text-centered">
@@ -87,8 +89,12 @@
               <b-input v-model="mfaCode" placeholder="123456" required @input="error = ''" />
             </b-field>
             <div class="is-flex is-justify-content-end">
-              <button class="button" type="button" @click="cancel">{{ lang('Cancel') }}</button>
-              <button class="button is-primary">{{ lang('Verify and continue') }}</button>
+              <button class="button" type="button" @click="cancel">
+                {{ lang('Cancel') }}
+              </button>
+              <button class="button is-primary">
+                {{ lang('Verify and continue') }}
+              </button>
             </div>
             <div v-if="error">
               <code>{{ error }}</code>
@@ -98,10 +104,14 @@
               <p><strong>{{ lang('Save these backup codes') }}</strong></p>
               <p>{{ lang('Each can be used once if you lose access to your authenticator. They will not be shown again.') }}</p>
               <ul style="font-family: monospace; margin-top: 0.5em">
-                <li v-for="c in setupBackupCodes" :key="c">{{ c }}</li>
+                <li v-for="c in setupBackupCodes" :key="c">
+                  {{ c }}
+                </li>
               </ul>
               <div class="is-flex is-justify-content-end">
-                <button class="button is-primary" type="button" @click="finishSetup">{{ lang('Continue') }}</button>
+                <button class="button is-primary" type="button" @click="finishSetup">
+                  {{ lang('Continue') }}
+                </button>
               </div>
             </div>
           </div>
@@ -173,7 +183,7 @@ export default {
           this.$store.commit('setUser', user)
           api.changeDir({ to: '/' }).then(() => this.$router.push('/').catch(() => {}))
         })
-        .catch(error => {
+        .catch(() => {
           this.error = this.lang('Invalid code')
           this.mfaCode = ''
         })
@@ -184,7 +194,7 @@ export default {
           this.pendingUser = res.user
           this.setupBackupCodes = res.backup_codes
         })
-        .catch(error => {
+        .catch(() => {
           this.error = this.lang('Invalid code')
           this.mfaCode = ''
         })

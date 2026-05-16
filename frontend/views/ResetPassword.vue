@@ -12,7 +12,9 @@
           </div>
 
           <div v-else-if="state === 'invalid'">
-            <h3 class="is-size-5" style="margin: 1em 0">{{ lang('Link not valid') }}</h3>
+            <h3 class="is-size-5" style="margin: 1em 0">
+              {{ lang('Link not valid') }}
+            </h3>
             <p>{{ lang('This password reset link is invalid or has expired. Please request a new one.') }}</p>
             <br>
             <button class="button is-primary" @click="$router.push('/forgot-password').catch(() => {})">
@@ -21,7 +23,9 @@
           </div>
 
           <form v-else-if="state === 'form'" @submit.prevent="submit">
-            <h3 class="is-size-5" style="margin: 1em 0">{{ lang('Choose a new password') }}</h3>
+            <h3 class="is-size-5" style="margin: 1em 0">
+              {{ lang('Choose a new password') }}
+            </h3>
             <b-field :label="lang('New password')" :type="error ? 'is-danger' : ''" :message="error">
               <b-input v-model="newPassword" type="password" required password-reveal />
             </b-field>
@@ -29,12 +33,16 @@
               <b-input v-model="confirm" type="password" required password-reveal />
             </b-field>
             <div class="is-flex is-justify-content-end">
-              <button class="button is-primary">{{ lang('Update password') }}</button>
+              <button class="button is-primary">
+                {{ lang('Update password') }}
+              </button>
             </div>
           </form>
 
           <div v-else-if="state === 'done'">
-            <h3 class="is-size-5" style="margin: 1em 0">{{ lang('Password updated') }}</h3>
+            <h3 class="is-size-5" style="margin: 1em 0">
+              {{ lang('Password updated') }}
+            </h3>
             <p>{{ lang('You can now sign in with your new password.') }}</p>
             <br>
             <button class="button is-primary" @click="$router.push('/login').catch(() => {})">

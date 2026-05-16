@@ -1,23 +1,31 @@
 <template>
   <div class="container" style="padding: 2em 1em; max-width: 720px">
-    <h1 class="title is-4">{{ lang('Security') }}</h1>
+    <h1 class="title is-4">
+      {{ lang('Security') }}
+    </h1>
 
     <!-- Email -->
     <section class="box">
-      <h2 class="subtitle is-5">{{ lang('Email address') }}</h2>
+      <h2 class="subtitle is-5">
+        {{ lang('Email address') }}
+      </h2>
       <p>{{ lang('Used to recover your password if you forget it.') }}</p>
       <br>
       <b-field>
         <b-input v-model="email" type="email" :placeholder="lang('you@example.com')" />
         <p class="control">
-          <button class="button is-primary" @click="saveEmail" :disabled="saving">{{ lang('Save') }}</button>
+          <button class="button is-primary" @click="saveEmail" :disabled="saving">
+            {{ lang('Save') }}
+          </button>
         </p>
       </b-field>
     </section>
 
     <!-- Change password -->
     <section class="box">
-      <h2 class="subtitle is-5">{{ lang('Change password') }}</h2>
+      <h2 class="subtitle is-5">
+        {{ lang('Change password') }}
+      </h2>
       <b-field :label="lang('Current password')" :type="cpErrors.oldpassword ? 'is-danger' : ''" :message="cpErrors.oldpassword">
         <b-input v-model="oldPw" type="password" password-reveal />
       </b-field>
@@ -25,22 +33,32 @@
         <b-input v-model="newPw" type="password" password-reveal />
       </b-field>
       <div class="is-flex is-justify-content-end">
-        <button class="button is-primary" @click="changePassword">{{ lang('Update password') }}</button>
+        <button class="button is-primary" @click="changePassword">
+          {{ lang('Update password') }}
+        </button>
       </div>
     </section>
 
     <!-- MFA -->
     <section class="box">
-      <h2 class="subtitle is-5">{{ lang('Multi-factor authentication') }}</h2>
+      <h2 class="subtitle is-5">
+        {{ lang('Multi-factor authentication') }}
+      </h2>
 
-      <div v-if="state === null">{{ lang('Loading…') }}</div>
+      <div v-if="state === null">
+        {{ lang('Loading…') }}
+      </div>
 
       <div v-else-if="state.enabled">
         <p>{{ lang('MFA is enabled on your account.') }} <strong>{{ state.backup_codes_remaining }}</strong> {{ lang('backup code(s) remaining.') }}</p>
         <br>
         <div class="buttons">
-          <button class="button" @click="openManage('regenerate')">{{ lang('Regenerate backup codes') }}</button>
-          <button class="button is-danger is-light" v-if="!state.required_by_role" @click="openManage('disable')">{{ lang('Disable MFA') }}</button>
+          <button class="button" @click="openManage('regenerate')">
+            {{ lang('Regenerate backup codes') }}
+          </button>
+          <button class="button is-danger is-light" v-if="!state.required_by_role" @click="openManage('disable')">
+            {{ lang('Disable MFA') }}
+          </button>
           <span v-else class="tag is-info is-light" style="align-self: center; margin-left: .5em">
             {{ lang('Required by your role') }}
           </span>
@@ -60,15 +78,21 @@
           <b-input v-model="enrollCode" placeholder="123456" />
         </b-field>
         <div class="is-flex is-justify-content-end">
-          <button class="button" @click="cancelEnroll">{{ lang('Cancel') }}</button>
-          <button class="button is-primary" @click="confirmEnroll">{{ lang('Verify') }}</button>
+          <button class="button" @click="cancelEnroll">
+            {{ lang('Cancel') }}
+          </button>
+          <button class="button is-primary" @click="confirmEnroll">
+            {{ lang('Verify') }}
+          </button>
         </div>
 
         <div v-if="backupCodes" class="notification is-warning" style="margin-top: 1em">
           <p><strong>{{ lang('Save these backup codes') }}</strong></p>
           <p>{{ lang('Each can be used once if you lose access to your authenticator. They will not be shown again.') }}</p>
           <ul style="font-family: monospace; margin-top: 0.5em">
-            <li v-for="c in backupCodes" :key="c">{{ c }}</li>
+            <li v-for="c in backupCodes" :key="c">
+              {{ c }}
+            </li>
           </ul>
         </div>
       </div>
@@ -76,7 +100,9 @@
       <div v-else>
         <p>{{ lang('Add a second factor with a TOTP authenticator app.') }}</p>
         <br>
-        <button class="button is-primary" @click="beginEnroll">{{ lang('Enable MFA') }}</button>
+        <button class="button is-primary" @click="beginEnroll">
+          {{ lang('Enable MFA') }}
+        </button>
       </div>
     </section>
 
@@ -100,8 +126,12 @@
           </a>
         </section>
         <footer class="modal-card-foot">
-          <button class="button" @click="manageOpen = false">{{ lang('Cancel') }}</button>
-          <button class="button is-primary" @click="performManage">{{ lang('Continue') }}</button>
+          <button class="button" @click="manageOpen = false">
+            {{ lang('Cancel') }}
+          </button>
+          <button class="button is-primary" @click="performManage">
+            {{ lang('Continue') }}
+          </button>
         </footer>
       </div>
     </b-modal>
