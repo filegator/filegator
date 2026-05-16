@@ -43,6 +43,29 @@ class MockUsers extends JsonFile implements Service, AuthInterface
         return $users;
     }
 
+    /**
+     * Tests use a static-array store, not a real file. Skip the flock-based
+     * RMW path and mutate the array directly. Tests run single-threaded, so
+     * the locked path's invariant (single mutation visible) holds trivially.
+     */
+    protected function mutateUser(string $username, callable $mutator): void
+    {
+        $all_users = $this->getUsers();
+        $found = false;
+        foreach ($all_users as &$u) {
+            if ($u['username'] == $username) {
+                $mutator($u);
+                $found = true;
+                break;
+            }
+        }
+        unset($u);
+        if (! $found) {
+            throw new \Exception('User not found');
+        }
+        $this->saveUsers($all_users);
+    }
+
     private function addMockUsers()
     {
         $guest = new User();

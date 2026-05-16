@@ -343,25 +343,81 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
         });
     }
 
+    /**
+     * Atomic read-modify-write on a single user row.
+     *
+     * Holds LOCK_EX on the underlying users.json file fd for the entire
+     * window so two concurrent FPM workers cannot read the same snapshot,
+     * each mutate one row, and silently overwrite each other on save.
+     *
+     * Most security-critical for consumeBackupCode (single-use enforcement)
+     * and setMfaSecret / enableMfa / disableMfa, where a lost write would
+     * undo a security-relevant state change.
+     */
     protected function mutateUser(string $username, callable $mutator): void
     {
-        $all_users = $this->getUsers();
-        $found = false;
+        $fh = $this->openLocked();
+        try {
+            $all_users = $this->readLocked($fh);
+            $found = false;
 
-        foreach ($all_users as &$u) {
-            if ($u['username'] == $username) {
-                $mutator($u);
-                $found = true;
-                break;
+            foreach ($all_users as &$u) {
+                if ($u['username'] == $username) {
+                    $mutator($u);
+                    $found = true;
+                    break;
+                }
             }
-        }
-        unset($u);
+            unset($u);
 
-        if (! $found) {
-            throw new \Exception('User not found');
-        }
+            if (! $found) {
+                throw new \Exception('User not found');
+            }
 
-        $this->saveUsers($all_users);
+            $this->writeLocked($fh, $all_users);
+        } finally {
+            $this->closeLocked($fh);
+        }
+    }
+
+    /** @return resource */
+    protected function openLocked()
+    {
+        $fh = @fopen($this->file, 'c+');
+        if ($fh === false) {
+            throw new \RuntimeException("Could not open users file for locked mutation: {$this->file}");
+        }
+        if (! flock($fh, LOCK_EX)) {
+            fclose($fh);
+            throw new \RuntimeException("Could not acquire exclusive lock on users file: {$this->file}");
+        }
+        return $fh;
+    }
+
+    /** @param resource $fh */
+    protected function readLocked($fh): array
+    {
+        rewind($fh);
+        $contents = stream_get_contents($fh);
+        if ($contents === false || $contents === '') return [];
+        $users = json_decode($contents, true);
+        return is_array($users) ? $users : [];
+    }
+
+    /** @param resource $fh */
+    protected function writeLocked($fh, array $users): void
+    {
+        rewind($fh);
+        ftruncate($fh, 0);
+        fwrite($fh, json_encode($users));
+        fflush($fh);
+    }
+
+    /** @param resource $fh */
+    protected function closeLocked($fh): void
+    {
+        @flock($fh, LOCK_UN);
+        @fclose($fh);
     }
 
     protected function buildSessionHash(array $u): string
