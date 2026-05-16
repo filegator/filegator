@@ -91,9 +91,12 @@ class TokenStore
     protected function save(array $rows): void
     {
         $dir = dirname($this->file);
-        if (! is_dir($dir)) {
-            @mkdir($dir, 0775, true);
+        if (! is_dir($dir) && ! mkdir($dir, 0775, true) && ! is_dir($dir)) {
+            throw new \RuntimeException("Could not create password-reset token directory: {$dir}");
         }
-        file_put_contents($this->file, json_encode(array_values($rows)), LOCK_EX);
+        $bytes = file_put_contents($this->file, json_encode(array_values($rows)), LOCK_EX);
+        if ($bytes === false) {
+            throw new \RuntimeException("Could not write password-reset token file: {$this->file}");
+        }
     }
 }

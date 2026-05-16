@@ -88,7 +88,12 @@ class PasswordResetService implements Service
         $hash = hash('sha256', $token);
         $ttl = (int) $this->config->get('password_reset_token_ttl', 3600);
 
-        $this->store->add($user->getUsername(), $hash, $ttl, $ip);
+        try {
+            $this->store->add($user->getUsername(), $hash, $ttl, $ip);
+        } catch (\Throwable $e) {
+            $this->logger->log('Password reset token persist failed: '.$e->getMessage());
+            return;
+        }
 
         $resetUrl = $this->buildResetUrl($baseUrl, $token);
         $appName = (string) ($this->config->get('frontend_config.app_name') ?: 'FileGator');
@@ -97,10 +102,10 @@ class PasswordResetService implements Service
         $ok = $this->mailer->send($email, $this->resetSubject, $rendered['text'], $rendered['html']);
 
         $this->logger->log(sprintf(
-            'Password reset email %s for user=%s token_prefix=%s ip=%s',
+            'Password reset email %s for user=%s token_hash_prefix=%s ip=%s',
             $ok ? 'sent' : 'failed',
             $user->getUsername(),
-            substr($token, 0, 6),
+            substr($hash, 0, 8),
             $ip
         ));
     }

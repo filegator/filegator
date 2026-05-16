@@ -46,7 +46,7 @@ class Security implements Service
 
             $exempt_paths = isset($config['csrf_exempt_paths']) && is_array($config['csrf_exempt_paths'])
                 ? $config['csrf_exempt_paths']
-                : ['/password/forgot', '/password/reset/validate'];
+                : ['/password/forgot', '/password/reset/validate', '/password/reset'];
 
             $route_id = (string) $this->request->query->get('r', '');
             $is_exempt = in_array($route_id, $exempt_paths, true);

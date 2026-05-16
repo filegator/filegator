@@ -28,8 +28,6 @@ interface MfaCapableInterface
 
     public function setEmail(string $username, ?string $email): void;
 
-    public function findByEmail(string $email): ?User;
-
     public function verifyPasswordOnly(string $username, string $password): bool;
 
     /**

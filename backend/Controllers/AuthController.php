@@ -57,7 +57,12 @@ class AuthController
                 return $this->failLogin($tmpfs, $response, $username, $ip);
             }
 
-            $mfaState = $auth->getMfaState($username);
+            try {
+                $mfaState = $auth->getMfaState($username);
+            } catch (\Throwable $e) {
+                $this->logger->log("getMfaState failed for {$username}: ".$e->getMessage());
+                return $this->failLogin($tmpfs, $response, $username, $ip);
+            }
             $mfaEnabled = (bool) $mfaState['enabled'];
             $mfaRequired = $mfa->isRequiredForUser($username, $user->getRole());
 
@@ -156,8 +161,10 @@ class AuthController
         $ip = $request->getClientIp();
         $pending = $session->get(self::MFA_PENDING_KEY);
 
+        // Single-use: clear immediately regardless of outcome (mirrors loginMfa).
+        $session->set(self::MFA_PENDING_KEY, null);
+
         if (! is_array($pending) || empty($pending['username']) || ($pending['expires'] ?? 0) < time()) {
-            $session->set(self::MFA_PENDING_KEY, null);
             return $response->json('Setup session expired', 422);
         }
         if (($pending['phase'] ?? '') !== 'setup') {
@@ -176,7 +183,6 @@ class AuthController
             return $response->json('Invalid code', 422);
         }
 
-        $session->set(self::MFA_PENDING_KEY, null);
         $this->completeMfaLogin($auth, $session, $username);
 
         $this->logger->log("MFA setup complete for {$username} from {$ip}");

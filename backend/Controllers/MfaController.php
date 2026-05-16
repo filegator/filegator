@@ -29,7 +29,9 @@ class MfaController
 
     public function state(Response $response, AuthInterface $auth, MfaService $mfa, Config $config)
     {
-        $this->requireMfaSupport($auth, $mfa);
+        if ($this->mfaUnsupported($auth, $mfa)) {
+            return $response->json('MFA not supported', 501);
+        }
 
         $user = $auth->user();
         $username = $user->getUsername();
@@ -49,7 +51,9 @@ class MfaController
 
     public function beginEnroll(Response $response, AuthInterface $auth, MfaService $mfa)
     {
-        $this->requireMfaSupport($auth, $mfa);
+        if ($this->mfaUnsupported($auth, $mfa)) {
+            return $response->json('MFA not supported', 501);
+        }
 
         $user = $auth->user();
         $enrollment = $mfa->beginEnrollment($user->getUsername());
@@ -59,7 +63,9 @@ class MfaController
 
     public function confirmEnroll(Request $request, Response $response, AuthInterface $auth, MfaService $mfa)
     {
-        $this->requireMfaSupport($auth, $mfa);
+        if ($this->mfaUnsupported($auth, $mfa)) {
+            return $response->json('MFA not supported', 501);
+        }
 
         $user = $auth->user();
         $code = (string) $request->input('code', '');
@@ -80,7 +86,9 @@ class MfaController
 
     public function disable(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, Config $config)
     {
-        $this->requireMfaSupport($auth, $mfa);
+        if ($this->mfaUnsupported($auth, $mfa)) {
+            return $response->json('MFA not supported', 501);
+        }
 
         $user = $auth->user();
         $username = $user->getUsername();
@@ -114,7 +122,9 @@ class MfaController
 
     public function regenerateBackupCodes(Request $request, Response $response, AuthInterface $auth, MfaService $mfa)
     {
-        $this->requireMfaSupport($auth, $mfa);
+        if ($this->mfaUnsupported($auth, $mfa)) {
+            return $response->json('MFA not supported', 501);
+        }
 
         $user = $auth->user();
         $username = $user->getUsername();
@@ -162,10 +172,8 @@ class MfaController
         return $response->json(['email' => $auth->getEmail($username)]);
     }
 
-    protected function requireMfaSupport(AuthInterface $auth, MfaService $mfa): void
+    protected function mfaUnsupported(AuthInterface $auth, MfaService $mfa): bool
     {
-        if (! ($auth instanceof MfaCapableInterface) || ! $mfa->isSupported()) {
-            throw new \RuntimeException('MFA is not supported by the configured auth adapter');
-        }
+        return ! ($auth instanceof MfaCapableInterface) || ! $mfa->isSupported();
     }
 }

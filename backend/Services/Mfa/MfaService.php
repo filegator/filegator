@@ -46,13 +46,6 @@ class MfaService implements Service
         return $this->auth instanceof MfaCapableInterface;
     }
 
-    public function isEnabled(string $username): bool
-    {
-        if (! $this->isSupported()) return false;
-        $state = $this->capable()->getMfaState($username);
-        return (bool) $state['enabled'];
-    }
-
     public function isRequiredForUser(string $username, string $role): bool
     {
         if ($role === 'admin' && (bool) $this->config->get('mfa_required_for_admins', true)) {
@@ -145,13 +138,29 @@ class MfaService implements Service
 
     protected function verifyTotpAgainstSecret(string $secret, string $code): bool
     {
-        $totp = TOTP::createFromSecret($secret);
-        // window = 1 step (~30s) drift tolerance
-        return $totp->verify($code, null, 1);
+        try {
+            $totp = TOTP::createFromSecret($secret);
+            // window = 1 step (~30s) drift tolerance
+            return $totp->verify($code, null, 1);
+        } catch (\Throwable $e) {
+            // A corrupted/invalid mfa_secret is treated as a verification failure
+            // rather than a fatal error, so the user can still try a backup code.
+            return false;
+        }
     }
 
     protected function isReplayed(string $username, string $code): bool
     {
+        // Opportunistically GC expired mfa_used_* replay markers (~90s TTL)
+        // so they do not accumulate until the tmpfs-wide GC runs (every 2 days).
+        // Scoped to our own namespace so other lockfiles (IP throttles) are unaffected.
+        if (random_int(1, 10) === 1) {
+            foreach ($this->tmpfs->findAll('mfa_used_*.lock') as $entry) {
+                if (time() - $entry['time'] >= 90) {
+                    $this->tmpfs->remove($entry['name']);
+                }
+            }
+        }
         $file = $this->replayFile($username, $code);
         if ($this->tmpfs->exists($file)) return true;
         return false;

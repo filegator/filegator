@@ -80,7 +80,7 @@ return [
             'config' => [
                 'csrf_protection' => true,
                 'csrf_key' => "123456", // randomize this
-                'csrf_exempt_paths' => ['/password/forgot', '/password/reset/validate'],
+                'csrf_exempt_paths' => ['/password/forgot', '/password/reset/validate', '/password/reset'],
                 'ip_allowlist' => [],
                 'ip_denylist' => [],
                 'allow_insecure_overlays' => false,
@@ -126,8 +126,10 @@ return [
             'handler' => '\Filegator\Services\Mailer\Adapters\SymfonyMailer',
             'config' => [
                 // Symfony Mailer DSN. Use 'null://null' to disable sending (feature stays hidden).
+                // ALWAYS include a small `timeout` query param so a slow/unreachable SMTP
+                // server does not hang the PHP-FPM worker for PHP's 60s default_socket_timeout.
                 // Examples:
-                //   'smtp://user:pass@smtp.example.com:587?encryption=tls'
+                //   'smtp://user:pass@smtp.example.com:587?encryption=tls&timeout=5'
                 //   'sendmail://default'
                 'dsn' => 'null://null',
                 'from_email' => 'no-reply@example.com',
