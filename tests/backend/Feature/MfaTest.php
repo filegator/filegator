@@ -309,7 +309,9 @@ class MfaTest extends TestCase
     public function testAdminCannotResetOwnMfa()
     {
         $this->enrollMfa('admin@example.com');
-        $this->signIn('admin@example.com', 'admin123');
+        // signIn() can't drive the two-step MFA flow, so establish the admin
+        // session directly. The route guard (admin only) still applies.
+        $this->establishSessionFor('admin@example.com');
 
         $this->sendRequest('POST', '/admin/users/admin@example.com/reset_mfa');
         $this->assertUnprocessable();

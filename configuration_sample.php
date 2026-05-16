@@ -115,13 +115,10 @@ return [
                 'file' => __DIR__.'/private/users.json',
             ],
         ],
-        'Filegator\Services\Router\Router' => [
-            'handler' => '\Filegator\Services\Router\Router',
-            'config' => [
-                'query_param' => 'r',
-                'routes_file' => __DIR__.'/backend/Controllers/routes.php',
-            ],
-        ],
+        // Mailer / Mfa / PasswordReset must come BEFORE Router. Router::init
+        // dispatches the route immediately, so any controller method that
+        // type-hints these services (e.g. ViewController::getFrontendConfig)
+        // would otherwise fail to resolve them.
         'Filegator\Services\Mailer\MailerInterface' => [
             'handler' => '\Filegator\Services\Mailer\Adapters\SymfonyMailer',
             'config' => [
@@ -158,6 +155,13 @@ return [
                 // pointing at an attacker-controlled host.
                 // Set to null (default) to disable the password-reset feature.
                 'reset_url_base' => null, // e.g. 'https://files.example.com/'
+            ],
+        ],
+        'Filegator\Services\Router\Router' => [
+            'handler' => '\Filegator\Services\Router\Router',
+            'config' => [
+                'query_param' => 'r',
+                'routes_file' => __DIR__.'/backend/Controllers/routes.php',
             ],
         ],
     ],

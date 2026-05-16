@@ -103,8 +103,8 @@ class MfaController
             return $response->json('MFA is required for your role and cannot be disabled', 422);
         }
 
-        if ($failure = $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
-            return $failure;
+        if (! $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
+            return; // reauthVerify has already mutated $response to a 422
         }
 
         $mfa->disable($username);
@@ -122,8 +122,8 @@ class MfaController
         $user = $auth->user();
         $username = $user->getUsername();
 
-        if ($failure = $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
-            return $failure;
+        if (! $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
+            return; // reauthVerify has already mutated $response to a 422
         }
 
         $codes = $mfa->regenerateBackupCodes($username);
@@ -164,26 +164,34 @@ class MfaController
 
     /**
      * Shared re-auth gate for sensitive MFA actions (disable, regenerate backup codes).
-     * Validates the request carries a password + MFA code, then verifies both.
-     * Returns null on success, or a 422 Response on any failure.
+     * Validates the request carries a password + MFA code, then verifies both. On
+     * failure, mutates $response to the appropriate 422 and returns false. On
+     * success, returns true and leaves $response untouched for the caller.
+     *
+     * Note: $response->json() returns void (see backend/Kernel/Response.php),
+     * which is why we use an explicit boolean rather than returning the
+     * response object.
      */
-    protected function reauthVerify(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, string $username): ?Response
+    protected function reauthVerify(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, string $username): bool
     {
         $password = (string) $request->input('password', '');
         $code = (string) $request->input('code', '');
         $useBackup = (bool) $request->input('use_backup', false);
 
         if ($password === '' || $code === '') {
-            return $response->json('Password and current MFA code required', 422);
+            $response->json('Password and current MFA code required', 422);
+            return false;
         }
         if (! $auth->verifyPasswordOnly($username, $password)) {
-            return $response->json(['password' => 'Wrong password'], 422);
+            $response->json(['password' => 'Wrong password'], 422);
+            return false;
         }
         $ok = $useBackup ? $mfa->consumeBackupCode($username, $code) : $mfa->verifyTotp($username, $code);
         if (! $ok) {
-            return $response->json(['code' => 'Invalid code'], 422);
+            $response->json(['code' => 'Invalid code'], 422);
+            return false;
         }
-        return null;
+        return true;
     }
 
     protected function emailValid($email): bool

@@ -16,6 +16,8 @@ use Filegator\Services\Service;
 use Filegator\Services\Logger\LoggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
+use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 
 /**
  * @codeCoverageIgnore
@@ -42,7 +44,16 @@ class Security implements Service
             $key = isset($config['csrf_key']) ? $config['csrf_key'] : 'protection';
 
             $http_method = $this->request->getMethod();
-            $csrfManager = new CsrfTokenManager();
+            // Back the CSRF manager with the request's SessionInterface instead of
+            // raw $_SESSION. CsrfTokenManager's default storage calls session_start()
+            // natively, which conflicts with the framework's Session abstraction
+            // (and crashes outright when headers have already been sent — which is
+            // what happens under PHPUnit). Storage location is unchanged in
+            // production because the underlying NativeFileSessionHandler is the same.
+            $csrfManager = new CsrfTokenManager(
+                new UriSafeTokenGenerator(),
+                new SessionTokenStorage($this->request->getSession())
+            );
 
             $exempt_paths = isset($config['csrf_exempt_paths']) && is_array($config['csrf_exempt_paths'])
                 ? $config['csrf_exempt_paths']

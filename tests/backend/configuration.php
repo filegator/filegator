@@ -92,13 +92,10 @@ return [
             'handler' => '\Filegator\Services\Archiver\Adapters\ZipArchiver',
             'config' => [],
         ],
-        'Filegator\Services\Router\Router' => [
-            'handler' => '\Filegator\Services\Router\Router',
-            'config' => [
-                'query_param' => 'r',
-                'routes_file' => __DIR__.'/../../backend/Controllers/routes.php',
-            ],
-        ],
+        // Mailer / Mfa / PasswordReset must come BEFORE Router. Router::init
+        // dispatches the route immediately, so any controller method (e.g.
+        // ViewController::getFrontendConfig) that type-hints these services
+        // would otherwise fail to resolve them.
         'Filegator\Services\Mailer\MailerInterface' => [
             'handler' => '\Tests\Fakes\InMemoryMailer',
             'config' => [],
@@ -115,6 +112,13 @@ return [
                 'token_file' => TEST_TMP_PATH.'password_resets.json',
                 'reset_subject' => 'Reset your FileGator password',
                 'reset_url_base' => 'https://files.example.com/',
+            ],
+        ],
+        'Filegator\Services\Router\Router' => [
+            'handler' => '\Filegator\Services\Router\Router',
+            'config' => [
+                'query_param' => 'r',
+                'routes_file' => __DIR__.'/../../backend/Controllers/routes.php',
             ],
         ],
     ],
