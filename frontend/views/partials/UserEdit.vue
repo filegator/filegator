@@ -27,9 +27,20 @@
             <b-input v-model="formFields.name" @keydown.native="formErrors.name = ''" />
           </b-field>
 
+          <b-field :label="lang('Email')" :type="formErrors.email ? 'is-danger' : ''" :message="formErrors.email">
+            <b-input v-model="formFields.email" type="email" @keydown.native="formErrors.email = ''" />
+          </b-field>
+
           <b-field :label="lang('Password')" :type="formErrors.password ? 'is-danger' : ''" :message="formErrors.password">
             <b-input v-model="formFields.password" :placeholder="action == 'edit' ? lang('Leave blank for no change') : ''" password-reveal @keydown.native="formErrors.password = ''" />
           </b-field>
+
+          <div v-if="action == 'edit' && user.mfa_enabled" class="field">
+            <span class="tag is-info is-light">{{ lang('MFA enabled') }}</span>
+            <button type="button" class="button is-small is-danger is-light" style="margin-left: 0.5em" @click="resetMfa">
+              {{ lang('Reset MFA') }}
+            </button>
+          </div>
         </div>
 
         <b-field :label="lang('Homedir')" :type="formErrors.homedir ? 'is-danger' : ''" :message="formErrors.homedir">
@@ -88,6 +99,7 @@ export default {
         role: this.user.role,
         name: this.user.name,
         username: this.user.username,
+        email: this.user.email || '',
         homedir: this.user.homedir,
         password: '',
       },
@@ -185,6 +197,23 @@ export default {
         this.save()
       }
     },
+    resetMfa() {
+      this.$dialog.confirm({
+        message: this.lang('Reset MFA for this user? They will need to re-enroll on next login.'),
+        type: 'is-danger',
+        cancelText: this.lang('Cancel'),
+        confirmText: this.lang('Reset'),
+        onConfirm: () => {
+          api.adminResetMfa({ username: this.user.username })
+            .then(() => {
+              this.$toast.open({ message: this.lang('MFA reset'), type: 'is-success' })
+              this.$emit('updated')
+              this.$parent.close()
+            })
+            .catch(e => this.handleError(e))
+        }
+      })
+    },
     save() {
 
       let method = this.action == 'add' ? api.storeUser : api.updateUser
@@ -194,6 +223,7 @@ export default {
         role: this.formFields.role,
         name: this.formFields.name,
         username: this.formFields.username,
+        email: this.formFields.email,
         homedir: this.formFields.homedir,
         password: this.formFields.password,
         permissions: this.getPermissionsArray(),

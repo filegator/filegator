@@ -17,28 +17,31 @@ use Filegator\Services\Service;
 
 class MockUsers extends JsonFile implements Service, AuthInterface
 {
-    private $users_array = [];
+    private static $persistent_users = null;
 
     public function init(array $config = [])
     {
-        $this->addMockUsers();
+        if (self::$persistent_users === null) {
+            self::$persistent_users = [];
+            $this->addMockUsers();
+        }
+    }
+
+    public static function reset(): void
+    {
+        self::$persistent_users = null;
     }
 
     protected function getUsers(): array
     {
-        return $this->users_array;
+        return self::$persistent_users ?? [];
     }
 
     protected function saveUsers(array $users)
     {
-        return $this->users_array = $users;
+        self::$persistent_users = $users;
+        return $users;
     }
-
-    public function user(): ?User
-    {
-        return $this->session ? $this->session->get(self::SESSION_KEY, null) : null;
-    }
-
 
     private function addMockUsers()
     {

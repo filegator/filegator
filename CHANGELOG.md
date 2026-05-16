@@ -2,6 +2,10 @@
 
 ## Upcoming...
 * Added upload speed metric to the bottom pane, thanks @NikhilC2209 (see #581)
+* Added MFA (TOTP + one-time backup codes) — required for admins by default, optional for users (JsonFile adapter)
+* Added self-service password reset via emailed link, backed by a new Symfony Mailer service
+* Added a `/security` view where users manage MFA, backup codes, password and email
+* New config keys: `mfa_required_for_admins`, `password_reset_token_ttl`, `password_reset_max_per_hour_per_ip`, `password_reset_max_per_day_per_email`, plus a `Mailer` service block with an SMTP DSN
 
 ## 7.14.0 - 2026-04-18
 * Reworked bottom pane for file uploads by @NikhilC2209 (see #580)

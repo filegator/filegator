@@ -13,7 +13,9 @@ namespace Filegator\Controllers;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Auth\MfaCapableInterface;
 use Filegator\Services\Auth\User;
+use Filegator\Services\Logger\LoggerInterface;
 use Filegator\Services\Storage\Filesystem;
 use Rakit\Validation\Validator;
 
@@ -23,15 +25,33 @@ class AdminController
 
     protected $storage;
 
-    public function __construct(AuthInterface $auth, Filesystem $storage)
+    protected $logger;
+
+    public function __construct(AuthInterface $auth, Filesystem $storage, LoggerInterface $logger)
     {
         $this->auth = $auth;
         $this->storage = $storage;
+        $this->logger = $logger;
     }
 
     public function listUsers(Request $request, Response $response)
     {
-        return $response->json($this->auth->allUsers());
+        $collection = $this->auth->allUsers();
+        $supportsMfa = $this->auth instanceof MfaCapableInterface;
+
+        $rows = [];
+        foreach ($collection->all() as $user) {
+            $row = $user->jsonSerialize();
+            if ($supportsMfa) {
+                $state = $this->auth->getMfaState($user->getUsername());
+                $row['email'] = $this->auth->getEmail($user->getUsername());
+                $row['mfa_enabled'] = (bool) $state['enabled'];
+                $row['backup_codes_remaining'] = (int) $state['backup_codes_remaining'];
+            }
+            $rows[] = $row;
+        }
+
+        return $response->json($rows);
     }
 
     public function storeUser(User $user, Request $request, Response $response, Validator $validator)
@@ -50,6 +70,11 @@ class AdminController
             return $response->json($errors->firstOfAll(), 422);
         }
 
+        $email = $request->input('email', null);
+        if ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $response->json(['email' => 'Invalid email address'], 422);
+        }
+
         if ($this->auth->find($request->input('username'))) {
             return $response->json(['username' => 'Username already taken'], 422);
         }
@@ -65,6 +90,10 @@ class AdminController
             $user->setRole($request->input('role', 'user'));
             $user->setPermissions($request->input('permissions'));
             $ret = $this->auth->add($user, $request->input('password'));
+
+            if ($email !== null && $this->auth instanceof MfaCapableInterface) {
+                $this->auth->setEmail($user->getUsername(), $email === '' ? null : $email);
+            }
         } catch (\Exception $e) {
             return $response->json($e->getMessage(), 422);
         }
@@ -97,6 +126,11 @@ class AdminController
             return $response->json(['username' => 'Username already taken'], 422);
         }
 
+        $email = $request->input('email', null);
+        if ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $response->json(['email' => 'Invalid email address'], 422);
+        }
+
         try {
             $user->setName($request->input('name'));
             $user->setUsername($request->input('username'));
@@ -104,7 +138,13 @@ class AdminController
             $user->setRole($request->input('role', 'user'));
             $user->setPermissions($request->input('permissions'));
 
-            return $response->json($this->auth->update($username, $user, $request->input('password', '')));
+            $ret = $this->auth->update($username, $user, $request->input('password', ''));
+
+            if ($email !== null && $this->auth instanceof MfaCapableInterface) {
+                $this->auth->setEmail($user->getUsername(), $email === '' ? null : $email);
+            }
+
+            return $response->json($ret);
         } catch (\Exception $e) {
             return $response->json($e->getMessage(), 422);
         }
@@ -119,5 +159,32 @@ class AdminController
         }
 
         return $response->json($this->auth->delete($user));
+    }
+
+    public function resetMfa($username, Request $request, Response $response)
+    {
+        if (! $this->auth instanceof MfaCapableInterface) {
+            return $response->json('Not supported', 501);
+        }
+
+        $current = $this->auth->user();
+        if ($current && $current->getUsername() === $username) {
+            return $response->json('Cannot reset your own MFA from the admin panel', 422);
+        }
+
+        $target = $this->auth->find($username);
+        if (! $target) {
+            return $response->json('User not found', 422);
+        }
+
+        $this->auth->disableMfa($username);
+        $this->logger->log(sprintf(
+            'Admin %s reset MFA for user %s from IP %s',
+            $current ? $current->getUsername() : 'unknown',
+            $username,
+            $request->getClientIp()
+        ));
+
+        return $response->json('ok');
     }
 }

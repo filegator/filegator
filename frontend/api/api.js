@@ -170,6 +170,7 @@ const api = {
         role: params.role,
         name: params.name,
         username: params.username,
+        email: params.email,
         homedir: params.homedir,
         password: params.password,
         permissions: params.permissions,
@@ -184,6 +185,7 @@ const api = {
         role: params.role,
         name: params.name,
         username: params.username,
+        email: params.email,
         homedir: params.homedir,
         password: params.password,
         permissions: params.permissions,
@@ -197,6 +199,113 @@ const api = {
       axios.post('changepassword', {
         oldpassword: params.oldpassword,
         newpassword: params.newpassword,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  loginMfa(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('login/mfa', {
+        code: params.code,
+        use_backup: !!params.useBackup,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  loginMfaSetup(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('login/mfa/setup', {
+        code: params.code,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  loginMfaCancel() {
+    return new Promise((resolve, reject) => {
+      axios.post('login/mfa/cancel')
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  mfaState() {
+    return new Promise((resolve, reject) => {
+      axios.get('mfa/state')
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  mfaBeginEnroll() {
+    return new Promise((resolve, reject) => {
+      axios.post('mfa/enroll/begin')
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  mfaConfirmEnroll(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('mfa/enroll/confirm', { code: params.code })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  mfaDisable(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('mfa/disable', {
+        password: params.password,
+        code: params.code,
+        use_backup: !!params.useBackup,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  mfaRegenerateBackupCodes(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('mfa/backup_codes/regenerate', {
+        password: params.password,
+        code: params.code,
+        use_backup: !!params.useBackup,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  updateMyEmail(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('me/email', { email: params.email })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  adminResetMfa(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('admin/users/' + encodeURIComponent(params.username) + '/reset_mfa')
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  requestPasswordReset(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('password/forgot', { email: params.email })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  validateResetToken(token) {
+    return new Promise((resolve, reject) => {
+      axios.post('password/reset/validate', { token })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  confirmPasswordReset(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('password/reset', {
+        token: params.token,
+        new_password: params.newPassword,
       })
         .then(res => resolve(res.data.data))
         .catch(error => reject(error))

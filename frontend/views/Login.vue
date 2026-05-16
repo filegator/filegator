@@ -6,7 +6,8 @@
 
     <div id="login" class="columns is-centered">
       <div class="column is-narrow">
-        <form @submit.prevent="login">
+        <!-- Step 1: username + password -->
+        <form v-if="step === 'password'" @submit.prevent="login">
           <div class="box">
             <div class="has-text-centered">
               <img :src="$store.state.config.logo" class="logo">
@@ -19,7 +20,11 @@
               <b-input v-model="password" type="password" name="password" required @input="error = ''" password-reveal />
             </b-field>
 
-            <div class="is-flex is-justify-end">
+            <div class="is-flex is-justify-content-space-between" style="align-items: center">
+              <a v-if="$store.state.config.password_reset_enabled" @click="$router.push('/forgot-password').catch(() => {})" style="font-size: 0.9em">
+                {{ lang('Forgot password?') }}
+              </a>
+              <span v-else />
               <button class="button is-primary">
                 {{ lang('Login') }}
               </button>
@@ -30,6 +35,77 @@
             </div>
           </div>
         </form>
+
+        <!-- Step 2: verify TOTP -->
+        <form v-else-if="step === 'mfa'" @submit.prevent="verifyMfa">
+          <div class="box">
+            <div class="has-text-centered">
+              <img :src="$store.state.config.logo" class="logo">
+            </div>
+            <br>
+            <p>{{ useBackup ? lang('Enter one of your backup codes') : lang('Enter the 6-digit code from your authenticator app') }}</p>
+            <br>
+            <b-field>
+              <b-input v-model="mfaCode" :placeholder="useBackup ? 'XXXXX-XXXXX' : '123456'" required @input="error = ''" ref="mfa" />
+            </b-field>
+            <div class="is-flex is-justify-content-space-between" style="align-items: center">
+              <a @click="toggleBackup" style="font-size: 0.9em">
+                {{ useBackup ? lang('Use authenticator code') : lang('Use a backup code') }}
+              </a>
+              <div>
+                <button class="button" type="button" @click="cancel">
+                  {{ lang('Cancel') }}
+                </button>
+                <button class="button is-primary">
+                  {{ lang('Verify') }}
+                </button>
+              </div>
+            </div>
+            <div v-if="error">
+              <code>{{ error }}</code>
+            </div>
+          </div>
+        </form>
+
+        <!-- Step 3: forced MFA setup (admins) -->
+        <form v-else-if="step === 'mfa_setup'" @submit.prevent="completeSetup">
+          <div class="box" style="max-width: 480px">
+            <div class="has-text-centered">
+              <img :src="$store.state.config.logo" class="logo">
+            </div>
+            <h3 class="is-size-5" style="margin: 1em 0">{{ lang('MFA setup required') }}</h3>
+            <p>{{ lang('Your administrator account requires multi-factor authentication. Scan the QR code with an authenticator app (Google Authenticator, Authy, 1Password), then enter the 6-digit code shown.') }}</p>
+            <br>
+            <div class="has-text-centered">
+              <canvas ref="qrCanvas" />
+            </div>
+            <p style="font-family: monospace; word-break: break-all; font-size: 0.9em; margin-top: 0.5em">
+              {{ lang('Manual key') }}: {{ enrollment.secret }}
+            </p>
+            <br>
+            <b-field :label="lang('6-digit code')">
+              <b-input v-model="mfaCode" placeholder="123456" required @input="error = ''" />
+            </b-field>
+            <div class="is-flex is-justify-content-end">
+              <button class="button" type="button" @click="cancel">{{ lang('Cancel') }}</button>
+              <button class="button is-primary">{{ lang('Verify and continue') }}</button>
+            </div>
+            <div v-if="error">
+              <code>{{ error }}</code>
+            </div>
+
+            <div v-if="setupBackupCodes" class="notification is-warning" style="margin-top: 1em">
+              <p><strong>{{ lang('Save these backup codes') }}</strong></p>
+              <p>{{ lang('Each can be used once if you lose access to your authenticator. They will not be shown again.') }}</p>
+              <ul style="font-family: monospace; margin-top: 0.5em">
+                <li v-for="c in setupBackupCodes" :key="c">{{ c }}</li>
+              </ul>
+              <div class="is-flex is-justify-content-end">
+                <button class="button is-primary" type="button" @click="finishSetup">{{ lang('Continue') }}</button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -37,13 +113,20 @@
 
 <script>
 import api from '../api/api'
+import QRCode from 'qrcode'
 
 export default {
   name: 'Login',
   data() {
     return {
+      step: 'password',
       username: '',
       password: '',
+      mfaCode: '',
+      useBackup: false,
+      enrollment: null,
+      setupBackupCodes: null,
+      pendingUser: null,
       error: '',
     }
   },
@@ -52,7 +135,7 @@ export default {
       window.location.href = this.$store.state.config.guest_redirection
       return
     }
-    this.$refs.username.focus()
+    this.$refs.username && this.$refs.username.focus()
   },
   methods: {
     login() {
@@ -60,11 +143,20 @@ export default {
         username: this.username,
         password: this.password,
       })
-        .then(user => {
-          this.$store.commit('setUser', user)
-          api.changeDir({
-            to: '/'
-          }).then(() => this.$router.push('/').catch(() => {}))
+        .then(data => {
+          if (data && data.mfa_required) {
+            this.step = 'mfa'
+            this.$nextTick(() => this.$refs.mfa && this.$refs.mfa.focus())
+            return
+          }
+          if (data && data.mfa_setup_required) {
+            this.enrollment = data.enrollment
+            this.step = 'mfa_setup'
+            this.$nextTick(() => this.drawQr())
+            return
+          }
+          this.$store.commit('setUser', data)
+          api.changeDir({ to: '/' }).then(() => this.$router.push('/').catch(() => {}))
         })
         .catch(error => {
           if (error.response && error.response.data) {
@@ -74,6 +166,55 @@ export default {
           }
           this.password = ''
         })
+    },
+    verifyMfa() {
+      api.loginMfa({ code: this.mfaCode, useBackup: this.useBackup })
+        .then(user => {
+          this.$store.commit('setUser', user)
+          api.changeDir({ to: '/' }).then(() => this.$router.push('/').catch(() => {}))
+        })
+        .catch(error => {
+          this.error = this.lang('Invalid code')
+          this.mfaCode = ''
+        })
+    },
+    completeSetup() {
+      api.loginMfaSetup({ code: this.mfaCode })
+        .then(res => {
+          this.pendingUser = res.user
+          this.setupBackupCodes = res.backup_codes
+        })
+        .catch(error => {
+          this.error = this.lang('Invalid code')
+          this.mfaCode = ''
+        })
+    },
+    finishSetup() {
+      this.$store.commit('setUser', this.pendingUser)
+      api.changeDir({ to: '/' }).then(() => this.$router.push('/').catch(() => {}))
+    },
+    toggleBackup() {
+      this.useBackup = !this.useBackup
+      this.mfaCode = ''
+    },
+    cancel() {
+      api.loginMfaCancel().catch(() => {})
+      this.reset()
+    },
+    reset() {
+      this.step = 'password'
+      this.mfaCode = ''
+      this.password = ''
+      this.useBackup = false
+      this.enrollment = null
+      this.setupBackupCodes = null
+      this.pendingUser = null
+      this.error = ''
+      this.$nextTick(() => this.$refs.username && this.$refs.username.focus())
+    },
+    drawQr() {
+      if (!this.$refs.qrCanvas || !this.enrollment) return
+      QRCode.toCanvas(this.$refs.qrCanvas, this.enrollment.otpauth_uri, { width: 220 }, () => {})
     },
   }
 }

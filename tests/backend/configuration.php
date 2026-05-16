@@ -20,6 +20,11 @@ return [
         'guest_redirection' => '', // useful for external auth adapters
     ],
 
+    'mfa_required_for_admins' => false, // tests override per-case
+    'password_reset_token_ttl' => 3600,
+    'password_reset_max_per_hour_per_ip' => 3,
+    'password_reset_max_per_day_per_email' => 3,
+
     'services' => [
         'Filegator\Services\Logger\LoggerInterface' => [
             'handler' => '\Filegator\Services\Logger\Adapters\MonoLogger',
@@ -77,6 +82,23 @@ return [
             'config' => [
                 'query_param' => 'r',
                 'routes_file' => __DIR__.'/../../backend/Controllers/routes.php',
+            ],
+        ],
+        'Filegator\Services\Mailer\MailerInterface' => [
+            'handler' => '\Tests\Fakes\InMemoryMailer',
+            'config' => [],
+        ],
+        'Filegator\Services\Mfa\MfaService' => [
+            'handler' => '\Filegator\Services\Mfa\MfaService',
+            'config' => [
+                'issuer' => 'FileGatorTest',
+            ],
+        ],
+        'Filegator\Services\PasswordReset\PasswordResetService' => [
+            'handler' => '\Filegator\Services\PasswordReset\PasswordResetService',
+            'config' => [
+                'token_file' => TEST_TMP_PATH.'password_resets.json',
+                'reset_subject' => 'Reset your FileGator password',
             ],
         ],
     ],

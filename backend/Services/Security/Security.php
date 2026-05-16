@@ -44,9 +44,16 @@ class Security implements Service
             $http_method = $this->request->getMethod();
             $csrfManager = new CsrfTokenManager();
 
+            $exempt_paths = isset($config['csrf_exempt_paths']) && is_array($config['csrf_exempt_paths'])
+                ? $config['csrf_exempt_paths']
+                : ['/password/forgot', '/password/reset/validate'];
+
+            $route_id = (string) $this->request->query->get('r', '');
+            $is_exempt = in_array($route_id, $exempt_paths, true);
+
             if (in_array($http_method, ['GET', 'HEAD', 'OPTIONS'])) {
                 $this->response->headers->set('X-CSRF-Token', $csrfManager->getToken($key));
-            } else {
+            } elseif (! $is_exempt) {
                 $token = new CsrfToken($key, $this->request->headers->get('X-CSRF-Token'));
 
                 if (! $csrfManager->isTokenValid($token)) {

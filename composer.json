@@ -18,7 +18,9 @@
         "php-di/php-di": "^6.0",
         "rakit/validation": "^1.1",
         "league/flysystem": "^1.1",
-        "league/flysystem-ziparchive": "^1.0"
+        "league/flysystem-ziparchive": "^1.0",
+        "spomky-labs/otphp": "^11.2",
+        "symfony/mailer": "^5.4"
     },
     "authors": [
         {

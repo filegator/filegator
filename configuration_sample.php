@@ -9,6 +9,11 @@ return [
     'lockout_attempts' => 5, // max failed login attempts before ip lockout
     'lockout_timeout' => 15, // ip lockout timeout in seconds
 
+    'mfa_required_for_admins' => true,           // admins must enroll TOTP on first login
+    'password_reset_token_ttl' => 3600,          // seconds the reset link stays valid
+    'password_reset_max_per_hour_per_ip' => 3,   // throttle per IP
+    'password_reset_max_per_day_per_email' => 3, // throttle per email
+
     'frontend_config' => [
         'app_name' => 'FileGator',
         'app_version' => APP_VERSION,
@@ -75,6 +80,7 @@ return [
             'config' => [
                 'csrf_protection' => true,
                 'csrf_key' => "123456", // randomize this
+                'csrf_exempt_paths' => ['/password/forgot', '/password/reset/validate'],
                 'ip_allowlist' => [],
                 'ip_denylist' => [],
                 'allow_insecure_overlays' => false,
@@ -114,6 +120,31 @@ return [
             'config' => [
                 'query_param' => 'r',
                 'routes_file' => __DIR__.'/backend/Controllers/routes.php',
+            ],
+        ],
+        'Filegator\Services\Mailer\MailerInterface' => [
+            'handler' => '\Filegator\Services\Mailer\Adapters\SymfonyMailer',
+            'config' => [
+                // Symfony Mailer DSN. Use 'null://null' to disable sending (feature stays hidden).
+                // Examples:
+                //   'smtp://user:pass@smtp.example.com:587?encryption=tls'
+                //   'sendmail://default'
+                'dsn' => 'null://null',
+                'from_email' => 'no-reply@example.com',
+                'from_name' => 'FileGator',
+            ],
+        ],
+        'Filegator\Services\Mfa\MfaService' => [
+            'handler' => '\Filegator\Services\Mfa\MfaService',
+            'config' => [
+                'issuer' => 'FileGator',
+            ],
+        ],
+        'Filegator\Services\PasswordReset\PasswordResetService' => [
+            'handler' => '\Filegator\Services\PasswordReset\PasswordResetService',
+            'config' => [
+                'token_file' => __DIR__.'/private/password_resets.json',
+                'reset_subject' => 'Reset your FileGator password',
             ],
         ],
     ],

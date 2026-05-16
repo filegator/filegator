@@ -42,7 +42,28 @@ class TestCase extends BaseTestCase
 
     public $previous_session = false;
 
+    public $last_request;
+
     protected $auth = false;
+
+    protected $config_overrides = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        MockUsers::reset();
+        \Tests\Fakes\InMemoryMailer::reset();
+        if (! is_dir(TEST_TMP_PATH)) {
+            @mkdir(TEST_TMP_PATH, 0775, true);
+        }
+        $reset_token_file = TEST_TMP_PATH.'password_resets.json';
+        if (file_exists($reset_token_file)) {
+            @unlink($reset_token_file);
+        }
+        // Clear stale lockfiles so per-IP/per-email throttles don't leak across tests.
+        foreach (glob(TEST_TMP_PATH.'*.lock') ?: [] as $f) @unlink($f);
+        $this->config_overrides = [];
+    }
 
     public function bootFreshApp($config = null, $request = null, $response = null, $mock_users = false)
     {
@@ -78,8 +99,16 @@ class TestCase extends BaseTestCase
 
         $this->response = $app->resolve(Response::class);
         $this->streamedResponse = $app->resolve(StreamedResponse::class);
+        $this->last_request = $fakeRequest;
 
         return $app;
+    }
+
+    public function captureSession(): void
+    {
+        if ($this->last_request) {
+            $this->previous_session = $this->last_request->getSession();
+        }
     }
 
     public function signIn($username, $password)
@@ -104,7 +133,16 @@ class TestCase extends BaseTestCase
     {
         $config = require __DIR__.'/configuration.php';
 
+        if (! empty($this->config_overrides)) {
+            $config = array_replace_recursive($config, $this->config_overrides);
+        }
+
         return new Config($config);
+    }
+
+    public function overrideConfig(array $overrides): void
+    {
+        $this->config_overrides = array_replace_recursive($this->config_overrides, $overrides);
     }
 
     public function delTree($dir)

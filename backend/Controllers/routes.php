@@ -53,6 +53,126 @@ return [
     ],
     [
         'route' => [
+            'POST', '/login/mfa', '\Filegator\Controllers\AuthController@loginMfa',
+        ],
+        'roles' => [
+            'guest',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/login/mfa/setup', '\Filegator\Controllers\AuthController@loginMfaSetup',
+        ],
+        'roles' => [
+            'guest',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/login/mfa/cancel', '\Filegator\Controllers\AuthController@loginMfaCancel',
+        ],
+        'roles' => [
+            'guest',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'GET', '/mfa/state', '\Filegator\Controllers\MfaController@state',
+        ],
+        'roles' => [
+            'user', 'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/mfa/enroll/begin', '\Filegator\Controllers\MfaController@beginEnroll',
+        ],
+        'roles' => [
+            'user', 'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/mfa/enroll/confirm', '\Filegator\Controllers\MfaController@confirmEnroll',
+        ],
+        'roles' => [
+            'user', 'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/mfa/disable', '\Filegator\Controllers\MfaController@disable',
+        ],
+        'roles' => [
+            'user', 'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/mfa/backup_codes/regenerate', '\Filegator\Controllers\MfaController@regenerateBackupCodes',
+        ],
+        'roles' => [
+            'user', 'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/me/email', '\Filegator\Controllers\MfaController@updateEmail',
+        ],
+        'roles' => [
+            'user', 'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/password/forgot', '\Filegator\Controllers\PasswordResetController@request',
+        ],
+        'roles' => [
+            'guest',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/password/reset/validate', '\Filegator\Controllers\PasswordResetController@validateToken',
+        ],
+        'roles' => [
+            'guest',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/password/reset', '\Filegator\Controllers\PasswordResetController@confirm',
+        ],
+        'roles' => [
+            'guest',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
             'GET', '/getconfig', '\Filegator\Controllers\ViewController@getFrontendConfig',
         ],
         'roles' => [
@@ -260,6 +380,16 @@ return [
     [
         'route' => [
             'POST', '/deleteuser/{username}', '\Filegator\Controllers\AdminController@deleteUser',
+        ],
+        'roles' => [
+            'admin',
+        ],
+        'permissions' => [
+        ],
+    ],
+    [
+        'route' => [
+            'POST', '/admin/users/{username}/reset_mfa', '\Filegator\Controllers\AdminController@resetMfa',
         ],
         'roles' => [
             'admin',
