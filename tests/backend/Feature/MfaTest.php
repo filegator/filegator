@@ -234,6 +234,26 @@ class MfaTest extends TestCase
         $this->assertGreaterThan(0, $state['backup_codes_remaining']);
     }
 
+    public function testBeginEnrollRefusedWhenAlreadyEnrolled()
+    {
+        // Existing enrollment with a known secret.
+        $info = $this->enrollMfa('john@example.com');
+        $originalSecret = $info['secret'];
+        $this->establishSessionFor('john@example.com');
+
+        // Simulate a hijacked session attempting to overwrite the secret.
+        $this->sendRequest('POST', '/mfa/enroll/begin');
+        $this->assertUnprocessable();
+
+        // Stored secret must be unchanged — attacker's QR was never generated and
+        // the victim's authenticator continues to work.
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $state = $auth->getMfaState('john@example.com');
+        $this->assertSame($originalSecret, $state['secret']);
+        $this->assertTrue($state['enabled']);
+    }
+
     public function testDisableMfaRequiresCurrentCode()
     {
         $info = $this->enrollMfa('john@example.com');

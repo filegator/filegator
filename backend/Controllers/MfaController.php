@@ -56,7 +56,13 @@ class MfaController
         }
 
         $user = $auth->user();
-        $enrollment = $mfa->beginEnrollment($user->getUsername());
+
+        try {
+            $enrollment = $mfa->beginEnrollment($user->getUsername());
+        } catch (\RuntimeException $e) {
+            // Already enrolled — refuse rather than overwriting the existing secret.
+            return $response->json($e->getMessage(), 422);
+        }
 
         return $response->json($enrollment);
     }

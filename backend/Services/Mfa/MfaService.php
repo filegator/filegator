@@ -58,9 +58,21 @@ class MfaService implements Service
      * Begin enrollment: generate a fresh secret (NOT yet persisted as enabled) and return
      * the secret + provisioning URI. The secret is persisted on the user record so a refresh
      * of the page does not invalidate it; mfa_enabled stays false until confirm.
+     *
+     * Refuses to overwrite an existing enrollment so a hijacked session cannot replace the
+     * victim's TOTP secret with the attacker's, and so an accidental UI re-click cannot
+     * silently break the user's authenticator. Callers must disable() first (which already
+     * requires password + current TOTP) to re-enroll.
+     *
+     * @throws \RuntimeException if MFA is already enabled for this user.
      */
     public function beginEnrollment(string $username): array
     {
+        $state = $this->capable()->getMfaState($username);
+        if (! empty($state['enabled'])) {
+            throw new \RuntimeException('MFA is already enabled; disable it before re-enrolling');
+        }
+
         $totp = TOTP::create();
         $totp->setLabel($username);
         $totp->setIssuer($this->issuer);
