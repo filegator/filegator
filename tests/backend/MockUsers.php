@@ -17,28 +17,54 @@ use Filegator\Services\Service;
 
 class MockUsers extends JsonFile implements Service, AuthInterface
 {
-    private $users_array = [];
+    private static $persistent_users = null;
 
     public function init(array $config = [])
     {
-        $this->addMockUsers();
+        if (self::$persistent_users === null) {
+            self::$persistent_users = [];
+            $this->addMockUsers();
+        }
+    }
+
+    public static function reset(): void
+    {
+        self::$persistent_users = null;
     }
 
     protected function getUsers(): array
     {
-        return $this->users_array;
+        return self::$persistent_users ?? [];
     }
 
     protected function saveUsers(array $users)
     {
-        return $this->users_array = $users;
+        self::$persistent_users = $users;
+        return $users;
     }
 
-    public function user(): ?User
+    /**
+     * Tests use a static-array store, not a real file. Skip the flock-based
+     * RMW path and mutate the array directly. Tests run single-threaded, so
+     * the locked path's invariant (single mutation visible) holds trivially.
+     */
+    protected function mutateUser(string $username, callable $mutator): void
     {
-        return $this->session ? $this->session->get(self::SESSION_KEY, null) : null;
+        $all_users = $this->getUsers();
+        $found = false;
+        foreach ($all_users as &$u) {
+            if ($u['username'] == $username) {
+                $mutator($u);
+                $found = true;
+                break;
+            }
+        }
+        unset($u);
+        if (! $found) {
+            throw new \Exception('User not found');
+        }
+        $this->saveUsers($all_users);
     }
-
 
     private function addMockUsers()
     {

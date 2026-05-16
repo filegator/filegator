@@ -14,12 +14,18 @@ use Filegator\Config\Config;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Auth\MfaCapableInterface;
+use Filegator\Services\Mfa\MfaService;
+use Filegator\Services\Session\SessionStorageInterface;
 use Filegator\Services\Tmpfs\TmpfsInterface;
 use Filegator\Services\Logger\LoggerInterface;
 use Rakit\Validation\Validator;
 
 class AuthController
 {
+    const MFA_PENDING_KEY = 'mfa_pending';
+    const MFA_PENDING_TTL = 300;
+
     protected $logger;
 
     public function __construct(LoggerInterface $logger)
@@ -27,37 +33,164 @@ class AuthController
         $this->logger = $logger;
     }
 
-    public function login(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config)
+    public function login(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)
     {
-        $username = $request->input('username');
-        $password = $request->input('password');
+        $username = (string) $request->input('username');
+        $password = (string) $request->input('password');
         $ip = $request->getClientIp();
 
-        $lockfile = md5($ip).'.lock';
-        $lockout_attempts = $config->get('lockout_attempts', 5);
-        $lockout_timeout = $config->get('lockout_timeout', 15);
-
-        foreach ($tmpfs->findAll($lockfile) as $flock) {
-            if (time() - $flock['time'] >= $lockout_timeout) $tmpfs->remove($flock['name']);
-        }
-
-        if ($tmpfs->exists($lockfile) && strlen($tmpfs->read($lockfile)) >= $lockout_attempts) {
+        if ($this->isLockedOut($tmpfs, $ip, $config)) {
             $this->logger->log("Too many login attempts for {$username} from IP ".$ip);
-
             return $response->json('Not Allowed', 429);
         }
 
-        if ($auth->authenticate($username, $password)) {
-            $this->logger->log("Logged in {$username} from IP ".$ip);
-
-            return $response->json($auth->user());
+        // Legacy path first: adapters without the MFA capability go through
+        // the original single-step authenticate().
+        $supportsMfa = ($auth instanceof MfaCapableInterface) && $mfa->isSupported();
+        if (! $supportsMfa) {
+            if ($auth->authenticate($username, $password)) {
+                $this->logger->log("Logged in {$username} from IP ".$ip);
+                return $response->json($auth->user());
+            }
+            return $this->failLogin($tmpfs, $response, $username, $ip);
         }
 
-        $this->logger->log("Login failed for {$username} from IP ".$ip);
+        // MFA-capable path: verify password without granting a session, then
+        // branch on whether MFA is enabled, required-but-not-enrolled, or off.
+        if (! $auth->verifyPasswordOnly($username, $password)) {
+            return $this->failLogin($tmpfs, $response, $username, $ip);
+        }
 
-        $tmpfs->write($lockfile, 'x', true);
+        $user = $auth->find($username);
+        if (! $user) {
+            return $this->failLogin($tmpfs, $response, $username, $ip);
+        }
 
-        return $response->json('Login failed, please try again', 422);
+        try {
+            $mfaState = $auth->getMfaState($username);
+        } catch (\Throwable $e) {
+            $this->logger->log("getMfaState failed for {$username}: ".$e->getMessage());
+            return $this->failLogin($tmpfs, $response, $username, $ip);
+        }
+
+        if ($mfaState['enabled']) {
+            $session->set(self::MFA_PENDING_KEY, [
+                'username' => $username,
+                'expires' => time() + self::MFA_PENDING_TTL,
+                'phase' => 'verify',
+            ]);
+            $session->migrate(true);
+            $this->logger->log("Password ok for {$username} from {$ip}; awaiting MFA");
+            return $response->json(['mfa_required' => true]);
+        }
+
+        if ($mfa->isRequiredForUser($username, $user->getRole())) {
+            $enrollment = $mfa->beginEnrollment($username);
+            $session->set(self::MFA_PENDING_KEY, [
+                'username' => $username,
+                'expires' => time() + self::MFA_PENDING_TTL,
+                'phase' => 'setup',
+            ]);
+            $session->migrate(true);
+            $this->logger->log("Admin {$username} from {$ip} forced into MFA setup");
+            return $response->json([
+                'mfa_setup_required' => true,
+                'enrollment' => $enrollment,
+            ]);
+        }
+
+        // Plain login: password already verified above, so bypass authenticate()'s
+        // bcrypt rerun and use establishSessionFor to finalise the session.
+        $auth->establishSessionFor($username);
+        $this->logger->log("Logged in {$username} from IP ".$ip);
+        return $response->json($auth->user());
+    }
+
+    public function loginMfa(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)
+    {
+        $ip = $request->getClientIp();
+        $pending = $session->get(self::MFA_PENDING_KEY);
+
+        // Single-use: clear immediately regardless of outcome.
+        $session->set(self::MFA_PENDING_KEY, null);
+
+        if (! is_array($pending) || empty($pending['username']) || ($pending['expires'] ?? 0) < time()) {
+            return $response->json('MFA challenge expired or missing', 422);
+        }
+        if (($pending['phase'] ?? '') !== 'verify') {
+            return $response->json('Invalid MFA phase', 422);
+        }
+
+        if ($this->isLockedOut($tmpfs, $ip, $config, 'mfa')) {
+            return $response->json('Not Allowed', 429);
+        }
+
+        $username = (string) $pending['username'];
+        $code = (string) $request->input('code', '');
+        $useBackup = (bool) $request->input('use_backup', false);
+
+        $ok = $useBackup
+            ? $mfa->consumeBackupCode($username, $code)
+            : $mfa->verifyTotp($username, $code);
+
+        if (! $ok) {
+            $tmpfs->write(md5($ip).'.mfa.lock', 'x', true);
+            $this->logger->log("MFA failed for {$username} from {$ip}");
+            return $response->json('Invalid code', 422);
+        }
+
+        $user = $auth->find($username);
+        if (! $user) {
+            return $response->json('User not found', 422);
+        }
+
+        // Complete login: bypass password check (already verified at step 1).
+        $this->completeMfaLogin($auth, $session, $username);
+
+        $this->logger->log("MFA login complete for {$username} from {$ip}");
+        return $response->json($auth->user());
+    }
+
+    public function loginMfaSetup(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)
+    {
+        $ip = $request->getClientIp();
+        $pending = $session->get(self::MFA_PENDING_KEY);
+
+        // Single-use: clear immediately regardless of outcome (mirrors loginMfa).
+        $session->set(self::MFA_PENDING_KEY, null);
+
+        if (! is_array($pending) || empty($pending['username']) || ($pending['expires'] ?? 0) < time()) {
+            return $response->json('Setup session expired', 422);
+        }
+        if (($pending['phase'] ?? '') !== 'setup') {
+            return $response->json('Invalid MFA phase', 422);
+        }
+        if ($this->isLockedOut($tmpfs, $ip, $config, 'mfa')) {
+            return $response->json('Not Allowed', 429);
+        }
+
+        $username = (string) $pending['username'];
+        $code = (string) $request->input('code', '');
+
+        $backupCodes = $mfa->confirmEnrollment($username, $code);
+        if ($backupCodes === null) {
+            $tmpfs->write(md5($ip).'.mfa.lock', 'x', true);
+            return $response->json('Invalid code', 422);
+        }
+
+        $this->completeMfaLogin($auth, $session, $username);
+
+        $this->logger->log("MFA setup complete for {$username} from {$ip}");
+        return $response->json([
+            'user' => $auth->user(),
+            'backup_codes' => $backupCodes,
+        ]);
+    }
+
+    public function loginMfaCancel(Response $response, SessionStorageInterface $session)
+    {
+        $session->set(self::MFA_PENDING_KEY, null);
+        return $response->json('ok');
     }
 
     public function logout(Response $response, AuthInterface $auth)
@@ -91,5 +224,39 @@ class AuthController
         }
 
         return $response->json($auth->update($auth->user()->getUsername(), $auth->user(), $request->input('newpassword')));
+    }
+
+    protected function completeMfaLogin(AuthInterface $auth, SessionStorageInterface $session, string $username): void
+    {
+        if ($auth instanceof MfaCapableInterface) {
+            $auth->establishSessionFor($username);
+            return;
+        }
+        $user = $auth->find($username);
+        if ($user) $auth->store($user);
+        $session->migrate(true);
+    }
+
+    protected function failLogin(TmpfsInterface $tmpfs, Response $response, string $username, string $ip)
+    {
+        $this->logger->log("Login failed for {$username} from IP ".$ip);
+        $tmpfs->write(md5($ip).'.lock', 'x', true);
+        return $response->json('Login failed, please try again', 422);
+    }
+
+    protected function isLockedOut(TmpfsInterface $tmpfs, string $ip, Config $config, string $namespace = ''): bool
+    {
+        $suffix = $namespace ? '.'.$namespace.'.lock' : '.lock';
+        $lockfile = md5($ip).$suffix;
+        $lockout_attempts = (int) $config->get('lockout_attempts', 5);
+        $lockout_timeout = (int) $config->get('lockout_timeout', 15);
+
+        foreach ($tmpfs->findAll($lockfile) as $flock) {
+            if (time() - $flock['time'] >= $lockout_timeout) {
+                $tmpfs->remove($flock['name']);
+            }
+        }
+
+        return $tmpfs->exists($lockfile) && strlen($tmpfs->read($lockfile)) >= $lockout_attempts;
     }
 }

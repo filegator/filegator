@@ -9,6 +9,11 @@ return [
     'lockout_attempts' => 5, // max failed login attempts before ip lockout
     'lockout_timeout' => 15, // ip lockout timeout in seconds
 
+    'mfa_required_for_admins' => true,           // admins must enroll TOTP on first login
+    'password_reset_token_ttl' => 3600,          // seconds the reset link stays valid
+    'password_reset_max_per_hour_per_ip' => 3,   // throttle per IP
+    'password_reset_max_per_day_per_email' => 3, // throttle per email
+
     'frontend_config' => [
         'app_name' => 'FileGator',
         'app_version' => APP_VERSION,
@@ -75,6 +80,7 @@ return [
             'config' => [
                 'csrf_protection' => true,
                 'csrf_key' => "123456", // randomize this
+                'csrf_exempt_paths' => ['/password/forgot', '/password/reset/validate', '/password/reset'],
                 'ip_allowlist' => [],
                 'ip_denylist' => [],
                 'allow_insecure_overlays' => false,
@@ -107,6 +113,48 @@ return [
             'handler' => '\Filegator\Services\Auth\Adapters\JsonFile',
             'config' => [
                 'file' => __DIR__.'/private/users.json',
+            ],
+        ],
+        // Mailer / Mfa / PasswordReset must come BEFORE Router. Router::init
+        // dispatches the route immediately, so any controller method that
+        // type-hints these services (e.g. ViewController::getFrontendConfig)
+        // would otherwise fail to resolve them.
+        'Filegator\Services\Mailer\MailerInterface' => [
+            'handler' => '\Filegator\Services\Mailer\Adapters\SymfonyMailer',
+            'config' => [
+                // Symfony Mailer DSN. Use 'null://null' to disable sending (feature stays hidden).
+                // Examples:
+                //   'smtp://user:pass@smtp.example.com:587?encryption=tls'
+                //   'sendmail://default'
+                'dsn' => 'null://null',
+                'from_email' => 'no-reply@example.com',
+                'from_name' => 'FileGator',
+                // Hard cap (seconds) we force on every SMTP socket so a slow / unreachable
+                // mail server cannot hang a PHP-FPM worker for PHP's default_socket_timeout
+                // (60s by default). Appended to the DSN automatically if not already set,
+                // and also enforced via a per-request default_socket_timeout clamp. Tune up
+                // for very slow servers; do not set to 0.
+                'timeout' => 5,
+            ],
+        ],
+        'Filegator\Services\Mfa\MfaService' => [
+            'handler' => '\Filegator\Services\Mfa\MfaService',
+            'config' => [
+                'issuer' => 'FileGator',
+            ],
+        ],
+        'Filegator\Services\PasswordReset\PasswordResetService' => [
+            'handler' => '\Filegator\Services\PasswordReset\PasswordResetService',
+            'config' => [
+                'token_file' => __DIR__.'/private/password_resets.json',
+                'reset_subject' => 'Reset your FileGator password',
+                // REQUIRED for password reset to work. Must be the full public URL
+                // operators want reset links to point to (scheme + host + base path).
+                // We deliberately do NOT derive this from the request Host header,
+                // because doing so allows an attacker to send victims reset links
+                // pointing at an attacker-controlled host.
+                // Set to null (default) to disable the password-reset feature.
+                'reset_url_base' => null, // e.g. 'https://files.example.com/'
             ],
         ],
         'Filegator\Services\Router\Router' => [

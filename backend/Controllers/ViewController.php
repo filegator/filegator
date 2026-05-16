@@ -12,6 +12,8 @@ namespace Filegator\Controllers;
 
 use Filegator\Config\Config;
 use Filegator\Kernel\Response;
+use Filegator\Services\Mailer\MailerInterface;
+use Filegator\Services\PasswordReset\PasswordResetService;
 use Filegator\Services\View\ViewInterface;
 
 class ViewController
@@ -21,8 +23,13 @@ class ViewController
         return $response->html($view->getIndexPage());
     }
 
-    public function getFrontendConfig(Response $response, Config $config)
+    public function getFrontendConfig(Response $response, Config $config, MailerInterface $mailer, PasswordResetService $reset)
     {
-        return $response->json($config->get('frontend_config'));
+        $frontend = (array) $config->get('frontend_config', []);
+        // Both mailer AND reset_url_base must be configured before the feature is exposed.
+        // reset_url_base is required to prevent host-header injection in reset links.
+        $frontend['password_reset_enabled'] = $mailer->isConfigured() && $reset->isConfigured();
+        $frontend['mfa_required_for_admins'] = (bool) $config->get('mfa_required_for_admins', true);
+        return $response->json($frontend);
     }
 }

@@ -114,6 +114,56 @@ class Tmpfs implements Service, TmpfsInterface
         }
     }
 
+    public function addIfAbsent(string $filename, string $data = '1'): bool
+    {
+        $filename = $this->sanitizeFilename($filename);
+        $path = $this->getPath().$filename;
+
+        // 'x' mode opens for write IFF the file does NOT already exist. The
+        // check-and-create is a single atomic syscall (O_CREAT|O_EXCL), so
+        // two concurrent callers cannot both observe absence and both create.
+        $fh = @fopen($path, 'x');
+        if ($fh === false) return false;
+        try {
+            fwrite($fh, $data);
+            fflush($fh);
+        } finally {
+            fclose($fh);
+        }
+        return true;
+    }
+
+    public function incrementCounterIfBelow(string $filename, int $max): int
+    {
+        $filename = $this->sanitizeFilename($filename);
+        $path = $this->getPath().$filename;
+
+        $fh = @fopen($path, 'c+');
+        if ($fh === false) {
+            return -1; // cannot open; treat as limit-exceeded to fail closed
+        }
+        if (! flock($fh, LOCK_EX)) {
+            fclose($fh);
+            return -1;
+        }
+        try {
+            rewind($fh);
+            $contents = stream_get_contents($fh);
+            $current = ($contents === false) ? 0 : strlen($contents);
+            if ($current >= $max) {
+                return -1;
+            }
+            // Append one byte while still holding the lock.
+            fseek($fh, 0, SEEK_END);
+            fwrite($fh, 'x');
+            fflush($fh);
+            return $current + 1;
+        } finally {
+            @flock($fh, LOCK_UN);
+            @fclose($fh);
+        }
+    }
+
     private function getPath(): string
     {
         return $this->path;
