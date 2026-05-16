@@ -37,6 +37,8 @@ class PasswordResetService implements Service
 
     protected $resetSubject = 'Reset your password';
 
+    protected $resetUrlBase = null;
+
     public function __construct(AuthInterface $auth, MailerInterface $mailer, TmpfsInterface $tmpfs, LoggerInterface $logger, Config $config)
     {
         $this->auth = $auth;
@@ -55,22 +57,34 @@ class PasswordResetService implements Service
         if (! empty($config['reset_subject'])) {
             $this->resetSubject = (string) $config['reset_subject'];
         }
+        if (! empty($config['reset_url_base'])) {
+            $this->resetUrlBase = (string) $config['reset_url_base'];
+        }
         $this->store = new TokenStore($this->tokenFile);
     }
 
     public function isSupported(): bool
     {
-        return $this->auth instanceof PasswordResettableInterface;
+        return ($this->auth instanceof PasswordResettableInterface) && $this->resetUrlBase !== null;
+    }
+
+    public function isConfigured(): bool
+    {
+        return $this->resetUrlBase !== null;
     }
 
     /**
      * Issue a reset token for the email address if a matching user exists.
      * Always returns success; callers should not differentiate based on the result.
+     *
+     * The reset link host is taken from the configured reset_url_base only —
+     * never from the request Host header, to prevent host-header injection of
+     * attacker-controlled links into the victim's mailbox.
      */
-    public function requestReset(string $email, string $ip, ?string $baseUrl): void
+    public function requestReset(string $email, string $ip): void
     {
         if (! $this->isSupported()) {
-            $this->logger->log('Password reset requested but auth adapter does not support it');
+            $this->logger->log('Password reset requested but feature is not configured (auth adapter or reset_url_base missing)');
             return;
         }
 
@@ -95,7 +109,7 @@ class PasswordResetService implements Service
             return;
         }
 
-        $resetUrl = $this->buildResetUrl($baseUrl, $token);
+        $resetUrl = $this->buildResetUrl($token);
         $appName = (string) ($this->config->get('frontend_config.app_name') ?: 'FileGator');
         $rendered = PasswordResetTemplate::render($resetUrl, $user->getUsername(), (int) ceil($ttl / 60), $appName);
 
@@ -163,16 +177,11 @@ class PasswordResetService implements Service
         return true;
     }
 
-    protected function buildResetUrl(?string $baseUrl, string $token): string
+    protected function buildResetUrl(string $token): string
     {
-        if ($baseUrl) {
-            $base = rtrim($baseUrl, '/').'/';
-        } else {
-            $base = (string) $this->config->get('public_path', '/');
-            if ($base === '' || $base[strlen($base) - 1] !== '/') {
-                $base .= '/';
-            }
-        }
+        // resetUrlBase is required (checked in isSupported) — built only from
+        // operator-trusted config, never from request headers.
+        $base = rtrim((string) $this->resetUrlBase, '/').'/';
         return $base.'#/reset-password?token='.$token;
     }
 

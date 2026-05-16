@@ -99,6 +99,7 @@ return [
             'config' => [
                 'token_file' => TEST_TMP_PATH.'password_resets.json',
                 'reset_subject' => 'Reset your FileGator password',
+                'reset_url_base' => 'https://files.example.com/',
             ],
         ],
     ],

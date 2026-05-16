@@ -47,13 +47,12 @@ class PasswordResetController
             return $response->json(['message' => self::GENERIC_OK]);
         }
 
-        if (! $mailer->isConfigured()) {
-            $this->logger->log('Password reset requested but mailer not configured');
+        if (! $mailer->isConfigured() || ! $service->isConfigured()) {
+            $this->logger->log('Password reset requested but feature not fully configured (mailer or reset_url_base)');
             return $response->json(['message' => self::GENERIC_OK]);
         }
 
-        $base = $this->resolveBaseUrl($request);
-        $service->requestReset($email, $ip, $base);
+        $service->requestReset($email, $ip);
 
         return $response->json(['message' => self::GENERIC_OK]);
     }
@@ -90,11 +89,5 @@ class PasswordResetController
 
         $session->migrate(true);
         return $response->json(['message' => 'Password updated']);
-    }
-
-    protected function resolveBaseUrl(Request $request): ?string
-    {
-        $base = $request->getSchemeAndHttpHost().$request->getBaseUrl();
-        return $base ?: null;
     }
 }

@@ -163,6 +163,40 @@ class PasswordResetTest extends TestCase
         $this->assertOk();
     }
 
+    public function testResetLinkIgnoresAttackerSuppliedHostHeader()
+    {
+        $this->setEmail('john@example.com', 'john@reset.test');
+
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'john@reset.test'], [], [
+            'HTTP_HOST' => 'attacker.example.com',
+            'HTTP_X_FORWARDED_HOST' => 'attacker.example.com',
+        ]);
+        $this->assertOk();
+
+        $msg = InMemoryMailer::last();
+        $this->assertNotNull($msg);
+        // Link must use the configured reset_url_base, never the attacker's Host.
+        $this->assertStringContainsString('https://files.example.com/', $msg['text']);
+        $this->assertStringNotContainsString('attacker.example.com', $msg['text']);
+        $this->assertStringNotContainsString('attacker.example.com', (string) $msg['html']);
+    }
+
+    public function testResetWhenResetUrlBaseNotConfiguredReturnsGenericOk()
+    {
+        $this->overrideConfig([
+            'services' => [
+                'Filegator\Services\PasswordReset\PasswordResetService' => [
+                    'config' => ['reset_url_base' => null],
+                ],
+            ],
+        ]);
+        $this->setEmail('john@example.com', 'john@reset.test');
+
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'john@reset.test']);
+        $this->assertOk();
+        $this->assertNull(InMemoryMailer::last());
+    }
+
     public function testResetWhenMailerNotConfiguredStillReturnsOk()
     {
         InMemoryMailer::$configured = false;

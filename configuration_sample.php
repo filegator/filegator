@@ -147,6 +147,13 @@ return [
             'config' => [
                 'token_file' => __DIR__.'/private/password_resets.json',
                 'reset_subject' => 'Reset your FileGator password',
+                // REQUIRED for password reset to work. Must be the full public URL
+                // operators want reset links to point to (scheme + host + base path).
+                // We deliberately do NOT derive this from the request Host header,
+                // because doing so allows an attacker to send victims reset links
+                // pointing at an attacker-controlled host.
+                // Set to null (default) to disable the password-reset feature.
+                'reset_url_base' => null, // e.g. 'https://files.example.com/'
             ],
         ],
     ],
