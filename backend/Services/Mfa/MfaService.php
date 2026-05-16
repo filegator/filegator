@@ -131,13 +131,21 @@ class MfaService implements Service
 
         $code = preg_replace('/\s+/', '', $code) ?? '';
 
-        if ($this->isReplayed($username, $code)) return false;
-
         if (! $this->verifyTotpAgainstSecret($secret, $code)) {
             return false;
         }
 
-        $this->markUsed($username, $code);
+        // Atomic SETNX-style replay claim. If two parallel /login/mfa requests
+        // submit the same TOTP code, only ONE will successfully create the
+        // marker file (O_EXCL semantics inside Tmpfs::addIfAbsent). The loser
+        // gets false here and the login fails. This is the only correct order:
+        // verify-then-atomically-claim. Verifying after the claim would let
+        // an attacker burn replay slots with garbage codes.
+        $this->gcExpiredReplayMarkers();
+        if (! $this->tmpfs->addIfAbsent($this->replayFile($username, $code), '1')) {
+            return false;
+        }
+
         return true;
     }
 
@@ -161,26 +169,19 @@ class MfaService implements Service
         }
     }
 
-    protected function isReplayed(string $username, string $code): bool
+    /**
+     * Opportunistically GC expired mfa_used_*.lock replay markers (~90s TTL)
+     * so they do not accumulate until the tmpfs-wide GC runs (every 2 days).
+     * Scoped to our own namespace so other lockfiles (IP throttles) are unaffected.
+     */
+    protected function gcExpiredReplayMarkers(): void
     {
-        // Opportunistically GC expired mfa_used_* replay markers (~90s TTL)
-        // so they do not accumulate until the tmpfs-wide GC runs (every 2 days).
-        // Scoped to our own namespace so other lockfiles (IP throttles) are unaffected.
-        if (random_int(1, 10) === 1) {
-            foreach ($this->tmpfs->findAll('mfa_used_*.lock') as $entry) {
-                if (time() - $entry['time'] >= 90) {
-                    $this->tmpfs->remove($entry['name']);
-                }
+        if (random_int(1, 10) !== 1) return;
+        foreach ($this->tmpfs->findAll('mfa_used_*.lock') as $entry) {
+            if (time() - $entry['time'] >= 90) {
+                $this->tmpfs->remove($entry['name']);
             }
         }
-        $file = $this->replayFile($username, $code);
-        if ($this->tmpfs->exists($file)) return true;
-        return false;
-    }
-
-    protected function markUsed(string $username, string $code): void
-    {
-        $this->tmpfs->write($this->replayFile($username, $code), '1', false);
     }
 
     protected function replayFile(string $username, string $code): string

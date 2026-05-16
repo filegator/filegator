@@ -162,6 +162,11 @@ class PasswordResetService implements Service
         return $this->checkAndIncrementLimit('reset_em_'.md5(strtolower(trim($email))), $max, 86400);
     }
 
+    /**
+     * Atomic counter increment via Tmpfs::incrementCounterIfBelow (LOCK_EX
+     * across read+append) so two concurrent requests can't both observe a
+     * sub-max value and both append, bypassing the limit.
+     */
     protected function checkAndIncrementLimit(string $key, int $max, int $window): bool
     {
         $file = $key.'.lock';
@@ -170,11 +175,7 @@ class PasswordResetService implements Service
                 $this->tmpfs->remove($flock['name']);
             }
         }
-        if ($this->tmpfs->exists($file) && strlen($this->tmpfs->read($file)) >= $max) {
-            return false;
-        }
-        $this->tmpfs->write($file, 'x', true);
-        return true;
+        return $this->tmpfs->incrementCounterIfBelow($file, $max) !== -1;
     }
 
     protected function buildResetUrl(string $token): string
