@@ -3,7 +3,7 @@
     <Menu />
     <div style="padding: 2em 1em; max-width: 720px; margin: 0 auto">
       <h1 class="title is-4">
-        {{ lang('Security') }}
+        {{ lang('Profile') }}
       </h1>
 
       <!-- Email -->

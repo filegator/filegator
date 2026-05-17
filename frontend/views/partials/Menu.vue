@@ -23,9 +23,6 @@
         <a v-if="is('guest')" class="navbar-item login" @click="login">
           {{ lang('Login') }}
         </a>
-        <a v-if="!is('guest')" class="navbar-item security" @click="$router.push('/security').catch(() => {})">
-          {{ lang('Security') }}
-        </a>
         <a v-if="!is('guest')" class="navbar-item profile" @click="$router.push('/security').catch(() => {})">
           {{ this.$store.state.user.name }}
         </a>
