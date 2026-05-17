@@ -26,7 +26,7 @@
         <a v-if="!is('guest')" class="navbar-item security" @click="$router.push('/security').catch(() => {})">
           {{ lang('Security') }}
         </a>
-        <a v-if="!is('guest')" class="navbar-item profile" @click="profile">
+        <a v-if="!is('guest')" class="navbar-item profile" @click="$router.push('/security').catch(() => {})">
           {{ this.$store.state.user.name }}
         </a>
         <a v-if="!is('guest')" class="navbar-item logout" @click="logout">
@@ -38,7 +38,6 @@
 </template>
 
 <script>
-import Profile from './Profile'
 import api from '../../api/api'
 
 export default {
@@ -46,11 +45,6 @@ export default {
   data() {
     return {
       navbarActive: false,
-    }
-  },
-  mounted() {
-    if (this.$store.state.user.firstlogin) {
-      this.profile()
     }
   },
   methods: {
@@ -74,13 +68,6 @@ export default {
     },
     login() {
       this.$router.push('/login').catch(() => {})
-    },
-    profile() {
-      this.$modal.open({
-        parent: this,
-        hasModalCard: true,
-        component: Profile,
-      })
     },
   }
 }
