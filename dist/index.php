@@ -9,7 +9,10 @@
  * file that was distributed with this source code.
  */
 
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+// E_STRICT was a no-op since PHP 7.0 and the constant itself was removed in
+// PHP 8.4. Reference it via defined() so older PHPs still strip the bit but
+// PHP 8.4+ doesn't emit a deprecation warning that corrupts every response.
+error_reporting(E_ALL & ~E_DEPRECATED & ~(defined('E_STRICT') ? E_STRICT : 0));
 
 if (version_compare(PHP_VERSION, '7.2.5', '<')) {
     echo 'Minimum requirement is PHP 7.2.5 You are using: '.PHP_VERSION."\n";
