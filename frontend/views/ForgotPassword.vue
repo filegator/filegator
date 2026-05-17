@@ -14,8 +14,8 @@
           <b-field :label="lang('Email')">
             <b-input v-model="email" type="email" required ref="email" />
           </b-field>
-          <div class="is-flex is-justify-content-space-between" style="align-items: center">
-            <a @click="$router.push('/login').catch(() => {})">{{ lang('Back to login') }}</a>
+          <div class="login-actions">
+            <a @click="$router.push('/login').catch(() => {})" class="login-link">{{ lang('Back to login') }}</a>
             <button class="button is-primary">
               {{ lang('Send reset link') }}
             </button>
@@ -81,5 +81,17 @@ export default {
 }
 #login {
   padding: 120px 20px;
+}
+.login-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.75em;
+}
+.login-link {
+  font-size: 0.9em;
+  white-space: nowrap;
 }
 </style>

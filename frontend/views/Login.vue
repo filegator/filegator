@@ -20,8 +20,8 @@
               <b-input v-model="password" type="password" name="password" required @input="error = ''" password-reveal />
             </b-field>
 
-            <div class="is-flex is-justify-content-space-between" style="align-items: center">
-              <a v-if="$store.state.config.password_reset_enabled" @click="$router.push('/forgot-password').catch(() => {})" style="font-size: 0.9em">
+            <div class="login-actions">
+              <a v-if="$store.state.config.password_reset_enabled" @click="$router.push('/forgot-password').catch(() => {})" class="login-link">
                 {{ lang('Forgot password?') }}
               </a>
               <span v-else />
@@ -30,7 +30,7 @@
               </button>
             </div>
 
-            <div v-if="error">
+            <div v-if="error" class="login-error">
               <code>{{ error }}</code>
             </div>
           </div>
@@ -58,11 +58,11 @@
                 key="mfa-input"
               />
             </b-field>
-            <div class="is-flex is-justify-content-space-between" style="align-items: center">
-              <a @click="toggleBackup" style="font-size: 0.9em">
+            <div class="login-actions">
+              <a @click="toggleBackup" class="login-link">
                 {{ useBackup ? lang('Use authenticator code') : lang('Use a backup code') }}
               </a>
-              <div>
+              <div class="buttons" style="margin-bottom: 0">
                 <button class="button" type="button" @click="cancel">
                   {{ lang('Cancel') }}
                 </button>
@@ -71,7 +71,7 @@
                 </button>
               </div>
             </div>
-            <div v-if="error">
+            <div v-if="error" class="login-error">
               <code>{{ error }}</code>
             </div>
           </div>
@@ -107,7 +107,7 @@
                 key="mfa-setup-input"
               />
             </b-field>
-            <div class="is-flex is-justify-content-end">
+            <div class="buttons is-right" style="margin-top: 1.25em; margin-bottom: 0">
               <button class="button" type="button" @click="cancel">
                 {{ lang('Cancel') }}
               </button>
@@ -115,7 +115,7 @@
                 {{ lang('Verify and continue') }}
               </button>
             </div>
-            <div v-if="error">
+            <div v-if="error" class="login-error">
               <code>{{ error }}</code>
             </div>
 
@@ -127,7 +127,7 @@
                   {{ c }}
                 </li>
               </ul>
-              <div class="is-flex is-justify-content-end">
+              <div class="buttons is-right" style="margin-top: 1em; margin-bottom: 0">
                 <button class="button is-primary" type="button" @click="finishSetup">
                   {{ lang('Continue') }}
                 </button>
@@ -275,5 +275,27 @@ export default {
   top: 0;
   right: 0;
   margin: 20px;
+}
+
+/* Row that holds an inline link on the left and the form's submit button(s)
+   on the right. Wraps to two lines on narrow screens so the link never
+   collides with the buttons. */
+.login-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.75em;
+}
+
+.login-link {
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.login-error {
+  margin-top: 0.75em;
+  text-align: center;
 }
 </style>

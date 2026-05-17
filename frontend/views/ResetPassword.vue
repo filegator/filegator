@@ -31,7 +31,7 @@
           <b-field :label="lang('Confirm password')">
             <b-input v-model="confirm" type="password" required password-reveal />
           </b-field>
-          <div class="is-flex is-justify-content-end">
+          <div class="buttons is-right" style="margin-top: 1em; margin-bottom: 0">
             <button class="button is-primary">
               {{ lang('Update password') }}
             </button>
