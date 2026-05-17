@@ -45,7 +45,14 @@ new Vue({
           .then((user) => {
             this.$store.commit('initialize')
             this.$store.commit('setUser', user)
-            this.$router.push('/').catch(() => {})
+            // Preserve deep links into public auth routes (email reset link,
+            // bookmarked forgot-password page) — otherwise the bootstrap push
+            // to / would kick the user back to the login screen before the
+            // intended route can render.
+            const preservedRoutes = ['forgot-password', 'reset-password']
+            if (!preservedRoutes.includes(this.$route.name)) {
+              this.$router.push('/').catch(() => {})
+            }
           })
           .catch(() => {
             this.$notification.open({
