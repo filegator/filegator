@@ -79,23 +79,13 @@
           <b-field :label="lang('6-digit code')">
             <b-input v-model="enrollCode" placeholder="123456" />
           </b-field>
-          <div class="is-flex is-justify-content-end">
+          <div class="buttons is-right" style="margin-top: 1em; margin-bottom: 0">
             <button class="button" @click="cancelEnroll">
               {{ lang('Cancel') }}
             </button>
             <button class="button is-primary" @click="confirmEnroll">
               {{ lang('Verify') }}
             </button>
-          </div>
-
-          <div v-if="backupCodes" class="notification is-warning" style="margin-top: 1em">
-            <p><strong>{{ lang('Save these backup codes') }}</strong></p>
-            <p>{{ lang('Each can be used once if you lose access to your authenticator. They will not be shown again.') }}</p>
-            <ul style="font-family: monospace; margin-top: 0.5em">
-              <li v-for="c in backupCodes" :key="c">
-                {{ c }}
-              </li>
-            </ul>
           </div>
         </div>
 
@@ -105,6 +95,28 @@
           <button class="button is-primary" @click="beginEnroll">
             {{ lang('Enable MFA') }}
           </button>
+        </div>
+
+        <!--
+          Backup codes are shown OUTSIDE the v-if/v-else-if chain so they
+          survive the state transition. confirmEnroll succeeds → state.enabled
+          flips to true → the parent chain switches branches → without this
+          being top-level, the codes would unmount before the user could read
+          them.
+        -->
+        <div v-if="backupCodes" class="notification is-warning" style="margin-top: 1em">
+          <p><strong>{{ lang('Save these backup codes') }}</strong></p>
+          <p>{{ lang('Each can be used once if you lose access to your authenticator. They will not be shown again.') }}</p>
+          <ul style="font-family: monospace; margin-top: 0.5em">
+            <li v-for="c in backupCodes" :key="c">
+              {{ c }}
+            </li>
+          </ul>
+          <div class="buttons is-right" style="margin-top: 1em; margin-bottom: 0">
+            <button class="button is-primary" @click="dismissBackupCodes">
+              {{ lang("I've saved them") }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -241,6 +253,10 @@ export default {
     cancelEnroll() {
       this.enrollment = null
       this.backupCodes = null
+    },
+    dismissBackupCodes() {
+      this.backupCodes = null
+      this.enrollment = null
     },
     openManage(mode) {
       this.manageMode = mode
