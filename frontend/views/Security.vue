@@ -1,149 +1,159 @@
 <template>
-  <div class="container" style="padding: 2em 1em; max-width: 720px">
-    <h1 class="title is-4">
-      {{ lang('Security') }}
-    </h1>
+  <div class="container">
+    <Menu />
+    <div style="padding: 2em 1em; max-width: 720px; margin: 0 auto">
+      <h1 class="title is-4">
+        {{ lang('Security') }}
+      </h1>
 
-    <!-- Email -->
-    <section class="box">
-      <h2 class="subtitle is-5">
-        {{ lang('Email address') }}
-      </h2>
-      <p>{{ lang('Used to recover your password if you forget it.') }}</p>
-      <br>
-      <b-field>
-        <b-input v-model="email" type="email" :placeholder="lang('you@example.com')" />
-        <p class="control">
-          <button class="button is-primary" @click="saveEmail" :disabled="saving">
-            {{ lang('Save') }}
-          </button>
-        </p>
-      </b-field>
-    </section>
-
-    <!-- Change password -->
-    <section class="box">
-      <h2 class="subtitle is-5">
-        {{ lang('Change password') }}
-      </h2>
-      <b-field :label="lang('Current password')" :type="cpErrors.oldpassword ? 'is-danger' : ''" :message="cpErrors.oldpassword">
-        <b-input v-model="oldPw" type="password" password-reveal />
-      </b-field>
-      <b-field :label="lang('New password')" :type="cpErrors.newpassword ? 'is-danger' : ''" :message="cpErrors.newpassword">
-        <b-input v-model="newPw" type="password" password-reveal />
-      </b-field>
-      <div class="is-flex is-justify-content-end">
-        <button class="button is-primary" @click="changePassword">
-          {{ lang('Update password') }}
-        </button>
-      </div>
-    </section>
-
-    <!-- MFA -->
-    <section class="box">
-      <h2 class="subtitle is-5">
-        {{ lang('Multi-factor authentication') }}
-      </h2>
-
-      <div v-if="state === null">
-        {{ lang('Loading…') }}
-      </div>
-
-      <div v-else-if="state.enabled">
-        <p>{{ lang('MFA is enabled on your account.') }} <strong>{{ state.backup_codes_remaining }}</strong> {{ lang('backup code(s) remaining.') }}</p>
+      <!-- Email -->
+      <section class="box">
+        <h2 class="subtitle is-5">
+          {{ lang('Email address') }}
+        </h2>
+        <p>{{ lang('Used to recover your password if you forget it.') }}</p>
         <br>
-        <div class="buttons">
-          <button class="button" @click="openManage('regenerate')">
-            {{ lang('Regenerate backup codes') }}
-          </button>
-          <button class="button is-danger is-light" v-if="!state.required_by_role" @click="openManage('disable')">
-            {{ lang('Disable MFA') }}
-          </button>
-          <span v-else class="tag is-info is-light" style="align-self: center; margin-left: .5em">
-            {{ lang('Required by your role') }}
-          </span>
-        </div>
-      </div>
+        <b-field>
+          <b-input v-model="email" type="email" :placeholder="lang('you@example.com')" />
+          <p class="control">
+            <button class="button is-primary" @click="saveEmail" :disabled="saving">
+              {{ lang('Save') }}
+            </button>
+          </p>
+        </b-field>
+      </section>
 
-      <div v-else-if="enrollment">
-        <p>{{ lang('Scan this QR code with an authenticator app, then enter the 6-digit code.') }}</p>
-        <div class="has-text-centered" style="margin: 1em 0">
-          <canvas ref="qrCanvas" />
-        </div>
-        <p style="font-family: monospace; word-break: break-all; font-size: 0.9em">
-          {{ lang('Manual key') }}: {{ enrollment.secret }}
-        </p>
-        <br>
-        <b-field :label="lang('6-digit code')">
-          <b-input v-model="enrollCode" placeholder="123456" />
+      <!-- Change password -->
+      <section class="box">
+        <h2 class="subtitle is-5">
+          {{ lang('Change password') }}
+        </h2>
+        <b-field :label="lang('Current password')" :type="cpErrors.oldpassword ? 'is-danger' : ''" :message="cpErrors.oldpassword">
+          <b-input v-model="oldPw" type="password" password-reveal />
+        </b-field>
+        <b-field :label="lang('New password')" :type="cpErrors.newpassword ? 'is-danger' : ''" :message="cpErrors.newpassword">
+          <b-input v-model="newPw" type="password" password-reveal />
         </b-field>
         <div class="is-flex is-justify-content-end">
-          <button class="button" @click="cancelEnroll">
-            {{ lang('Cancel') }}
-          </button>
-          <button class="button is-primary" @click="confirmEnroll">
-            {{ lang('Verify') }}
+          <button class="button is-primary" @click="changePassword">
+            {{ lang('Update password') }}
           </button>
         </div>
+      </section>
 
-        <div v-if="backupCodes" class="notification is-warning" style="margin-top: 1em">
-          <p><strong>{{ lang('Save these backup codes') }}</strong></p>
-          <p>{{ lang('Each can be used once if you lose access to your authenticator. They will not be shown again.') }}</p>
-          <ul style="font-family: monospace; margin-top: 0.5em">
-            <li v-for="c in backupCodes" :key="c">
-              {{ c }}
-            </li>
-          </ul>
+      <!-- MFA -->
+      <section class="box">
+        <h2 class="subtitle is-5">
+          {{ lang('Multi-factor authentication') }}
+        </h2>
+
+        <div v-if="state === null">
+          {{ lang('Loading…') }}
         </div>
-      </div>
 
-      <div v-else>
-        <p>{{ lang('Add a second factor with a TOTP authenticator app.') }}</p>
-        <br>
-        <button class="button is-primary" @click="beginEnroll">
-          {{ lang('Enable MFA') }}
-        </button>
-      </div>
-    </section>
+        <div v-else-if="state.enabled">
+          <p>{{ lang('MFA is enabled on your account.') }} <strong>{{ state.backup_codes_remaining }}</strong> {{ lang('backup code(s) remaining.') }}</p>
+          <br>
+          <div class="buttons">
+            <button class="button" @click="openManage('regenerate')">
+              {{ lang('Regenerate backup codes') }}
+            </button>
+            <button class="button is-danger is-light" v-if="!state.required_by_role" @click="openManage('disable')">
+              {{ lang('Disable MFA') }}
+            </button>
+            <span v-else class="tag is-info is-light" style="align-self: center; margin-left: .5em">
+              {{ lang('Required by your role') }}
+            </span>
+          </div>
+        </div>
 
-    <!-- Re-auth modal for disable / regenerate -->
-    <b-modal :active.sync="manageOpen" has-modal-card>
-      <div class="modal-card">
-        <header class="modal-card-head">
-          <p class="modal-card-title">
-            {{ manageMode === 'disable' ? lang('Disable MFA') : lang('Regenerate backup codes') }}
+        <div v-else-if="enrollment">
+          <p>{{ lang('Scan this QR code with an authenticator app, then enter the 6-digit code.') }}</p>
+          <div class="has-text-centered" style="margin: 1em 0">
+            <canvas ref="qrCanvas" />
+          </div>
+          <p style="font-family: monospace; word-break: break-all; font-size: 0.9em">
+            {{ lang('Manual key') }}: {{ enrollment.secret }}
           </p>
-        </header>
-        <section class="modal-card-body">
-          <b-field :label="lang('Current password')">
-            <b-input v-model="reauthPassword" type="password" password-reveal />
+          <br>
+          <b-field :label="lang('6-digit code')">
+            <b-input v-model="enrollCode" placeholder="123456" />
           </b-field>
-          <b-field :label="useBackupForManage ? lang('Backup code') : lang('6-digit code')">
-            <b-input v-model="reauthCode" :placeholder="useBackupForManage ? 'XXXXX-XXXXX' : '123456'" />
-          </b-field>
-          <a @click="useBackupForManage = !useBackupForManage">
-            {{ useBackupForManage ? lang('Use authenticator code') : lang('Use a backup code') }}
-          </a>
-        </section>
-        <footer class="modal-card-foot">
-          <button class="button" @click="manageOpen = false">
-            {{ lang('Cancel') }}
+          <div class="is-flex is-justify-content-end">
+            <button class="button" @click="cancelEnroll">
+              {{ lang('Cancel') }}
+            </button>
+            <button class="button is-primary" @click="confirmEnroll">
+              {{ lang('Verify') }}
+            </button>
+          </div>
+
+          <div v-if="backupCodes" class="notification is-warning" style="margin-top: 1em">
+            <p><strong>{{ lang('Save these backup codes') }}</strong></p>
+            <p>{{ lang('Each can be used once if you lose access to your authenticator. They will not be shown again.') }}</p>
+            <ul style="font-family: monospace; margin-top: 0.5em">
+              <li v-for="c in backupCodes" :key="c">
+                {{ c }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div v-else>
+          <p>{{ lang('Add a second factor with a TOTP authenticator app.') }}</p>
+          <br>
+          <button class="button is-primary" @click="beginEnroll">
+            {{ lang('Enable MFA') }}
           </button>
-          <button class="button is-primary" @click="performManage">
-            {{ lang('Continue') }}
-          </button>
-        </footer>
-      </div>
-    </b-modal>
+        </div>
+      </section>
+
+      <!-- Re-auth modal for disable / regenerate -->
+      <b-modal :active.sync="manageOpen" has-modal-card>
+        <div class="modal-card">
+          <header class="modal-card-head">
+            <p class="modal-card-title">
+              {{ manageMode === 'disable' ? lang('Disable MFA') : lang('Regenerate backup codes') }}
+            </p>
+          </header>
+          <section class="modal-card-body">
+            <b-field :label="lang('Current password')">
+              <b-input v-model="reauthPassword" type="password" password-reveal />
+            </b-field>
+            <b-field :label="useBackupForManage ? lang('Backup code') : lang('6-digit code')">
+              <b-input
+                v-model="reauthCode"
+                :placeholder="useBackupForManage ? 'XXXXX-XXXXX' : '123456'"
+                :style="useBackupForManage ? 'font-family: monospace; font-size: 1.1em; letter-spacing: 0.05em; text-transform: uppercase' : 'font-family: monospace; font-size: 1.2em; letter-spacing: 0.15em'"
+                @input="onReauthInput"
+              />
+            </b-field>
+            <a @click="toggleReauthBackup">
+              {{ useBackupForManage ? lang('Use authenticator code') : lang('Use a backup code') }}
+            </a>
+          </section>
+          <footer class="modal-card-foot">
+            <button class="button" @click="manageOpen = false">
+              {{ lang('Cancel') }}
+            </button>
+            <button class="button is-primary" @click="performManage">
+              {{ lang('Continue') }}
+            </button>
+          </footer>
+        </div>
+      </b-modal>
+    </div>
   </div>
 </template>
 
 <script>
+import Menu from './partials/Menu'
 import api from '../api/api'
 import QRCode from 'qrcode'
 
 export default {
   name: 'Security',
+  components: { Menu },
   data() {
     return {
       state: null,
@@ -235,6 +245,15 @@ export default {
       this.reauthPassword = ''
       this.reauthCode = ''
       this.useBackupForManage = false
+    },
+    onReauthInput() {
+      if (this.useBackupForManage) {
+        this.reauthCode = (this.reauthCode || '').toUpperCase()
+      }
+    },
+    toggleReauthBackup() {
+      this.useBackupForManage = !this.useBackupForManage
+      this.reauthCode = ''
     },
     performManage() {
       const args = {

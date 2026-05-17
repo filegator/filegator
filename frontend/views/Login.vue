@@ -46,7 +46,14 @@
             <p>{{ useBackup ? lang('Enter one of your backup codes') : lang('Enter the 6-digit code from your authenticator app') }}</p>
             <br>
             <b-field>
-              <b-input v-model="mfaCode" :placeholder="useBackup ? 'XXXXX-XXXXX' : '123456'" required @input="error = ''" ref="mfa" />
+              <b-input
+                v-model="mfaCode"
+                :placeholder="useBackup ? 'XXXXX-XXXXX' : '123456'"
+                :style="useBackup ? 'font-family: monospace; font-size: 1.1em; letter-spacing: 0.05em; text-transform: uppercase' : 'font-family: monospace; font-size: 1.2em; letter-spacing: 0.15em'"
+                required
+                @input="onMfaInput"
+                ref="mfa"
+              />
             </b-field>
             <div class="is-flex is-justify-content-space-between" style="align-items: center">
               <a @click="toggleBackup" style="font-size: 0.9em">
@@ -187,6 +194,14 @@ export default {
           this.error = this.lang('Invalid code')
           this.mfaCode = ''
         })
+    },
+    onMfaInput() {
+      this.error = ''
+      // Backup codes are printed in uppercase with a hyphen, e.g. ABCDE-12345.
+      // Auto-uppercase so users see the value as it was issued.
+      if (this.useBackup) {
+        this.mfaCode = (this.mfaCode || '').toUpperCase()
+      }
     },
     completeSetup() {
       api.loginMfaSetup({ code: this.mfaCode })
