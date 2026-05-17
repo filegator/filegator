@@ -9,10 +9,11 @@
  * file that was distributed with this source code.
  */
 
-// E_STRICT was a no-op since PHP 7.0 and the constant itself was removed in
-// PHP 8.4. Reference it via defined() so older PHPs still strip the bit but
-// PHP 8.4+ doesn't emit a deprecation warning that corrupts every response.
-error_reporting(E_ALL & ~E_DEPRECATED & ~(defined('E_STRICT') ? E_STRICT : 0));
+// E_STRICT has been a no-op since PHP 7.0 and PHP 8.4 deprecated the constant
+// itself. composer.json pins PHP ^8.1, so we can drop the reference entirely
+// — any read of E_STRICT (even guarded by defined()) emits a deprecation
+// notice that corrupts every response under php -S.
+error_reporting(E_ALL & ~E_DEPRECATED);
 
 if (version_compare(PHP_VERSION, '7.2.5', '<')) {
     echo 'Minimum requirement is PHP 7.2.5 You are using: '.PHP_VERSION."\n";
