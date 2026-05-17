@@ -86,6 +86,11 @@ class MfaController
             return $response->json(['code' => 'Invalid code'], 422);
         }
 
+        // The mutation flipped mfa_enabled, which is part of buildSessionHash —
+        // without re-establishing, the current session's hash is now stale and
+        // the user gets silently logged out on the next request.
+        $auth->establishSessionFor($user->getUsername());
+
         $this->logger->log("MFA enrolled for {$user->getUsername()}");
         return $response->json(['backup_codes' => $codes]);
     }
@@ -108,6 +113,9 @@ class MfaController
         }
 
         $mfa->disable($username);
+        // mfa_enabled flipped — refresh the session hash so we don't log
+        // ourselves out on the next request.
+        $auth->establishSessionFor($username);
         $this->logger->log("MFA disabled for {$username}");
 
         return $response->json('ok');
@@ -152,6 +160,10 @@ class MfaController
         } catch (\Exception $e) {
             return $response->json(['email' => $e->getMessage()], 422);
         }
+
+        // email is part of the session-hash tamper check; refresh so we
+        // don't log ourselves out on the next request.
+        $auth->establishSessionFor($username);
 
         // Echo back the normalized value; no second read of users.json.
         return $response->json(['email' => $normalized]);

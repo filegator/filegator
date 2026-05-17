@@ -220,6 +220,13 @@ class MfaTest extends TestCase
         $this->assertOk();
         $confirm = $this->decodeResponseJson()['data'];
         $this->assertCount(10, $confirm['backup_codes']);
+
+        // Regression: enrolling MFA flips mfa_enabled, which is part of the
+        // session-hash tamper check. confirmEnroll must re-establish the
+        // session or the user is silently logged out on the next request.
+        $this->sendRequest('GET', '/getuser');
+        $this->assertOk();
+        $this->assertResponseJsonHas(['data' => ['username' => 'john@example.com']]);
     }
 
     public function testMfaStateEndpoint()
@@ -276,6 +283,11 @@ class MfaTest extends TestCase
             'code' => $this->totpFor($info['secret']),
         ]);
         $this->assertOk();
+
+        // Regression: disable flips mfa_enabled — must re-establish the
+        // session or john gets silently logged out on the next request.
+        $this->sendRequest('GET', '/getuser');
+        $this->assertResponseJsonHas(['data' => ['username' => 'john@example.com']]);
     }
 
     public function testAdminCannotDisableMfaWhenForcedByConfig()
@@ -439,6 +451,12 @@ class MfaTest extends TestCase
         $this->sendRequest('POST', '/me/email', ['email' => 'New.John@Reset.Test']);
         $this->assertOk();
         $this->assertResponseJsonHas(['data' => ['email' => 'new.john@reset.test']]);
+
+        // /getuser must still return john — email is part of buildSessionHash
+        // so updateEmail must re-establish the session.
+        $this->sendRequest('GET', '/getuser');
+        $this->assertOk();
+        $this->assertResponseJsonHas(['data' => ['username' => 'john@example.com']]);
 
         $app = $this->sendRequest('GET', '/getuser');
         $auth = $app->resolve(AuthInterface::class);
