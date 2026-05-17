@@ -56,6 +56,39 @@ class PasswordResetTest extends TestCase
         $this->assertNotNull($this->tokenFromLastMessage());
     }
 
+    public function testBrandingValuesRenderIntoEmail()
+    {
+        $this->overrideConfig([
+            'services' => [
+                'Filegator\\Services\\PasswordReset\\PasswordResetService' => [
+                    'config' => [
+                        'branding' => [
+                            'app_label'     => 'Acme Tax Portal',
+                            'logo_url'      => 'https://cdn.example.com/acme.png',
+                            'primary_color' => '#bada55',
+                            'support_email' => 'help@acme.test',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+        $this->setEmail('john@example.com', 'john@reset.test');
+
+        $this->sendRequest('POST', '/password/forgot', ['email' => 'john@reset.test']);
+        $this->assertOk();
+
+        $msg = InMemoryMailer::last();
+        $this->assertNotNull($msg);
+        // Branded label shown in both text + HTML bodies, logo + brand color
+        // in HTML, support email in footer.
+        $this->assertStringContainsString('Acme Tax Portal', $msg['text']);
+        $this->assertStringContainsString('Acme Tax Portal', $msg['html']);
+        $this->assertStringContainsString('https://cdn.example.com/acme.png', $msg['html']);
+        $this->assertStringContainsString('#bada55', $msg['html']);
+        $this->assertStringContainsString('help@acme.test', $msg['html']);
+        $this->assertStringContainsString('help@acme.test', $msg['text']);
+    }
+
     public function testTokenIsHashedOnDisk()
     {
         $this->setEmail('john@example.com', 'john@reset.test');

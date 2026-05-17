@@ -39,6 +39,9 @@ class PasswordResetService implements Service
 
     protected $resetUrlBase = null;
 
+    /** Optional branding passed through to the email template. */
+    protected $branding = [];
+
     public function __construct(AuthInterface $auth, MailerInterface $mailer, TmpfsInterface $tmpfs, LoggerInterface $logger, Config $config)
     {
         $this->auth = $auth;
@@ -59,6 +62,9 @@ class PasswordResetService implements Service
         }
         if (! empty($config['reset_url_base'])) {
             $this->resetUrlBase = (string) $config['reset_url_base'];
+        }
+        if (! empty($config['branding']) && is_array($config['branding'])) {
+            $this->branding = $config['branding'];
         }
         $this->store = new TokenStore($this->tokenFile);
     }
@@ -111,7 +117,7 @@ class PasswordResetService implements Service
 
         $resetUrl = $this->buildResetUrl($token);
         $appName = (string) ($this->config->get('frontend_config.app_name') ?: 'FileGator');
-        $rendered = PasswordResetTemplate::render($resetUrl, $user->getUsername(), (int) ceil($ttl / 60), $appName);
+        $rendered = PasswordResetTemplate::render($resetUrl, $user->getUsername(), (int) ceil($ttl / 60), $appName, $this->branding);
 
         $ok = $this->mailer->send($email, $this->resetSubject, $rendered['text'], $rendered['html']);
 

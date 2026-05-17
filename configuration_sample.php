@@ -155,6 +155,15 @@ return [
                 // pointing at an attacker-controlled host.
                 // Set to null (default) to disable the password-reset feature.
                 'reset_url_base' => null, // e.g. 'https://files.example.com/'
+                // Optional per-deployment branding for the reset email.
+                // Any value omitted falls back to a neutral default.
+                'branding' => [
+                    // 'app_label'     => 'My Portal',                       // shown in subject + body
+                    // 'logo_url'      => 'https://my.example.com/logo.png', // header image; omitted if blank
+                    // 'primary_color' => '#2c7a7b',                         // button + accent strip
+                    // 'background'    => '#f4f4f5',                         // page background
+                    // 'support_email' => 'support@example.com',             // footer mailto
+                ],
             ],
         ],
         'Filegator\Services\Router\Router' => [
