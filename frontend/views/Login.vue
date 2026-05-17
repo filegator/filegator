@@ -48,11 +48,14 @@
             <b-field>
               <b-input
                 v-model="mfaCode"
+                type="text"
                 :placeholder="useBackup ? 'XXXXX-XXXXX' : '123456'"
                 :style="useBackup ? 'font-family: monospace; font-size: 1.1em; letter-spacing: 0.05em; text-transform: uppercase' : 'font-family: monospace; font-size: 1.2em; letter-spacing: 0.15em'"
                 required
+                autocomplete="one-time-code"
                 @input="onMfaInput"
                 ref="mfa"
+                key="mfa-input"
               />
             </b-field>
             <div class="is-flex is-justify-content-space-between" style="align-items: center">
@@ -93,7 +96,16 @@
             </p>
             <br>
             <b-field :label="lang('6-digit code')">
-              <b-input v-model="mfaCode" placeholder="123456" required @input="error = ''" />
+              <b-input
+                v-model="mfaCode"
+                type="text"
+                placeholder="123456"
+                style="font-family: monospace; font-size: 1.2em; letter-spacing: 0.15em"
+                required
+                autocomplete="one-time-code"
+                @input="error = ''"
+                key="mfa-setup-input"
+              />
             </b-field>
             <div class="is-flex is-justify-content-end">
               <button class="button" type="button" @click="cancel">

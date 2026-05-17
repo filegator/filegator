@@ -123,9 +123,12 @@
             <b-field :label="useBackupForManage ? lang('Backup code') : lang('6-digit code')">
               <b-input
                 v-model="reauthCode"
+                type="text"
                 :placeholder="useBackupForManage ? 'XXXXX-XXXXX' : '123456'"
                 :style="useBackupForManage ? 'font-family: monospace; font-size: 1.1em; letter-spacing: 0.05em; text-transform: uppercase' : 'font-family: monospace; font-size: 1.2em; letter-spacing: 0.15em'"
+                autocomplete="one-time-code"
                 @input="onReauthInput"
+                key="reauth-code-input"
               />
             </b-field>
             <a @click="toggleReauthBackup">
