@@ -3,6 +3,9 @@
 ## Upcoming...
 * Added upload speed metric to the bottom pane, thanks @NikhilC2209 (see #581)
 
+## 7.14.1 - 2026-05-18
+* Fixed broken guest upload (see #583)
+
 ## 7.14.0 - 2026-04-18
 * Reworked bottom pane for file uploads by @NikhilC2209 (see #580)
 

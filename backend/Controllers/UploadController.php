@@ -43,10 +43,11 @@ class UploadController
     {
         $file_name = $request->input('resumableFilename', 'file');
         $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
-        $username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $this->auth->user()->getUsername());
+        $username = $this->auth->user() ? $this->auth->user()->getUsername() : 'guest';
+        $clean_username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', $username);
         $chunk_number = (int) $request->input('resumableChunkNumber');
 
-        $chunk_file = 'multipart_'.$username.'_'.$identifier.'_'.$file_name.'.part'.$chunk_number;
+        $chunk_file = 'multipart_'.$clean_username.'_'.$identifier.'_'.$file_name.'.part'.$chunk_number;
 
         if ($this->tmpfs->exists($chunk_file)) {
             return $response->json('Chunk exists', 200);
@@ -63,7 +64,8 @@ class UploadController
         $total_chunks = (int) $request->input('resumableTotalChunks');
         $total_size = (int) $request->input('resumableTotalSize');
         $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
-        $username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $this->auth->user()->getUsername());
+        $username = $this->auth->user() ? $this->auth->user()->getUsername() : 'guest';
+        $clean_username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', $username);
 
         $filebag = $request->files;
         $file = $filebag->get('file');
@@ -83,7 +85,7 @@ class UploadController
             return $response->json('Bad file', 422);
         }
 
-        $prefix = 'multipart_'.$username.'_'.$identifier.'_';
+        $prefix = 'multipart_'.$clean_username.'_'.$identifier.'_';
 
         if ($this->tmpfs->exists($prefix.'_error')) {
             return $response->json('Chunk too big', 422);
