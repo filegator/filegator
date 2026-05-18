@@ -4,7 +4,7 @@
 * Added upload speed metric to the bottom pane, thanks @NikhilC2209 (see #581)
 
 ## 7.14.2 - 2026-05-18
-* Security fix: validate permission bits when alowing chmod
+* Security fix: validate permission bits when using chmod, reported by Abdul Moiz (https://github.com/moizxsec).
 
 ## 7.14.1 - 2026-05-18
 * Fixed broken guest upload (see #583)
