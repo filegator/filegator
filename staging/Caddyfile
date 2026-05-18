@@ -1,0 +1,8 @@
+# Replace STAGING_HOST with your sslip.io name once you know the VM's public IP.
+# Format: <dashed-ip>.sslip.io   e.g. 203-0-113-45.sslip.io
+# Caddy will fetch a Let's Encrypt cert automatically on first boot.
+
+{$STAGING_HOST} {
+	encode zstd gzip
+	reverse_proxy filegator:8080
+}

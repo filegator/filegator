@@ -1,0 +1,40 @@
+services:
+  filegator:
+    build: ..
+    image: filegator:staging
+    restart: always
+    expose:
+      - "8080"
+    volumes:
+      - ../configuration.php:/var/www/filegator/configuration.php:ro
+      # Prod's configuration.php uses a custom Flysystem Local adapter pointing
+      # at __DIR__/filestorage. Match that path here so the same config works
+      # unchanged on staging.
+      - filestorage:/var/www/filegator/filestorage
+      - private:/var/www/filegator/private
+    networks:
+      - staging
+
+  caddy:
+    image: caddy:2
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - filegator
+    networks:
+      - staging
+
+networks:
+  staging:
+
+volumes:
+  filestorage:
+  private:
+  caddy_data:
+  caddy_config:
