@@ -21,6 +21,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      STAGING_HOST: ${STAGING_HOST:?set STAGING_HOST in staging/.env}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
