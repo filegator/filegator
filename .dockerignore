@@ -1,0 +1,26 @@
+# Keep the staging Docker build context small and stop host artifacts from
+# leaking into the image.
+node_modules
+vendor
+dist/*.map
+dist/js/*.map
+dist/css/*.map
+.git
+.github
+tests
+docs
+*.log
+private/logs/*
+private/tmp/*
+private/sessions/*
+private/users.json
+private/password_resets.json
+repository
+snapshot
+filegator-snapshot.tgz
+.env
+.env.*
+configuration.php
+.idea
+.vscode
+.DS_Store

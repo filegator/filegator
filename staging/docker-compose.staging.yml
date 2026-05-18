@@ -1,6 +1,8 @@
 services:
   filegator:
-    build: ..
+    build:
+      context: ..
+      dockerfile: staging/Dockerfile.staging
     image: filegator:staging
     restart: always
     expose:
