@@ -14,6 +14,7 @@ use Filegator\Config\Config;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Hooks\HooksInterface;
 use Filegator\Services\Tmpfs\TmpfsInterface;
 use Filegator\Services\Logger\LoggerInterface;
 use Rakit\Validation\Validator;
@@ -22,9 +23,12 @@ class AuthController
 {
     protected $logger;
 
-    public function __construct(LoggerInterface $logger)
+    protected $hooks;
+
+    public function __construct(LoggerInterface $logger, HooksInterface $hooks = null)
     {
         $this->logger = $logger;
+        $this->hooks = $hooks;
     }
 
     public function login(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config)
@@ -50,6 +54,17 @@ class AuthController
         if ($auth->authenticate($username, $password)) {
             $this->logger->log("Logged in {$username} from IP ".$ip);
 
+            // Trigger onLogin hook on successful login
+            if ($this->hooks) {
+                $user = $auth->user();
+                $this->hooks->trigger('onLogin', [
+                    'username' => $username,
+                    'ip_address' => $ip,
+                    'home_dir' => $user ? $user->getHomeDir() : '/',
+                    'role' => $user ? $user->getRole() : 'guest',
+                ]);
+            }
+
             return $response->json($auth->user());
         }
 
@@ -60,8 +75,19 @@ class AuthController
         return $response->json('Login failed, please try again', 422);
     }
 
-    public function logout(Response $response, AuthInterface $auth)
+    public function logout(Request $request, Response $response, AuthInterface $auth)
     {
+        // Trigger onLogout hook before logout
+        if ($this->hooks) {
+            $user = $auth->user();
+            if ($user) {
+                $this->hooks->trigger('onLogout', [
+                    'username' => $user->getUsername(),
+                    'ip_address' => $request->getClientIp(),
+                ]);
+            }
+        }
+
         return $response->json($auth->forget());
     }
 

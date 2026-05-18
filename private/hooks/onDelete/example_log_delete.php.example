@@ -1,0 +1,37 @@
+<?php
+/**
+ * Example onDelete hook - Log file/directory deletions
+ *
+ * This hook is triggered when a file or directory is deleted.
+ *
+ * Available data in $hookData:
+ *   - file_path: Full path to the deleted item
+ *   - file_name: Name of the deleted item
+ *   - type: 'file' or 'dir'
+ *   - user: Username of the user who deleted the item
+ *
+ * To enable this hook, rename this file to remove the .example extension.
+ */
+
+$logFile = __DIR__ . '/../../logs/deletions.log';
+$timestamp = date('Y-m-d H:i:s');
+$itemType = $hookData['type'] === 'dir' ? 'DIRECTORY' : 'FILE';
+
+$logEntry = sprintf(
+    "[%s] DELETE %s: User '%s' deleted '%s' at path '%s'\n",
+    $timestamp,
+    $itemType,
+    $hookData['user'],
+    $hookData['file_name'],
+    $hookData['file_path']
+);
+
+// Ensure log directory exists
+$logDir = dirname($logFile);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+
+file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+return true;

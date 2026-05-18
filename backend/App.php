@@ -28,9 +28,29 @@ class App
         $container->set(Response::class, $response);
         $container->set(StreamedResponse::class, $sresponse);
 
+        $routerKey = 'Filegator\Services\Router\Router';
+        $routerSeen = false;
+        $servicesAfterRouter = [];
+
         foreach ($config->get('services', []) as $key => $service) {
-            $container->set($key, $container->get($service['handler']));
-            $container->get($key)->init(isset($service['config']) ? $service['config'] : []);
+            // Track if we've seen the Router
+            if ($key === $routerKey) {
+                $routerSeen = true;
+            } elseif ($routerSeen) {
+                // Collect services registered after Router for warning
+                $servicesAfterRouter[] = $key;
+            }
+
+            $instance = $container->get($service['handler']);
+            $container->set($key, $instance);
+            $instance->init(isset($service['config']) ? $service['config'] : []);
+        }
+
+        // Warn about services registered after Router
+        if (!empty($servicesAfterRouter)) {
+            error_log('WARNING: The following services are configured AFTER Router in configuration.php: ' . implode(', ', $servicesAfterRouter));
+            error_log('WARNING: Router dispatches requests immediately during init(), so these services will NOT be available to controllers.');
+            error_log('WARNING: Move these services BEFORE Router in configuration.php to fix injection issues.');
         }
 
         $response->send();
