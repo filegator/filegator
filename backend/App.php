@@ -28,14 +28,29 @@ class App
         $container->set(Response::class, $response);
         $container->set(StreamedResponse::class, $sresponse);
 
-        foreach ($config->get('services', []) as $key => $service) {
-            $container->set($key, $container->get($service['handler']));
-            $container->get($key)->init(isset($service['config']) ? $service['config'] : []);
+        try {
+            foreach ($config->get('services', []) as $key => $service) {
+                $container->set($key, $container->get($service['handler']));
+                $container->get($key)->init(isset($service['config']) ? $service['config'] : []);
+            }
+        } catch (\Exception $e) {
+
+            if (headers_sent()) {
+                throw $e; // re-throw exceptions for PHPUnit
+            }
+
+            // unhandled exceptions should be logged to stdout and shown as generic internal server errors
+            error_log($e);
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Internal Server Error']);
+            die;
         }
 
         $response->send();
 
         $this->container = $container;
+
     }
 
     public function resolve($name)
