@@ -28,7 +28,8 @@
         <h3 class="is-size-5">
           {{ lang('Check your inbox') }}
         </h3>
-        <p>{{ message }}</p>
+        <p>{{ lang('If that email is associated with an account, we have sent a reset link. Please check your inbox, including your spam folder.') }} <span v-if="ttlMinutes">{{ lang('The link will expire in') }} {{ ttlMinutes }} {{ ttlMinutes === 1 ? lang('minute') : lang('minutes') }}.</span></p>
+        <p style="margin-top: 0.75em">{{ lang('Still do not see it? Contact us for help.') }}</p>
         <br>
         <button class="button is-primary" @click="$router.push('/login').catch(() => {})">
           {{ lang('Back to login') }}
@@ -47,8 +48,14 @@ export default {
     return {
       email: '',
       sent: false,
-      message: '',
     }
+  },
+  computed: {
+    ttlMinutes() {
+      const ttl = this.$store.state.config.password_reset_token_ttl
+      if (!ttl || typeof ttl !== 'number') return null
+      return Math.max(1, Math.round(ttl / 60))
+    },
   },
   mounted() {
     this.$refs.email && this.$refs.email.focus()
@@ -56,8 +63,7 @@ export default {
   methods: {
     submit() {
       api.requestPasswordReset({ email: this.email })
-        .then(data => {
-          this.message = (data && data.message) || this.lang('If that email matches an account, a reset link has been sent.')
+        .then(() => {
           this.sent = true
         })
         .catch(error => {

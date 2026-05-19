@@ -29,6 +29,7 @@ class ViewController
         // Both mailer AND reset_url_base must be configured before the feature is exposed.
         // reset_url_base is required to prevent host-header injection in reset links.
         $frontend['password_reset_enabled'] = $mailer->isConfigured() && $reset->isConfigured();
+        $frontend['password_reset_token_ttl'] = (int) $config->get('password_reset_token_ttl', 3600);
         $frontend['mfa_required_for_admins'] = (bool) $config->get('mfa_required_for_admins', true);
         return $response->json($frontend);
     }
