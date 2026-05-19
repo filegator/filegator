@@ -30,11 +30,11 @@ Replace the prod mailer config with the Gmail Workspace DSN. Use your own Worksp
 'Filegator\Services\Mailer\MailerInterface' => [
     'handler' => '\Filegator\Services\Mailer\Adapters\SymfonyMailer',
     'config' => [
-        // Authenticated SMTP submission via Google Workspace, STARTTLS on 587.
-        // URL-encode the @ in the username as %40.
-        // App password is 16 chars with no spaces (Google displays spaces — strip them).
-        'dsn' => 'smtp://YOUR_WORKSPACE_USER%40YOUR_DOMAIN.com:APP_PASSWORD_NO_SPACES@smtp.gmail.com:587',
-        'from_email' => 'YOUR_WORKSPACE_USER@YOUR_DOMAIN.com',
+        // Postmark via HTTPS API (port 443). Requires symfony/postmark-mailer
+        // composer package (bundled in this repo). Send is one HTTP POST —
+        // no SMTP handshake, no port-block risk, structured error responses.
+        'dsn' => 'postmark+api://POSTMARK_SERVER_API_TOKEN@default',
+        'from_email' => 'staff@elliffcpa.com',
         'from_name'  => 'FileGator Staging',
         'timeout'    => 5,
     ],
@@ -42,10 +42,17 @@ Replace the prod mailer config with the Gmail Workspace DSN. Use your own Worksp
 ```
 
 **Why these exact values:**
-- `smtp.gmail.com:587` with implicit STARTTLS is the documented Workspace path for app-password auth.
-- App passwords bypass 2FA and don't require any tenant-side toggles.
-- `from_email` must match the authenticated user (Gmail rewrites the `From:` header otherwise) — that's why you picked "send as me."
-- `timeout: 5` is the existing safeguard against a stuck PHP-FPM worker if Gmail is slow; leave it.
+- `postmark+api://` uses HTTPS (port 443) — works on any cloud provider regardless of outbound SMTP policy.
+- `from_email` must match a verified Sender Signature or verified Domain in your Postmark account.
+- `@default` is literal — Symfony's syntax for "use the provider's default endpoint" (api.postmarkapp.com).
+- Replace `POSTMARK_SERVER_API_TOKEN` with the Server API Token from Postmark → Servers → API Tokens.
+- `timeout: 5` clamps PHP's default socket timeout so a Postmark hiccup never stalls a PHP-FPM worker for 60s.
+
+**Alternative if you'd rather use SMTP (port 2525):**
+```
+'dsn' => 'smtp://TOKEN:TOKEN@smtp.postmarkapp.com:2525',
+```
+Same token in both spots. Works without the postmark-mailer composer package, but loses structured error reporting and is one rebuild behind the API path if you ever change transport.
 
 ---
 
