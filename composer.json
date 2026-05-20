@@ -21,7 +21,8 @@
         "league/flysystem-ziparchive": "^1.0",
         "spomky-labs/otphp": "^11.2",
         "symfony/mailer": "^5.4",
-        "symfony/postmark-mailer": "^5.4"
+        "symfony/postmark-mailer": "^5.4",
+        "symfony/http-client": "^5.4"
     },
     "authors": [
         {
