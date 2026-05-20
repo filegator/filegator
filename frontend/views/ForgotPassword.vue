@@ -13,7 +13,7 @@
           <p style="margin-top: 0.75em">{{ lang('If you do not receive the email within a few minutes, check your spam folder or contact us for help.') }}</p>
           <br>
           <b-field :label="lang('Email')">
-            <b-input v-model="email" type="email" required ref="email" />
+            <b-input v-model="email" type="email" name="email" autocomplete="email" required ref="email" />
           </b-field>
           <div class="login-actions">
             <a @click="$router.push('/login').catch(() => {})" class="login-link">{{ lang('Back to login') }}</a>
