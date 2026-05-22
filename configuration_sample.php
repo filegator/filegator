@@ -178,6 +178,17 @@ return [
                 'enabled' => true,
             ],
         ],
+        // Weekly all-users snapshot. Composes via AuditMailer using the same
+        // recipient/From: pair above. Fires when the first admin loads
+        // /listusers after the interval has elapsed since the last send.
+        // Set state_file to null (or leave handler unregistered) to disable.
+        'Filegator\Services\Audit\WeeklyDigest' => [
+            'handler' => '\Filegator\Services\Audit\WeeklyDigest',
+            'config' => [
+                'state_file' => __DIR__.'/private/audit_state.json',
+                'interval_seconds' => 604800, // 7 days
+            ],
+        ],
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [

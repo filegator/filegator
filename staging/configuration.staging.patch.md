@@ -119,6 +119,35 @@ Operational alert emails for admin user mutations (create / update / delete / MF
 
 ---
 
+## 4a. Weekly digest block — drop in next to AuditMailer
+
+The weekly all-users snapshot (one email per week summarising every active user, their folder, permissions, MFA, and email) is a separate service that composes via AuditMailer above. Add it right after the AuditMailer block — both must register before `Router`:
+
+```php
+'Filegator\Services\Audit\WeeklyDigest' => [
+    'handler' => '\Filegator\Services\Audit\WeeklyDigest',
+    'config' => [
+        // Stores the last-sent timestamp + per-request flock target. The
+        // private/ directory is gitignored, persisted between deploys.
+        'state_file' => __DIR__.'/private/audit_state.json',
+        // Default cadence (7 days). Tune down for testing or up for
+        // quieter teams. Minimum 1 — anything <=0 is ignored and the
+        // 7-day default is used.
+        'interval_seconds' => 604800,
+    ],
+],
+```
+
+**How it fires:** the scheduler hooks `AdminController::listUsers`. The first time an admin loads the user-management panel after the interval has elapsed, the digest sends; subsequent loads within the interval do nothing. No system cron involved — wherever the app runs, the digest runs.
+
+**Consequence of the in-app approach:** if no admin opens the user-management panel for a week, the digest waits until they do. For Elliff CPA's working hours this is a non-issue; if it ever becomes one, swap the trigger site to a different endpoint or wire a system cron to hit `/listusers` periodically.
+
+**Concurrency:** two admin requests crossing the due boundary simultaneously cannot both send — the state file is opened with `flock(LOCK_EX | LOCK_NB)`. The second request returns silently. The send itself happens outside the lock so a slow Postmark call doesn't stall the next admin request.
+
+**Failure mode:** the timestamp is advanced *before* the send completes. If Postmark is down at that moment, the failure is logged to `private/logs/app.log` and the next digest waits a full interval rather than retrying on every page load. Operators can manually re-trigger by deleting `private/audit_state.json`.
+
+---
+
 ## 5. Session cookie — line ~60
 
 If you fronted with Caddy (TLS), keep `cookie_secure` true (matches prod). If you skipped TLS and went plain HTTP on `:8080`, flip it to false for staging or testers can't log in.
