@@ -16,7 +16,7 @@
             <b-input v-model="email" type="email" name="email" autocomplete="email" required ref="email" />
           </b-field>
           <div class="login-actions">
-            <a @click="$router.push('/login').catch(() => {})" class="login-link">{{ lang('Back to login') }}</a>
+            <button type="button" @click="$router.push('/login').catch(() => {})" class="login-link">{{ lang('Back to login') }}</button>
             <button class="button is-primary">
               {{ lang('Send reset link') }}
             </button>
@@ -98,7 +98,28 @@ export default {
   margin-top: 0.75em;
 }
 .login-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
   font-size: 0.9em;
+  line-height: inherit;
   white-space: nowrap;
+  color: #3273dc;
+  cursor: pointer;
+  text-decoration: none;
+}
+.login-link:hover {
+  color: #363636;
+  text-decoration: underline;
+}
+.login-link:focus {
+  outline: none;
+}
+.login-link:focus-visible {
+  outline: 2px solid rgba(50, 115, 220, 0.35);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 </style>
