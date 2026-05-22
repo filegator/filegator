@@ -13,6 +13,7 @@ namespace Filegator\Controllers;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Audit\AuditMailer;
+use Filegator\Services\Audit\WeeklyDigest;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Auth\MfaCapableInterface;
 use Filegator\Services\Auth\User;
@@ -35,7 +36,7 @@ class AdminController
         $this->logger = $logger;
     }
 
-    public function listUsers(Request $request, Response $response)
+    public function listUsers(Request $request, Response $response, WeeklyDigest $digest)
     {
         $collection = $this->auth->allUsers();
         // Adapter-specific batch read of MFA metadata in a single file scan,
@@ -53,6 +54,13 @@ class AdminController
             }
             $rows[] = $row;
         }
+
+        // Piggy-back the weekly digest check on the admin-panel entry point.
+        // Admins almost always open the user list when administering, so this
+        // is the natural place to wake the scheduler without polluting every
+        // file-listing or upload request with a state-file stat. Cheap when
+        // not due (one flock + JSON decode).
+        $digest->maybeFire($this->auth);
 
         return $response->json($rows);
     }
