@@ -459,6 +459,37 @@ class AuditAlertsTest extends TestCase
         $this->assertLessThan($johnPos, $janePos);
     }
 
+    public function testListUsersFiresDigestOnFirstAdminLoad()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('GET', '/listusers');
+        $this->assertOk();
+
+        // First admin-panel load on a fresh install has no prior state file,
+        // so the digest is "due" immediately. Subject is the digest one,
+        // not an immediate-alert subject.
+        $digestAudits = array_values(array_filter($this->audits(), function ($m) {
+            return strpos($m['subject'] ?? '', 'Weekly audit digest') === 0;
+        }));
+        $this->assertCount(1, $digestAudits);
+        $this->assertStringContainsString('john@example.com', $digestAudits[0]['text']);
+    }
+
+    public function testListUsersDoesNotResendDigestWithinInterval()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('GET', '/listusers');
+        $this->sendRequest('GET', '/listusers');
+        $this->assertOk();
+
+        $digestAudits = array_values(array_filter($this->audits(), function ($m) {
+            return strpos($m['subject'] ?? '', 'Weekly audit digest') === 0;
+        }));
+        $this->assertCount(1, $digestAudits);
+    }
+
     public function testEmailChangeFiresEmailSubject()
     {
         $this->signIn('admin@example.com', 'admin123');
