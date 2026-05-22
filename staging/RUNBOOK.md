@@ -85,6 +85,7 @@ Specifically you change:
 - `reset_url_base` → `https://<DASHED-IP>.sslip.io/`
 - `reset_subject` → prefix with `[STAGING]`
 - Add the `Filegator\Services\Audit\AuditMailer` service block (operational alert emails — `staff@elliffcpa.com` recipient and From: address). Required for audit alerts to fire; leave the block out (or `enabled => false`) to silence them.
+- Add the `Filegator\Services\Audit\WeeklyDigest` service block (state-file path + 7-day interval). Drives the weekly all-users snapshot email, composed via AuditMailer above. Omit the block to disable the digest while still keeping per-change alerts.
 
 ## 5. Set the sslip.io hostname for Caddy
 
