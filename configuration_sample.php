@@ -166,6 +166,18 @@ return [
                 ],
             ],
         ],
+        // Operational alert emails for admin user mutations and self-disabled
+        // MFA. Leave 'recipient' empty (or 'enabled' => false) to silence.
+        'Filegator\Services\Audit\AuditMailer' => [
+            'handler' => '\Filegator\Services\Audit\AuditMailer',
+            'config' => [
+                'recipient' => '', // e.g. 'audit@example.com'
+                'from_email' => '', // distinct from the transactional From: above
+                'from_name' => '',
+                'app_label' => 'FileGator portal', // shown in email body header
+                'enabled' => true,
+            ],
+        ],
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [

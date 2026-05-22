@@ -114,6 +114,16 @@ return [
                 'reset_url_base' => 'https://files.example.com/',
             ],
         ],
+        'Filegator\Services\Audit\AuditMailer' => [
+            'handler' => '\Filegator\Services\Audit\AuditMailer',
+            'config' => [
+                'recipient' => 'audit@example.com',
+                'from_email' => 'audit-from@example.com',
+                'from_name' => 'Test Audit',
+                'app_label' => 'Test Portal',
+                'enabled' => true,
+            ],
+        ],
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [
