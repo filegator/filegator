@@ -11,6 +11,7 @@
 namespace Tests\Feature;
 
 use Filegator\Services\Audit\AuditMailer;
+use Filegator\Services\Audit\WeeklyDigest;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Mfa\BackupCodeGenerator;
 use OTPHP\TOTP;
@@ -371,6 +372,91 @@ class AuditAlertsTest extends TestCase
         $this->assertNotNull($msg);
         $this->assertStringNotContainsString('<script>', $msg['html']);
         $this->assertStringContainsString('&lt;script&gt;', $msg['html']);
+    }
+
+    public function testWeeklyDigestFiresOnFirstCallWhenStateMissing()
+    {
+        $app = $this->bootFreshApp();
+        $digest = $app->resolve(WeeklyDigest::class);
+        $auth = $app->resolve(AuthInterface::class);
+
+        $fired = $digest->maybeFire($auth);
+        $this->assertTrue($fired);
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertStringContainsString('Weekly audit digest', $msg['subject']);
+        // Guest is filtered out, the three seeded users land in the table.
+        $this->assertStringContainsString('admin@example.com', $msg['text']);
+        $this->assertStringContainsString('john@example.com', $msg['text']);
+        $this->assertStringContainsString('jane@example.com', $msg['text']);
+        $this->assertStringNotContainsString('Username: guest', $msg['text']);
+
+        $this->assertFileExists(TEST_TMP_PATH.'audit_state.json');
+    }
+
+    public function testWeeklyDigestSkipsWhenWithinInterval()
+    {
+        $app = $this->bootFreshApp();
+        $digest = $app->resolve(WeeklyDigest::class);
+        $auth = $app->resolve(AuthInterface::class);
+
+        $first = $digest->maybeFire($auth);
+        $this->assertTrue($first);
+        InMemoryMailer::reset();
+
+        // Second call right after — well inside the 7-day window.
+        $second = $digest->maybeFire($auth);
+        $this->assertFalse($second);
+        $this->assertSame([], $this->audits());
+    }
+
+    public function testWeeklyDigestFiresAgainWhenIntervalHasElapsed()
+    {
+        // Use a 1-second interval so the next call is "due" after sleeping.
+        $this->overrideConfig([
+            'services' => [
+                'Filegator\\Services\\Audit\\WeeklyDigest' => [
+                    'config' => ['interval_seconds' => 1],
+                ],
+            ],
+        ]);
+
+        $app = $this->bootFreshApp();
+        $digest = $app->resolve(WeeklyDigest::class);
+        $auth = $app->resolve(AuthInterface::class);
+
+        $this->assertTrue($digest->maybeFire($auth));
+        InMemoryMailer::reset();
+
+        // Push the recorded last-sent timestamp back by 2 seconds to simulate
+        // the interval elapsing without actually sleeping in the test.
+        $statePath = TEST_TMP_PATH.'audit_state.json';
+        $state = json_decode((string) file_get_contents($statePath), true);
+        $state['last_weekly_digest_at'] = time() - 2;
+        file_put_contents($statePath, json_encode($state));
+
+        $this->assertTrue($digest->maybeFire($auth));
+        $this->assertNotNull($this->lastAudit());
+    }
+
+    public function testWeeklyDigestSortsRowsAlphabeticallyByUsername()
+    {
+        $app = $this->bootFreshApp();
+        $digest = $app->resolve(WeeklyDigest::class);
+        $auth = $app->resolve(AuthInterface::class);
+        $digest->maybeFire($auth);
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $adminPos = strpos($msg['text'], '— admin@example.com');
+        $janePos = strpos($msg['text'], '— jane@example.com');
+        $johnPos = strpos($msg['text'], '— john@example.com');
+        $this->assertNotFalse($adminPos);
+        $this->assertNotFalse($janePos);
+        $this->assertNotFalse($johnPos);
+        $this->assertLessThan($janePos, $adminPos);
+        $this->assertLessThan($johnPos, $janePos);
     }
 
     public function testEmailChangeFiresEmailSubject()
