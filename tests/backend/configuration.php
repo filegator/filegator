@@ -124,6 +124,15 @@ return [
                 'enabled' => true,
             ],
         ],
+        'Filegator\Services\Audit\WeeklyDigest' => [
+            'handler' => '\Filegator\Services\Audit\WeeklyDigest',
+            'config' => [
+                'state_file' => TEST_TMP_PATH.'audit_state.json',
+                // 7 days in production, but tests override per-case to
+                // trigger the "due" path without sleeping.
+                'interval_seconds' => 604800,
+            ],
+        ],
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [

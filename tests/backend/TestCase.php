@@ -60,6 +60,10 @@ class TestCase extends BaseTestCase
         if (file_exists($reset_token_file)) {
             @unlink($reset_token_file);
         }
+        $audit_state_file = TEST_TMP_PATH.'audit_state.json';
+        if (file_exists($audit_state_file)) {
+            @unlink($audit_state_file);
+        }
         // Clear stale lockfiles so per-IP/per-email throttles don't leak across tests.
         foreach (glob(TEST_TMP_PATH.'*.lock') ?: [] as $f) @unlink($f);
         $this->config_overrides = [];
