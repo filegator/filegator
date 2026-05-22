@@ -17,7 +17,7 @@ use League\Flysystem\FileAttributes;
 
 /**
  * Delegating wrapper for Flysystem v3 FTP adapter.
- * 
+ *
  * This class wraps the official \League\Flysystem\Ftp\FtpAdapter,
  * providing a simplified interface for backward compatibility and convenience.
  */

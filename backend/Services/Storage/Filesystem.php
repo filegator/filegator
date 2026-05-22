@@ -193,10 +193,10 @@ class Filesystem implements Service
             return false;
         }
     }
-    
+
     /**
      * Change file permissions one item, with optional recursion
-     * 
+     *
      * @param string $path
      * @param int $permissions
      * @param null|'all'|'folders'|'files' $recursive
@@ -218,7 +218,7 @@ class Filesystem implements Service
         $path = $this->applyPathPrefix($path);
         $path = $this->normalizePath($path);
         $adapter = $this->adapter;
-        
+
         $mainResult = $this->chmodItem($path, $permissions);
         if ($recursive !== null) {
             if (method_exists($adapter, 'setRecurseManually')) {
@@ -238,13 +238,13 @@ class Filesystem implements Service
                 }
             }
         }
-        
+
         return $mainResult;
     }
-    
+
     /**
      * Change file permissions for a single item
-     * 
+     *
      * @param string $path
      * @param int $permissions
      * @return bool
@@ -254,7 +254,7 @@ class Filesystem implements Service
     {
         $adapter = $this->adapter;
         $adapterClass = get_class($adapter);
-        
+
         switch ($adapterClass) {
             case 'League\Flysystem\Local\LocalFilesystemAdapter':
                 // Get the absolute path using reflection since applyPathPrefix is private in 3.x
@@ -268,7 +268,7 @@ class Filesystem implements Service
                 throw new \Exception('Selected adapter does not support unix permissions');
         }
     }
-    
+
     /**
      * Get absolute path for Local adapter
      */
@@ -326,7 +326,7 @@ class Filesystem implements Service
 
         return $collection;
     }
-    
+
     protected function getPermissions(StorageAttributes $entry): int
     {
         $adapter = $this->adapter;
@@ -493,7 +493,7 @@ class Filesystem implements Service
     {
         $path = str_replace('\\', '/', $path);
         $path = preg_replace('|/+|', '/', $path);
-        
+
         if (strpos($path, '/') === 0) {
             $parts = array_filter(explode('/', substr($path, 1)), 'strlen');
             $path = '/' . implode('/', $parts);
