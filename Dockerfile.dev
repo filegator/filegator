@@ -1,19 +1,48 @@
-FROM php:8.3
+FROM php:8.3-cli
 
-RUN apt-get update > /dev/null
-RUN apt-get install -y nodejs npm libldap2-dev libzip-dev
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip \
+    libldap2-dev \
+    libzip-dev \
+    ca-certificates \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
-RUN docker-php-ext-install zip ldap
-RUN docker-php-ext-enable zip ldap
+# Install Node.js (official repo)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# PHP extensions
+RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ \
+    && docker-php-ext-install zip ldap
 
-WORKDIR "/var/www/filegator/"
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
-COPY . .
+# Create unprivileged user
+RUN groupadd -g 1000 app \
+    && useradd -m -u 1000 -g app -s /bin/bash app
+
+WORKDIR /var/www/filegator
+
+RUN chown -R app:app /var/www/filegator
+
+# Copy application
+COPY --chown=app:app . .
+
+# Switch to non-root BEFORE install
+USER app
+
+# Install dependencies as non-root
 RUN composer install
-RUN npm i
-RUN cp -n configuration_sample.php configuration.php
+RUN npm ci
 
-CMD ["nohup", "bash", "-c", "npm run serve"]
+# Dev config
+RUN cp -n configuration_sample.php configuration.php || true
+
+CMD ["npm", "run", "serve"]

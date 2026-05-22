@@ -11,11 +11,17 @@
               <span v-if="activeUploads">
                 {{ lang('Uploading files', resumable.getSize() > 0 ? Math.round(resumable.progress()*100) : 100, formatBytes(resumable.getSize())) }}
               </span>
+              <span v-if="activeUploads" class="summary-text">
+                ({{ formatSpeed(totalUploadSpeedBytes) }})
+              </span>
               <span v-if="activeUploads && paused">
                 ({{ lang('Paused') }})
               </span>
               <span v-if="! activeUploads">
                 {{ lang('Done') }}
+              </span>
+              <span v-if="totalUploadsCount" class="summary-text">
+                ({{ successUploadsCount }} successful, {{ failedUploadsCount }} failed, {{ totalUploadsCount }} total)
               </span>
             </div>
             <div class="is-flex">
@@ -30,17 +36,29 @@
           <hr>
         </div>
         <div v-if="progressVisible" class="progress-items">
-          <div v-for="(file, index) in resumable.files.slice().reverse()" :key="index">
+          <div v-for="entry in sortedUploadEntries" :key="entry.id">
             <div>
-              <div>{{ file.relativePath != '/' ? file.relativePath : '' }}/{{ file.fileName }}</div>
+              <div>{{ entry.relativePath != '/' ? entry.relativePath : '' }}/{{ entry.fileName }}</div>
+              <div class="entry-meta">
+                {{ formatBytes(entry.size) }}
+                <span v-if="showEntrySpeed(entry)">
+                  , {{ formatSpeed(entry.speedBytesPerSecond) }}
+                </span>
+              </div>
               <div class="is-flex is-justify-between">
-                <progress :class="[file.file.uploadingError ? 'is-danger' : 'is-primary', 'progress is-large']" :value="file.size > 0 ? file.progress()*100 : 100" max="100" />
-                <a v-if="! file.isUploading() && file.file.uploadingError" class="progress-icon" @click="file.retry()">
+                <progress :class="[entryProgressClass(entry), 'progress is-large']" :value="entryProgress(entry)" max="100" />
+                <a v-if="showRetry(entry)" class="progress-icon" @click="retryEntry(entry)">
                   <b-icon icon="redo" type="is-danger" />
                 </a>
-                <a v-else class="progress-icon" @click="file.cancel()">
-                  <b-icon :icon="file.isComplete() ? 'check' : 'times'" />
+                <a v-else-if="showCancel(entry)" class="progress-icon" @click="cancelEntry(entry)">
+                  <b-icon icon="times" />
                 </a>
+                <a v-else-if="showRemove(entry)" class="progress-icon" @click="removeEntry(entry)">
+                  <b-icon icon="times" type="is-danger" />
+                </a>
+                <span v-else class="progress-icon">
+                  <b-icon :icon="entry.isError ? 'times' : 'check'" :type="entry.isError ? 'is-danger' : 'is-success'" />
+                </span>
               </div>
             </div>
           </div>
@@ -67,11 +85,31 @@ export default {
       paused: false,
       progressVisible: false,
       progress: 0,
+      uploadEntries: [],
+      nextUploadEntryId: 1,
     }
   },
   computed: {
     activeUploads() {
-      return this.resumable.files.length > 0 && this.resumable.progress() < 1
+      return _.some(this.uploadEntries, entry => entry.inProgress)
+    },
+    totalUploadsCount() {
+      return this.uploadEntries.length
+    },
+    successUploadsCount() {
+      return _.filter(this.uploadEntries, entry => entry.isComplete && !entry.isError).length
+    },
+    failedUploadsCount() {
+      return _.filter(this.uploadEntries, entry => entry.isError).length
+    },
+    totalUploadSpeedBytes() {
+      return _.sumBy(this.uploadEntries, entry => entry.inProgress ? entry.speedBytesPerSecond : 0)
+    },
+    sortedUploadEntries() {
+      return _.orderBy(this.uploadEntries, [
+        entry => entry.isError ? 0 : 1,
+        entry => entry.createdAt,
+      ], ['asc', 'desc'])
     },
   },
   watch: {
@@ -99,6 +137,19 @@ export default {
           queue: false,
           indefinite: true,
         })
+        this.visible = true
+        this.progressVisible = true
+        this.createUploadEntry({
+          fileName: file.name,
+          relativePath: this.$store.state.cwd.location,
+          size: file.size,
+          retryable: false,
+          resumableFile: null,
+          inProgress: false,
+          isComplete: true,
+          isError: true,
+        })
+        this.$forceUpdate()
       }
     })
 
@@ -119,14 +170,31 @@ export default {
       if(file.relativePath === undefined || file.relativePath === null || file.relativePath == file.fileName) file.relativePath = this.$store.state.cwd.location
       else file.relativePath = [this.$store.state.cwd.location, file.relativePath].join('/').replace('//', '/').replace(file.fileName, '').replace(/\/$/, '')
 
+      const entry = this.createUploadEntry({
+        fileName: file.fileName,
+        relativePath: file.relativePath,
+        size: file.size,
+        retryable: true,
+        resumableFile: file,
+        inProgress: true,
+        isComplete: false,
+        isError: false,
+      })
+      this.resetEntrySpeed(entry)
+      file.file.uploadEntryId = entry.id
+
       if (!this.paused) {
         this.resumable.upload()
       }
-
     })
 
     this.resumable.on('fileSuccess', (file) => {
       file.file.uploadingError = false
+      this.updateEntry(file, {
+        inProgress: false,
+        isComplete: true,
+        isError: false,
+      })
       this.$forceUpdate()
       if (this.can('read')) {
         api.getDir({
@@ -143,9 +211,140 @@ export default {
     })
     this.resumable.on('fileError', (file) => {
       file.file.uploadingError = true
+      this.progressVisible = true
+      this.updateEntry(file, {
+        speedBytesPerSecond: 0,
+        inProgress: false,
+        isComplete: true,
+        isError: true,
+      })
+      this.$forceUpdate()
+    })
+    this.resumable.on('fileProgress', (file) => {
+      this.refreshEntrySpeed(this.findEntry(file))
+      this.updateEntry(file, {
+        inProgress: true,
+      })
+      this.$forceUpdate()
     })
   },
   methods: {
+    createUploadEntry({fileName, relativePath, size, retryable, resumableFile, inProgress, isComplete, isError}) {
+      const entry = {
+        id: this.nextUploadEntryId++,
+        fileName,
+        relativePath,
+        size,
+        retryable,
+        resumableFile,
+        inProgress,
+        isComplete,
+        isError,
+        speedBytesPerSecond: 0,
+        speedStartBytes: 0,
+        speedStartAt: null,
+        createdAt: Date.now() + this.nextUploadEntryId,
+      }
+
+      this.uploadEntries.push(entry)
+
+      return entry
+    },
+    findEntry(file) {
+      return _.find(this.uploadEntries, entry => entry.id == _.get(file, 'file.uploadEntryId'))
+    },
+    updateEntry(file, values) {
+      const entry = this.findEntry(file)
+      if (!entry) return
+
+      Object.assign(entry, values)
+    },
+    entryProgress(entry) {
+      if (entry.isComplete) return 100
+      if (!entry.resumableFile || entry.size <= 0) return 100
+
+      return entry.resumableFile.progress() * 100
+    },
+    currentUploadedBytes(entry) {
+      if (!entry || !entry.resumableFile || entry.size <= 0) return 0
+
+      return Math.min(entry.size, Math.max(0, entry.resumableFile.progress() * entry.size))
+    },
+    resetEntrySpeed(entry) {
+      if (!entry) return
+
+      const bytesUploaded = this.currentUploadedBytes(entry)
+
+      entry.speedBytesPerSecond = 0
+      entry.speedStartBytes = bytesUploaded
+      entry.speedStartAt = Date.now()
+    },
+    refreshEntrySpeed(entry) {
+      if (!entry) return
+
+      const now = Date.now()
+      const bytesUploaded = this.currentUploadedBytes(entry)
+
+      if (!entry.speedStartAt) {
+        this.resetEntrySpeed(entry)
+        return
+      }
+
+      const elapsedMs = now - entry.speedStartAt
+      if (elapsedMs <= 0) {
+        entry.speedBytesPerSecond = 0
+        return
+      }
+
+      const deltaBytes = Math.max(0, bytesUploaded - entry.speedStartBytes)
+      entry.speedBytesPerSecond = deltaBytes / (elapsedMs / 1000)
+    },
+    formatSpeed(bytesPerSecond) {
+      const decimals = bytesPerSecond >= 1024 * 1024 ? 1 : 0
+      return this.formatBytes(bytesPerSecond || 0, decimals) + '/s'
+    },
+    entryProgressClass(entry) {
+      if (entry.isError) return 'is-danger'
+      if (entry.isComplete) return 'is-success'
+      return 'is-primary'
+    },
+    showRetry(entry) {
+      return entry.retryable && entry.isError
+    },
+    showCancel(entry) {
+      return entry.inProgress && entry.resumableFile
+    },
+    showEntrySpeed(entry) {
+      return entry.inProgress && entry.resumableFile && entry.speedBytesPerSecond > 0
+    },
+    showRemove(entry) {
+      return entry.isError && !entry.retryable
+    },
+    retryEntry(entry) {
+      if (!entry.resumableFile) return
+
+      entry.isError = false
+      entry.isComplete = false
+      entry.inProgress = true
+      entry.resumableFile.file.uploadingError = false
+      this.resetEntrySpeed(entry)
+      entry.resumableFile.retry()
+
+      if (!this.paused) {
+        this.resumable.upload()
+      }
+
+      this.$forceUpdate()
+    },
+    cancelEntry(entry) {
+      if (!entry.resumableFile) return
+
+      entry.resumableFile.cancel()
+      this.uploadEntries = _.filter(this.uploadEntries, item => item.id != entry.id)
+    },
+    removeEntry(entry) {
+      this.uploadEntries = _.filter(this.uploadEntries, item => item.id != entry.id)
+    },
     closeWindow() {
       if (this.activeUploads) {
         this.$dialog.confirm({
@@ -155,12 +354,14 @@ export default {
           confirmText: this.lang('Confirm'),
           onConfirm: () => {
             this.resumable.cancel()
+            this.uploadEntries = []
             this.visible = false
           }
         })
       } else {
         this.visible = false
         this.resumable.cancel()
+        this.uploadEntries = []
       }
     },
     toggleWindow() {
@@ -168,10 +369,20 @@ export default {
     },
     togglePause() {
       if (this.paused) {
+        _.forEach(this.uploadEntries, entry => {
+          if (entry.inProgress) {
+            this.resetEntrySpeed(entry)
+          }
+        })
         this.resumable.upload()
         this.paused = false
       } else {
         this.resumable.pause()
+        _.forEach(this.uploadEntries, entry => {
+          if (entry.inProgress) {
+            this.resetEntrySpeed(entry)
+          }
+        })
         this.paused = true
       }
     },
@@ -182,6 +393,14 @@ export default {
 <style scoped>
 .progress-icon {
   margin-left: 15px;
+}
+.summary-text {
+  margin-left: 6px;
+}
+.entry-meta {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
 }
 .progress-box {
   position: fixed;

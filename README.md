@@ -100,7 +100,7 @@ Check out [the official docker image](https://hub.docker.com/r/filegator/filegat
 
 Docker quick start:
 ```
-docker run -p 8080:8080 -d filegator/filegator
+docker run --rm -p 8080:8080 filegator/filegator
 visit: http://127.0.0.1:8080 login as admin/admin123
 ```
 
@@ -160,7 +160,9 @@ Please ⭐️ this repository if this project helped you!
 
 ## Security
 
-If you discover any security related issues, please email alcalbg@gmail.com instead of using the issue tracker.
+If you discover a security vulnerability, please report it privately via GitHub Security Advisories instead of using the public issue tracker:
+
+https://github.com/filegator/filegator/security/advisories
 
 ## License
 

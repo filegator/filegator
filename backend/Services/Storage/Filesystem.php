@@ -205,6 +205,16 @@ class Filesystem implements Service
      */
     public function chmod(string $path, int $permissions, string $recursive = null)
     {
+        // block special permission bits (setuid, setgid, sticky)
+        if ($permissions < 0 || $permissions > 777) {
+            throw new \Exception('Invalid permission, must be between 0 and 777');
+        }
+
+        // ensure every digit is 0-7
+        if (!preg_match('/^[0-7]{1,3}$/', (string)$permissions)) {
+            throw new \Exception('Invalid permission value. Must be between 0 and 777.');
+        }
+
         $path = $this->applyPathPrefix($path);
         $path = $this->normalizePath($path);
         $adapter = $this->adapter;
