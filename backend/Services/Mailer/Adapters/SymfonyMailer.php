@@ -56,7 +56,7 @@ class SymfonyMailer implements Service, MailerInterface
         return ! empty($this->config['from_email']);
     }
 
-    public function send(string $to, string $subject, string $textBody, ?string $htmlBody = null): bool
+    public function send(string $to, string $subject, string $textBody, ?string $htmlBody = null, ?string $fromEmail = null, ?string $fromName = null): bool
     {
         $dsn = $this->config['dsn'] ?? '';
         if (! is_string($dsn) || $dsn === '') {
@@ -74,8 +74,8 @@ class SymfonyMailer implements Service, MailerInterface
 
             $email = (new Email())
                 ->from(new Address(
-                    (string) ($this->config['from_email'] ?? 'no-reply@localhost'),
-                    (string) ($this->config['from_name'] ?? '')
+                    (string) ($fromEmail ?? $this->config['from_email'] ?? 'no-reply@localhost'),
+                    (string) ($fromName ?? $this->config['from_name'] ?? '')
                 ))
                 ->to($to)
                 ->subject($subject)

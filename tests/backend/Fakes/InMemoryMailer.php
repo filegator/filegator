@@ -31,13 +31,15 @@ class InMemoryMailer implements Service, MailerInterface
         return self::$configured;
     }
 
-    public function send(string $to, string $subject, string $textBody, ?string $htmlBody = null): bool
+    public function send(string $to, string $subject, string $textBody, ?string $htmlBody = null, ?string $fromEmail = null, ?string $fromName = null): bool
     {
         self::$messages[] = [
             'to' => $to,
             'subject' => $subject,
             'text' => $textBody,
             'html' => $htmlBody,
+            'from_email' => $fromEmail,
+            'from_name' => $fromName,
         ];
         return true;
     }
