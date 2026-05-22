@@ -77,13 +77,55 @@ Two changes: subject prefix and `reset_url_base`. Branding stays whatever prod h
 
 ---
 
-## 4. Session cookie — line ~60
+## 4. Audit alerts block — new lines, drop in near the other service entries
+
+Operational alert emails for admin user mutations (create / update / delete / MFA reset) and user-self-disabled MFA. Drop the block in just before the `Router` entry — it must register before `Router` is initialised so controllers can resolve `AuditMailer` via type-hint:
+
+```php
+'Filegator\Services\Audit\AuditMailer' => [
+    'handler' => '\Filegator\Services\Audit\AuditMailer',
+    'config' => [
+        // Inbox that monitors audit alerts. Receives one email per admin
+        // user-mutation plus one per user-self-disabled MFA event.
+        'recipient'  => 'staff@elliffcpa.com',
+        // Visible From: on audit emails. Deliberately distinct from the
+        // transactional no-reply sender configured in the Mailer block
+        // above, so audit alerts are recognisable in the recipient inbox.
+        'from_email' => 'staff@elliffcpa.com',
+        'from_name'  => 'Elliff CPA Audit',
+        // Shown in the body header line, e.g.
+        // "A user was updated in the Elliff CPA Portal."
+        'app_label'  => 'Elliff CPA Portal',
+        'enabled'    => true,
+    ],
+],
+```
+
+**What fires what:**
+
+| Trigger | Subject line |
+| --- | --- |
+| Admin creates a user | `New user created: <username>` |
+| Admin deletes a user | `User deleted: <username>` |
+| Admin updates a user (role/folder/permissions/password/email/username) | Subject leads with the highest-priority change; body lists every diff |
+| Admin updates only the user's display name | (silent — cosmetic) |
+| Admin saves the edit dialog without changing anything | (silent — true no-op) |
+| Admin resets another user's MFA | `MFA reset by admin for <username>` |
+| Any user disables their own MFA | `MFA disabled by user: <username>` |
+
+**Failure mode:** if `recipient` is blank or `enabled => false`, the service short-circuits silently and writes a single "Audit alert skipped: AuditMailer not configured" line to `private/logs/app.log`. Admin actions themselves succeed either way — the audit email is fire-and-forget around the existing flow.
+
+**Sender deliverability:** the `from_email` must be a verified Postmark Sender Signature (or covered by a verified Domain) on the same Postmark server the transactional Mailer block uses. If `staff@elliffcpa.com` isn't already verified there, add it under Postmark → Sender Signatures before going live or audit emails will bounce.
+
+---
+
+## 5. Session cookie — line ~60
 
 If you fronted with Caddy (TLS), keep `cookie_secure` true (matches prod). If you skipped TLS and went plain HTTP on `:8080`, flip it to false for staging or testers can't log in.
 
 ---
 
-## 5. Lines that should NOT change from prod
+## 6. Lines that should NOT change from prod
 
 - `mfa_required_for_admins` (line 12) — match prod exactly so UAT exercises the forced-enroll path
 - `password_reset_token_ttl`, `_max_per_*` rate limits — match prod

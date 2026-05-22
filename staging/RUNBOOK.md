@@ -76,14 +76,15 @@ Apply the deltas in [`configuration.staging.patch.md`](configuration.staging.pat
 ```
 cd /opt/filegator-staging
 openssl rand -hex 32                              # paste into csrf_key
-nano configuration.php                            # apply the 3 sections in the patch doc
+nano configuration.php                            # apply the 4 sections in the patch doc
 ```
 
 Specifically you change:
 - `csrf_key` → freshly generated value
-- Mailer `dsn`, `from_email`, `from_name` → Gmail Workspace values
+- Mailer `dsn`, `from_email`, `from_name` → Postmark API values
 - `reset_url_base` → `https://<DASHED-IP>.sslip.io/`
 - `reset_subject` → prefix with `[STAGING]`
+- Add the `Filegator\Services\Audit\AuditMailer` service block (operational alert emails — `staff@elliffcpa.com` recipient and From: address). Required for audit alerts to fire; leave the block out (or `enabled => false`) to silence them.
 
 ## 5. Set the sslip.io hostname for Caddy
 
