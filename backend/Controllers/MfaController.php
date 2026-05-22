@@ -13,6 +13,7 @@ namespace Filegator\Controllers;
 use Filegator\Config\Config;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
+use Filegator\Services\Audit\AuditMailer;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Auth\MfaCapableInterface;
 use Filegator\Services\Logger\LoggerInterface;
@@ -95,7 +96,7 @@ class MfaController
         return $response->json(['backup_codes' => $codes]);
     }
 
-    public function disable(Request $request, Response $response, AuthInterface $auth, MfaService $mfa)
+    public function disable(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, AuditMailer $audit)
     {
         if ($this->mfaUnsupported($auth, $mfa)) {
             return $response->json('MFA not supported', 501);
@@ -117,6 +118,8 @@ class MfaController
         // ourselves out on the next request.
         $auth->establishSessionFor($username);
         $this->logger->log("MFA disabled for {$username}");
+
+        $audit->userSelfDisabledMfa($username, $user->getRole());
 
         return $response->json('ok');
     }

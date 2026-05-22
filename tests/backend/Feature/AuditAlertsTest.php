@@ -11,6 +11,8 @@
 namespace Tests\Feature;
 
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Mfa\BackupCodeGenerator;
+use OTPHP\TOTP;
 use Tests\Fakes\InMemoryMailer;
 use Tests\TestCase;
 
@@ -33,6 +35,23 @@ class AuditAlertsTest extends TestCase
     {
         $a = $this->audits();
         return $a ? end($a) : null;
+    }
+
+    protected function enrollMfa(string $username): string
+    {
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $secret = TOTP::create()->getSecret();
+        $auth->setMfaSecret($username, $secret);
+        $auth->enableMfa($username, BackupCodeGenerator::hashAll(BackupCodeGenerator::generate(3, 10)));
+        return $secret;
+    }
+
+    protected function establishSessionFor(string $username): void
+    {
+        $app = $this->sendRequest('GET', '/getuser');
+        $app->resolve(AuthInterface::class)->establishSessionFor($username);
+        $this->captureSession();
     }
 
     public function testCreatingUserFiresCreateAlert()
@@ -221,6 +240,67 @@ class AuditAlertsTest extends TestCase
             'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
         ]);
         $this->assertOk();
+
+        $this->assertSame([], $this->audits());
+    }
+
+    public function testAdminResettingMfaFiresMfaResetAlert()
+    {
+        $this->enrollMfa('john@example.com');
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('POST', '/admin/users/john@example.com/reset_mfa');
+        $this->assertOk();
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertStringContainsString('MFA reset by admin for john@example.com', $msg['subject']);
+        $this->assertStringContainsString('Admin: admin@example.com', $msg['text']);
+        $this->assertStringContainsString('Target user: john@example.com', $msg['text']);
+    }
+
+    public function testAdminCannotResetOwnMfaSendsNoAlert()
+    {
+        $this->enrollMfa('admin@example.com');
+        // signIn() can't drive the two-step MFA flow, so establish the admin
+        // session directly (route guard still gates on the admin role).
+        $this->establishSessionFor('admin@example.com');
+
+        $this->sendRequest('POST', '/admin/users/admin@example.com/reset_mfa');
+        $this->assertStatus(422);
+
+        $this->assertSame([], $this->audits());
+    }
+
+    public function testUserSelfDisablingMfaFiresAlert()
+    {
+        $secret = $this->enrollMfa('john@example.com');
+        $this->establishSessionFor('john@example.com');
+
+        $this->sendRequest('POST', '/mfa/disable', [
+            'password' => 'john123',
+            'code' => TOTP::createFromSecret($secret)->now(),
+        ]);
+        $this->assertOk();
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertStringContainsString('MFA disabled by user: john@example.com', $msg['subject']);
+        $this->assertStringContainsString('Username: john@example.com', $msg['text']);
+        $this->assertStringContainsString('Role: user', $msg['text']);
+    }
+
+    public function testFailedMfaDisableSendsNoAlert()
+    {
+        $this->enrollMfa('john@example.com');
+        $this->establishSessionFor('john@example.com');
+
+        // Wrong password — reauth gate rejects, MFA stays enabled, no audit.
+        $this->sendRequest('POST', '/mfa/disable', [
+            'password' => 'wrongpassword',
+            'code' => '000000',
+        ]);
+        $this->assertUnprocessable();
 
         $this->assertSame([], $this->audits());
     }

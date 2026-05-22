@@ -205,7 +205,7 @@ class AdminController
         return $response->json($ret);
     }
 
-    public function resetMfa($username, Request $request, Response $response)
+    public function resetMfa($username, Request $request, Response $response, AuditMailer $audit)
     {
         if (! $this->auth instanceof MfaCapableInterface) {
             return $response->json('Not supported', 501);
@@ -228,6 +228,8 @@ class AdminController
             $username,
             $request->getClientIp()
         ));
+
+        $audit->mfaResetByAdmin($this->currentAdminUsername(), $username);
 
         return $response->json('ok');
     }
