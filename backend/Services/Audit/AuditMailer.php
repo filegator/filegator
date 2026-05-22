@@ -170,6 +170,125 @@ class AuditMailer implements Service
         $this->dispatch($subject, $body);
     }
 
+    /**
+     * Send the weekly all-users snapshot.
+     *
+     * $rows: array of user dicts. Each row should carry keys
+     * username, name, role, homedir, permissions (array), mfa_enabled (bool),
+     * email (string|null). Guest is filtered upstream by the scheduler.
+     *
+     * Returns true if the email was dispatched (regardless of transport
+     * outcome) and false if the service is unconfigured / disabled / called
+     * with no rows.
+     */
+    public function sendWeeklyDigest(array $rows): bool
+    {
+        if (! $this->shouldSend()) return false;
+        if (empty($rows)) return false;
+
+        $mfaOn = 0;
+        foreach ($rows as $r) if (! empty($r['mfa_enabled'])) $mfaOn++;
+
+        $subject = sprintf(
+            'Weekly audit digest — %d user%s (%d with MFA)',
+            count($rows),
+            count($rows) === 1 ? '' : 's',
+            $mfaOn
+        );
+
+        $text = $this->renderDigestText($rows);
+        $html = $this->renderDigestHtml($rows, $mfaOn);
+
+        $ok = $this->mailer->send(
+            (string) $this->config['recipient'],
+            $subject,
+            $text,
+            $html,
+            (string) $this->config['from_email'],
+            isset($this->config['from_name']) ? (string) $this->config['from_name'] : null
+        );
+
+        $this->logger->log(sprintf(
+            'Weekly audit digest %s: %d users',
+            $ok ? 'sent' : 'failed',
+            count($rows)
+        ));
+
+        return true;
+    }
+
+    protected function renderDigestText(array $rows): string
+    {
+        $lines = [
+            sprintf('Weekly audit digest for the %s.', $this->appLabel()),
+            sprintf('%d active user%s (excluding the built-in guest account).', count($rows), count($rows) === 1 ? '' : 's'),
+            '',
+        ];
+        foreach ($rows as $r) {
+            $lines[] = sprintf('— %s (%s) — %s',
+                $r['username'] ?? '',
+                $r['name'] ?? '',
+                $r['role'] ?? '');
+            $lines[] = sprintf('  Folder: %s', $r['homedir'] ?? '');
+            $lines[] = sprintf('  Permissions: %s', $this->formatPermissions($r['permissions'] ?? []));
+            $lines[] = sprintf('  MFA: %s', ! empty($r['mfa_enabled']) ? 'on' : 'off');
+            $email = $r['email'] ?? null;
+            $lines[] = sprintf('  Email: %s', $email !== null && $email !== '' ? $email : '(none)');
+            $lines[] = '';
+        }
+        $lines[] = $this->timestampLine();
+        $lines[] = '— Sent automatically once per week. Review for any access that should not be there.';
+
+        return $this->joinLines($lines);
+    }
+
+    protected function renderDigestHtml(array $rows, int $mfaOn): string
+    {
+        $appLabel = htmlspecialchars($this->appLabel(), ENT_QUOTES, 'UTF-8');
+        $rowsHtml = '';
+        foreach ($rows as $r) {
+            $mfa = ! empty($r['mfa_enabled']) ? '✓' : '—';
+            $email = $r['email'] ?? null;
+            $rowsHtml .= '<tr>'
+                .'<td>'.htmlspecialchars((string) ($r['username'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                .'<td>'.htmlspecialchars((string) ($r['name'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                .'<td>'.htmlspecialchars((string) ($r['role'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                .'<td><code>'.htmlspecialchars((string) ($r['homedir'] ?? ''), ENT_QUOTES, 'UTF-8').'</code></td>'
+                .'<td>'.htmlspecialchars($this->formatPermissions($r['permissions'] ?? []), ENT_QUOTES, 'UTF-8').'</td>'
+                .'<td style="text-align:center">'.$mfa.'</td>'
+                .'<td>'.htmlspecialchars($email !== null && $email !== '' ? (string) $email : '(none)', ENT_QUOTES, 'UTF-8').'</td>'
+                .'</tr>';
+        }
+
+        $ts = htmlspecialchars($this->timestampLine(), ENT_QUOTES, 'UTF-8');
+
+        return <<<HTML
+<!doctype html><html><body style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1f2937;font-size:14px;line-height:1.5">
+<p>Weekly audit digest for the <strong>{$appLabel}</strong>.</p>
+<p>{$this->summaryLine(count($rows), $mfaOn)}</p>
+<table cellpadding="6" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;font-size:13px">
+<thead style="background:#f9fafb;text-align:left">
+<tr><th>Username</th><th>Name</th><th>Role</th><th>Folder</th><th>Permissions</th><th>MFA</th><th>Email</th></tr>
+</thead>
+<tbody>
+{$rowsHtml}
+</tbody>
+</table>
+<p style="color:#6b7280;font-size:12px;margin-top:1.5em">{$ts}<br>Sent automatically once per week. Review for any access that should not be there.</p>
+</body></html>
+HTML;
+    }
+
+    protected function summaryLine(int $count, int $mfaOn): string
+    {
+        return sprintf(
+            '%d active user%s (excluding guest). %d with MFA enabled.',
+            $count,
+            $count === 1 ? '' : 's',
+            $mfaOn
+        );
+    }
+
     protected function shouldSend(): bool
     {
         if (! ($this->config['enabled'] ?? true)) return false;
