@@ -10,6 +10,7 @@
 
 namespace Tests\Feature;
 
+use Filegator\Services\Audit\AuditMailer;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Mfa\BackupCodeGenerator;
 use OTPHP\TOTP;
@@ -303,6 +304,73 @@ class AuditAlertsTest extends TestCase
         $this->assertUnprocessable();
 
         $this->assertSame([], $this->audits());
+    }
+
+    public function testWeeklyDigestRendersTableForGivenRows()
+    {
+        $app = $this->bootFreshApp();
+        $audit = $app->resolve(AuditMailer::class);
+
+        $rows = [
+            ['username' => 'admin@example.com', 'name' => 'Admin', 'role' => 'admin', 'homedir' => '/', 'permissions' => ['read', 'write'], 'mfa_enabled' => true, 'email' => 'admin@x.test'],
+            ['username' => 'john@example.com', 'name' => 'John Doe', 'role' => 'user', 'homedir' => '/john', 'permissions' => ['read'], 'mfa_enabled' => false, 'email' => null],
+        ];
+
+        $sent = $audit->sendWeeklyDigest($rows);
+        $this->assertTrue($sent);
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertSame('audit@example.com', $msg['to']);
+        $this->assertSame('audit-from@example.com', $msg['from_email']);
+        $this->assertStringContainsString('Weekly audit digest — 2 users (1 with MFA)', $msg['subject']);
+        // Text body: row block per user with all attributes
+        $this->assertStringContainsString('— admin@example.com (Admin) — admin', $msg['text']);
+        $this->assertStringContainsString('  Folder: /', $msg['text']);
+        $this->assertStringContainsString('  MFA: on', $msg['text']);
+        $this->assertStringContainsString('— john@example.com (John Doe) — user', $msg['text']);
+        $this->assertStringContainsString('  MFA: off', $msg['text']);
+        $this->assertStringContainsString('  Email: (none)', $msg['text']);
+        // HTML body: table with both usernames and HTML-escaped folder
+        $this->assertNotNull($msg['html']);
+        $this->assertStringContainsString('<table', $msg['html']);
+        $this->assertStringContainsString('admin@example.com', $msg['html']);
+        $this->assertStringContainsString('john@example.com', $msg['html']);
+    }
+
+    public function testWeeklyDigestWithNoRowsSendsNothing()
+    {
+        $app = $this->bootFreshApp();
+        $audit = $app->resolve(AuditMailer::class);
+
+        $sent = $audit->sendWeeklyDigest([]);
+        $this->assertFalse($sent);
+        $this->assertSame([], $this->audits());
+    }
+
+    public function testWeeklyDigestEscapesHtmlInUserFields()
+    {
+        $app = $this->bootFreshApp();
+        $audit = $app->resolve(AuditMailer::class);
+
+        // Defence-in-depth: usernames / names are operator-controlled, but a
+        // single forgotten escape would be enough for an admin who creates a
+        // user with HTML in the name field to inject markup into the audit
+        // inbox. Verify the escape stays applied.
+        $audit->sendWeeklyDigest([[
+            'username' => 'x@example.com',
+            'name' => '<script>alert(1)</script>',
+            'role' => 'user',
+            'homedir' => '/x',
+            'permissions' => [],
+            'mfa_enabled' => false,
+            'email' => null,
+        ]]);
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertStringNotContainsString('<script>', $msg['html']);
+        $this->assertStringContainsString('&lt;script&gt;', $msg['html']);
     }
 
     public function testEmailChangeFiresEmailSubject()
