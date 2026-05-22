@@ -12,6 +12,7 @@ namespace Filegator\Controllers;
 
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
+use Filegator\Services\Audit\AuditMailer;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Auth\MfaCapableInterface;
 use Filegator\Services\Auth\User;
@@ -56,7 +57,7 @@ class AdminController
         return $response->json($rows);
     }
 
-    public function storeUser(User $user, Request $request, Response $response, Validator $validator)
+    public function storeUser(User $user, Request $request, Response $response, Validator $validator, AuditMailer $audit)
     {
         $validator->setMessage('required', 'This field is required');
         $validation = $validator->validate($request->all(), [
@@ -96,6 +97,12 @@ class AdminController
             if ($email !== null && $this->auth instanceof MfaCapableInterface) {
                 $this->auth->setEmail($user->getUsername(), $email === '' ? null : $email);
             }
+
+            $audit->userCreated(
+                $this->currentAdminUsername(),
+                $user->jsonSerialize(),
+                ($email === null || $email === '') ? null : $email
+            );
         } catch (\Exception $e) {
             return $response->json($e->getMessage(), 422);
         }
@@ -103,7 +110,7 @@ class AdminController
         return $response->json($ret);
     }
 
-    public function updateUser($username, Request $request, Response $response, Validator $validator)
+    public function updateUser($username, Request $request, Response $response, Validator $validator, AuditMailer $audit)
     {
         $user = $this->auth->find($username);
 
@@ -133,6 +140,14 @@ class AdminController
             return $response->json(['email' => 'Invalid email address'], 422);
         }
 
+        $beforeSnapshot = $user->jsonSerialize();
+        $beforeEmail = null;
+        if ($this->auth instanceof MfaCapableInterface) {
+            $state = $this->auth->getMfaState($username);
+            $beforeEmail = $state['email'] ?? null;
+        }
+        $passwordChanged = $request->input('password', '') !== '';
+
         try {
             $user->setName($request->input('name'));
             $user->setUsername($request->input('username'));
@@ -146,13 +161,27 @@ class AdminController
                 $this->auth->setEmail($user->getUsername(), $email === '' ? null : $email);
             }
 
+            // If the request omitted the email field, the previous value
+            // is preserved; only an explicit empty string clears it.
+            $afterEmail = $email === null ? $beforeEmail : ($email === '' ? null : $email);
+
+            $audit->userUpdated(
+                $this->currentAdminUsername(),
+                $username,
+                $beforeSnapshot,
+                $user->jsonSerialize(),
+                $beforeEmail,
+                $afterEmail,
+                $passwordChanged
+            );
+
             return $response->json($ret);
         } catch (\Exception $e) {
             return $response->json($e->getMessage(), 422);
         }
     }
 
-    public function deleteUser($username, Request $request, Response $response)
+    public function deleteUser($username, Request $request, Response $response, AuditMailer $audit)
     {
         $user = $this->auth->find($username);
 
@@ -160,7 +189,20 @@ class AdminController
             return $response->json('User not found', 422);
         }
 
-        return $response->json($this->auth->delete($user));
+        $snapshot = $user->jsonSerialize();
+        $email = null;
+        if ($this->auth instanceof MfaCapableInterface) {
+            $state = $this->auth->getMfaState($username);
+            $email = $state['email'] ?? null;
+        }
+
+        $ret = $this->auth->delete($user);
+
+        if ($ret) {
+            $audit->userDeleted($this->currentAdminUsername(), $snapshot, $email);
+        }
+
+        return $response->json($ret);
     }
 
     public function resetMfa($username, Request $request, Response $response)
@@ -194,5 +236,11 @@ class AdminController
     {
         if ($email === null || $email === '') return true;
         return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
+    }
+
+    protected function currentAdminUsername(): string
+    {
+        $current = $this->auth->user();
+        return $current ? $current->getUsername() : 'unknown';
     }
 }
