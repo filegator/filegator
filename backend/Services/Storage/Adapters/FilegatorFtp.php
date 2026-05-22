@@ -12,6 +12,8 @@ namespace Filegator\Services\Storage\Adapters;
 
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\StorageAttributes;
+use League\Flysystem\Config;
+use League\Flysystem\FileAttributes;
 
 /**
  * Custom FTP adapter for Filegator
@@ -37,12 +39,15 @@ class FilegatorFtp implements FilesystemAdapter
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function write(string $path, string $contents, array $options = []): void
+    public function write(string $path, string $contents, Config $config): void
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function writeStream(string $path, mixed $contents, array $options = []): void
+    /**
+     * @param resource $contents
+     */
+    public function writeStream(string $path, $contents, Config $config): void
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
@@ -52,7 +57,10 @@ class FilegatorFtp implements FilesystemAdapter
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function readStream(string $path): mixed
+    /**
+     * @return resource
+     */
+    public function readStream(string $path)
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
@@ -67,7 +75,7 @@ class FilegatorFtp implements FilesystemAdapter
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function createDirectory(string $path, array $options = []): void
+    public function createDirectory(string $path, Config $config): void
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
@@ -77,37 +85,37 @@ class FilegatorFtp implements FilesystemAdapter
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function visibility(string $path): array
+    public function visibility(string $path): FileAttributes
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function mimeType(string $path): array
+    public function mimeType(string $path): FileAttributes
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function lastModified(string $path): array
+    public function lastModified(string $path): FileAttributes
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function fileSize(string $path): array
+    public function fileSize(string $path): FileAttributes
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function listContents(string $path, bool $deep = false): iterable
+    public function listContents(string $path, bool $deep): iterable
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function move(string $source, string $destination, array $options = []): void
+    public function move(string $source, string $destination, Config $config): void
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
 
-    public function copy(string $source, string $destination, array $options = []): void
+    public function copy(string $source, string $destination, Config $config): void
     {
         throw new \Exception('FTP adapter is not available in Flysystem 3.x. Please use SFTP or provide a custom FTP adapter implementation.');
     }
