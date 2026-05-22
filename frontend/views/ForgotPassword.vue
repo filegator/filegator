@@ -24,7 +24,16 @@
         </div>
       </form>
 
-      <div class="box" v-else style="max-width: 480px">
+      <div class="box username-help" v-if="!sent">
+        <p><strong>{{ lang('Forgot your username?') }}</strong></p>
+        <p>
+          {{ lang('Your username is typically your first and last name in all lowercase, with no spaces or punctuation — for example, johnsmith.') }}
+          {{ lang('You can also search your inbox for the message we sent when we first set up your portal access.') }}
+          {{ lang("If you're still stuck,") }} <a href="mailto:staff@elliffcpa.com">{{ lang('email us') }}</a> {{ lang('and we will help.') }}
+        </p>
+      </div>
+
+      <div class="box" v-if="sent" style="max-width: 480px">
         <h3 class="is-size-5">
           {{ lang('Check your inbox') }}
         </h3>
@@ -121,5 +130,9 @@ export default {
   outline: 2px solid rgba(50, 115, 220, 0.35);
   outline-offset: 2px;
   border-radius: 2px;
+}
+.username-help {
+  max-width: 480px;
+  margin-top: 1em;
 }
 </style>

@@ -21,10 +21,14 @@
             </b-field>
 
             <div class="login-actions">
-              <button v-if="$store.state.config.password_reset_enabled" type="button" @click="$router.push('/forgot-password').catch(() => {})" class="login-link">
-                {{ lang('Forgot password?') }}
-              </button>
-              <span v-else />
+              <div class="login-links">
+                <button type="button" class="login-link" @click="showUsernameHelp = !showUsernameHelp">
+                  {{ lang('Forgot your username?') }}
+                </button>
+                <button v-if="$store.state.config.password_reset_enabled" type="button" class="login-link" @click="$router.push('/forgot-password').catch(() => {})">
+                  {{ lang('Forgot password?') }}
+                </button>
+              </div>
               <button class="button is-primary">
                 {{ lang('Login') }}
               </button>
@@ -35,6 +39,15 @@
             </div>
           </div>
         </form>
+
+        <div v-if="step === 'password' && showUsernameHelp" class="notification is-info is-light username-help">
+          <p><strong>{{ lang('Forgot your username?') }}</strong></p>
+          <p>
+            {{ lang('Your username is typically your first and last name in all lowercase, with no spaces or punctuation — for example, johnsmith.') }}
+            {{ lang('You can also search your inbox for the message we sent when we first set up your portal access.') }}
+            {{ lang("If you're still stuck,") }} <a href="mailto:staff@elliffcpa.com">{{ lang('email us') }}</a> {{ lang('and we will help.') }}
+          </p>
+        </div>
 
         <!-- Step 2: verify TOTP -->
         <form v-else-if="step === 'mfa'" @submit.prevent="verifyMfa">
@@ -157,6 +170,7 @@ export default {
       setupBackupCodes: null,
       pendingUser: null,
       error: '',
+      showUsernameHelp: false,
     }
   },
   mounted() {
@@ -289,6 +303,13 @@ export default {
   margin-top: 0.75em;
 }
 
+.login-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+}
+
 .login-link {
   background: none;
   border: none;
@@ -313,6 +334,11 @@ export default {
   outline: 2px solid rgba(50, 115, 220, 0.35);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+.username-help {
+  max-width: 480px;
+  margin-top: 1em;
 }
 
 .login-error {
