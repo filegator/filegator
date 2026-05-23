@@ -28,16 +28,23 @@ jobs:
     - name: Setup Git and SSH access
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        STATIC_SSH_PRIVATE_KEY: ${{ secrets.STATIC_SSH_PRIVATE_KEY }}
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
-        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-        ssh-add - <<< "${{ secrets.STATIC_SSH_PRIVATE_KEY }}"
+        ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
+        printf '%s\n' "$STATIC_SSH_PRIVATE_KEY" | ssh-add -
 
     - name: Build and upload to static
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        REF_NAME: ${{ github.ref_name }}
+        REPO_NAME: ${{ github.event.repository.name }}
       run: |
+        case "$REF_NAME" in
+          v[0-9]*) ;;
+          *) echo "Refusing to build for unexpected ref: $REF_NAME" >&2; exit 1 ;;
+        esac
         cp configuration_sample.php configuration.php
         chmod -R u+w repository/
         chmod -R u+w private/
@@ -52,13 +59,13 @@ jobs:
         rm -Rf .github
         rm README.md couscous.yml repository/.gitignore babel.config.js cypress* .env* .eslint* .gitignore jest.* .php_cs* phpunit* postcss* vue*
         cd ..
-        zip -r filegator_${{ github.ref_name }}.zip ${{ github.event.repository.name }}
+        zip -r "filegator_${REF_NAME}.zip" "$REPO_NAME"
         git clone git@github.com:filegator/static.git
-        cp filegator_${{ github.ref_name }}.zip static/builds/filegator_${{ github.ref_name }}.zip
+        cp "filegator_${REF_NAME}.zip" "static/builds/filegator_${REF_NAME}.zip"
         rm static/builds/filegator_latest.zip
-        cp filegator_${{ github.ref_name }}.zip static/builds/filegator_latest.zip
+        cp "filegator_${REF_NAME}.zip" static/builds/filegator_latest.zip
         cd static
         git add .
-        git commit -m "releasing static files for ${{ github.ref_name }}"
+        git commit -m "releasing static files for ${REF_NAME}"
         git push
 
