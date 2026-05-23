@@ -1,14 +1,23 @@
 #################################
 # stage builder: build and test
 #################################
+# Pin Node and Composer source images by digest so the bytes we COPY in
+# can never silently change. The prior curl-and-pipe installs had no
+# integrity check at all.
+FROM node:22-bullseye@sha256:62f550497561d6285e10abd952730db89c905be990237eaf8744137929c72844 AS node-source
+FROM composer:2@sha256:b09bccd91a78fe8a9ab4b33d707b862e8fe54fec17782e32683ad2a69c46867d AS composer-source
+
 FROM php:8.3-apache-bullseye AS builder
 
-RUN curl -sL https://deb.nodesource.com/setup_22.x | bash -
+COPY --from=node-source /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-source /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 RUN apt-get update > /dev/null
-RUN apt-get install -y git libzip-dev nodejs python2 libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+RUN apt-get install -y git libzip-dev python2 libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer-source /usr/bin/composer /usr/local/bin/composer
 
 RUN docker-php-ext-install zip
 RUN docker-php-ext-enable zip

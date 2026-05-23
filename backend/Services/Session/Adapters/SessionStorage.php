@@ -69,6 +69,12 @@ class SessionStorage implements Service, SessionStorageInterface
 
     private function getSession(): ?Session
     {
+        // Symfony 5.x throws SessionNotFoundException from getSession() when no
+        // session is bound; 4.x returned null. Preserve the old nullable contract.
+        if (! $this->request->hasSession()) {
+            return null;
+        }
+
         return $this->request->getSession();
     }
 
