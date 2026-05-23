@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v1
 
     - name: Setup PHP ${{ matrix.php-version }}
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
       with:
         php-version: ${{ matrix.php-version }}
         extensions: mbstring, zip, sqlite3, filter
@@ -32,7 +32,7 @@ jobs:
       run: XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-clover=coverage.xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@29386c70ef20e286228c72b668a06fd0e8399192 # v1.5.2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
