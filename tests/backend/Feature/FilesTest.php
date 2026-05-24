@@ -911,4 +911,138 @@ class FilesTest extends TestCase
         $this->assertStringContainsString('jane-marker.txt', $body);
         $this->assertStringNotContainsString('johnsub', $body);
     }
+
+    // --------------------------------------------------------------------
+    // Multi-folder active-folder session contract (Phase 3).
+    //
+    // The multi-folder user has homedirs ['/multiA', '/multiB']. They MUST
+    // pick a folder via POST /selectfolder before any file-op endpoint
+    // accepts their request. Single-folder users continue to work without
+    // any selection step — ensureActiveHomedir auto-seeds for them.
+    // --------------------------------------------------------------------
+
+    protected function seedMultiFolderOnDisk(): void
+    {
+        mkdir(TEST_REPOSITORY.'/multiA');
+        mkdir(TEST_REPOSITORY.'/multiB');
+        touch(TEST_REPOSITORY.'/multiA/in-a.txt', $this->timestamp);
+        touch(TEST_REPOSITORY.'/multiB/in-b.txt', $this->timestamp);
+    }
+
+    public function testSingleFolderUserHasActiveHomedirAutoSetOnLogin()
+    {
+        // John has one folder. He should be able to list immediately after
+        // login without an explicit selectFolder call.
+        $this->signIn('john@example.com', 'john123');
+        mkdir(TEST_REPOSITORY.'/john');
+        touch(TEST_REPOSITORY.'/john/auto.txt', $this->timestamp);
+
+        $this->sendRequest('POST', '/getdir', ['dir' => '/']);
+        $this->assertOk();
+
+        $body = (string) $this->response->getContent();
+        $this->assertStringContainsString('auto.txt', $body);
+    }
+
+    public function testMultiFolderUserWithNoActiveHomedirGetsErrorOnFileOps()
+    {
+        // signIn() goes through verifyPasswordOnly + establishSessionFor,
+        // not through the real /login endpoint, so seedActiveHomedirAfterLogin
+        // never fires — multi-folder user lands with no active selection.
+        $this->signIn('multi@example.com', 'multi123');
+        $this->seedMultiFolderOnDisk();
+
+        $this->sendRequest('POST', '/getdir', ['dir' => '/']);
+        // Must be a clean 422, NOT a constructor-thrown 500.
+        $this->assertStatus(422);
+    }
+
+    public function testSelectFolderRejectsPathNotInHomedirs()
+    {
+        $this->signIn('multi@example.com', 'multi123');
+
+        $this->sendRequest('POST', '/selectfolder', ['homedir' => '/notmine']);
+        $this->assertStatus(422);
+    }
+
+    public function testSelectFolderRequiresHomedirField()
+    {
+        $this->signIn('multi@example.com', 'multi123');
+
+        $this->sendRequest('POST', '/selectfolder');
+        $this->assertStatus(422);
+    }
+
+    public function testSelectFolderAcceptsValidFolderAndSwitchesPrefix()
+    {
+        $this->signIn('multi@example.com', 'multi123');
+        $this->seedMultiFolderOnDisk();
+
+        $this->sendRequest('POST', '/selectfolder', ['homedir' => '/multiA']);
+        $this->assertOk();
+        $this->assertResponseJsonHas(['data' => ['active_homedir' => '/multiA']]);
+
+        $this->sendRequest('POST', '/getdir', ['dir' => '/']);
+        $this->assertOk();
+        $body = (string) $this->response->getContent();
+        $this->assertStringContainsString('in-a.txt', $body);
+        $this->assertStringNotContainsString('in-b.txt', $body);
+
+        // Switch to the other folder.
+        $this->sendRequest('POST', '/selectfolder', ['homedir' => '/multiB']);
+        $this->assertOk();
+
+        $this->sendRequest('POST', '/getdir', ['dir' => '/']);
+        $body = (string) $this->response->getContent();
+        $this->assertStringContainsString('in-b.txt', $body);
+        $this->assertStringNotContainsString('in-a.txt', $body);
+    }
+
+    public function testSelectFolderResetsCwdToRootOnSwitch()
+    {
+        $this->signIn('multi@example.com', 'multi123');
+        $this->seedMultiFolderOnDisk();
+        mkdir(TEST_REPOSITORY.'/multiA/deep');
+        touch(TEST_REPOSITORY.'/multiA/deep/inner.txt', $this->timestamp);
+
+        $this->sendRequest('POST', '/selectfolder', ['homedir' => '/multiA']);
+        $this->sendRequest('POST', '/changedir', ['to' => '/deep']);
+        $this->assertOk();
+
+        // Switch — CWD must reset to root of the new folder.
+        $this->sendRequest('POST', '/selectfolder', ['homedir' => '/multiB']);
+
+        $this->sendRequest('POST', '/getdir');
+        $body = (string) $this->response->getContent();
+        // Listing must be of /multiB root, not the prior /deep path.
+        $this->assertStringContainsString('in-b.txt', $body);
+        $this->assertStringNotContainsString('inner.txt', $body);
+    }
+
+    public function testActiveHomedirInvariantAcrossOperations()
+    {
+        $this->signIn('multi@example.com', 'multi123');
+        $this->seedMultiFolderOnDisk();
+
+        // Seed the marker file in multiA *directly on disk* (the savecontent
+        // endpoint requires the file to pre-exist to support its delete-then-
+        // store overwrite path). The test still exercises the controller's
+        // active-homedir resolution by listing through getdir.
+        file_put_contents(TEST_REPOSITORY.'/multiA/isolation-marker.txt', 'should-only-exist-in-multiA');
+
+        $this->sendRequest('POST', '/selectfolder', ['homedir' => '/multiA']);
+        $this->sendRequest('POST', '/getdir');
+        $body = (string) $this->response->getContent();
+        $this->assertStringContainsString('isolation-marker.txt', $body);
+
+        // Switch to multiB and list — must NOT see the marker from multiA.
+        $this->sendRequest('POST', '/selectfolder', ['homedir' => '/multiB']);
+        $this->sendRequest('POST', '/getdir');
+        $body = (string) $this->response->getContent();
+        $this->assertStringNotContainsString('isolation-marker.txt', $body);
+
+        // And the file is physically inside multiA, not multiB.
+        $this->assertFileExists(TEST_REPOSITORY.'/multiA/isolation-marker.txt');
+        $this->assertFileNotExists(TEST_REPOSITORY.'/multiB/isolation-marker.txt');
+    }
 }
