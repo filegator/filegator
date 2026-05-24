@@ -130,7 +130,11 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
                 $u['username'] = $user->getUsername();
                 $u['name'] = $user->getName();
                 $u['role'] = $user->getRole();
-                $u['homedir'] = $user->getHomeDir();
+                // Lazy migration: drop the legacy `homedir` scalar on the
+                // same row, writing the new `homedirs` array. Any row that
+                // gets touched after deploy ends up in the new shape.
+                $u['homedirs'] = $user->getHomeDirs();
+                unset($u['homedir']);
                 $u['permissions'] = $user->getPermissions(true);
 
                 if ($password) {
@@ -158,7 +162,9 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
             'username' => $user->getUsername(),
             'name' => $user->getName(),
             'role' => $user->getRole(),
-            'homedir' => $user->getHomeDir(),
+            // New rows always use the `homedirs` array shape — no legacy
+            // `homedir` key written, even for single-folder users.
+            'homedirs' => $user->getHomeDirs(),
             'permissions' => $user->getPermissions(true),
             'password' => $this->hashPassword($password),
             'email' => null,
@@ -443,10 +449,18 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
 
     protected function buildSessionHash(array $u): string
     {
+        // Hash includes a canonical serialisation of the homedirs list.
+        // Reads either the new `homedirs` array or the legacy `homedir`
+        // scalar (with empty fallback) — but the canonical form for
+        // hashing is always the comma-joined array. Phase 2 deploy
+        // forces all live sessions to re-authenticate because every
+        // existing session's stored hash was computed against the old
+        // scalar input. Same UX as today's role/permissions change.
+        $homedirs = $this->extractHomedirsFromRow($u);
         return hash('sha256', implode('|', [
             $u['password'] ?? '',
             $u['permissions'] ?? '',
-            $u['homedir'] ?? '',
+            implode(',', $homedirs),
             $u['role'] ?? '',
             ($u['mfa_enabled'] ?? false) ? '1' : '0',
             (string) ($u['email'] ?? ''),
@@ -460,10 +474,30 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
         $new->setUsername($user['username']);
         $new->setName($user['name']);
         $new->setRole($user['role']);
-        $new->setHomedir($user['homedir']);
+        $new->setHomedirs($this->extractHomedirsFromRow($user));
         $new->setPermissions($user['permissions'], true);
 
         return $new;
+    }
+
+    /**
+     * Read the homedir list from a users.json row in whatever shape it's
+     * in: the new `homedirs` array, the legacy `homedir` scalar, or
+     * missing entirely (default to single root folder).
+     */
+    protected function extractHomedirsFromRow(array $u): array
+    {
+        if (isset($u['homedirs']) && is_array($u['homedirs'])) {
+            $clean = [];
+            foreach ($u['homedirs'] as $h) {
+                if (is_string($h) && trim($h) !== '') $clean[] = trim($h);
+            }
+            return $clean;
+        }
+        if (isset($u['homedir']) && is_string($u['homedir']) && trim($u['homedir']) !== '') {
+            return [trim($u['homedir'])];
+        }
+        return ['/'];
     }
 
     protected function getUsers(): array

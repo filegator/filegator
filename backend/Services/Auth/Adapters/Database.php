@@ -60,7 +60,7 @@ class Database implements Service, AuthInterface
             ->fetch('SELECT * FROM users WHERE username = ?', $user->getUsername())
         ;
 
-        if ($ret && $hash == $ret->password.$ret->permissions.$ret->homedir.$ret->role) {
+        if ($ret && $hash == $this->buildSessionHash($ret)) {
             return $user;
         }
 
@@ -76,13 +76,28 @@ class Database implements Service, AuthInterface
         if ($ret && $this->verifyPassword($password, $ret->password)) {
             $user = $this->mapToUserObject($ret);
             $this->store($user);
-            $this->session->set(self::SESSION_HASH, $ret->password.$ret->permissions.$ret->homedir.$ret->role);
+            $this->session->set(self::SESSION_HASH, $this->buildSessionHash($ret));
             $this->session->migrate(true);
 
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Canonical session-hash input. Substitutes the homedir column with a
+     * comma-joined list of folders (decoded if the column already holds a
+     * JSON array). Forces re-auth for any session whose stored hash was
+     * computed against the pre-refactor single-string shape.
+     */
+    protected function buildSessionHash($row): string
+    {
+        $homedirs = $this->extractHomedirsFromRow($row);
+        return $row->password
+            . $row->permissions
+            . implode(',', $homedirs)
+            . $row->role;
     }
 
     public function forget()
@@ -105,10 +120,13 @@ class Database implements Service, AuthInterface
             throw new \Exception('Username already taken');
         }
 
+        // Store the homedirs array as JSON in the existing `homedir` column
+        // — no schema migration needed. Single-folder users get a 1-element
+        // JSON array. mapToUserObject decodes either shape on read.
         $this->getConnection()->query('UPDATE users SET', [
             'username' => $user->getUsername(),
             'name' => $user->getName(),
-            'homedir' => $user->getHomeDir(),
+            'homedir' => json_encode($user->getHomeDirs()),
             'permissions' => $user->getPermissions(true),
             'role' => $user->getRole(),
         ], 'WHERE username = ?', $username);
@@ -132,7 +150,8 @@ class Database implements Service, AuthInterface
             'username' => $user->getUsername(),
             'name' => $user->getName(),
             'role' => $user->getRole(),
-            'homedir' => $user->getHomeDir(),
+            // See note in update() — homedirs stored as JSON in the same column.
+            'homedir' => json_encode($user->getHomeDirs()),
             'permissions' => $user->getPermissions(true),
             'password' => $this->hashPassword($password),
         ]);
@@ -195,11 +214,35 @@ class Database implements Service, AuthInterface
         $new = new User();
 
         $new->setRole(isset($user->role) ? $user->role : 'guest');
-        $new->setHomedir(isset($user->homedir) ? $user->homedir : '/');
+        $new->setHomedirs($this->extractHomedirsFromRow($user));
         $new->setPermissions(isset($user->permissions) ? $user->permissions : '', true);
         $new->setUsername(isset($user->username) ? $user->username : '');
         $new->setName(isset($user->name) ? $user->name : 'Guest');
 
         return $new;
+    }
+
+    /**
+     * Read the `homedir` column in whatever historical shape it's in: a
+     * JSON-encoded array (post-refactor) or a single path string (legacy
+     * rows from before Phase 2). Defaults to single root folder when
+     * blank, matching pre-refactor behaviour.
+     */
+    protected function extractHomedirsFromRow($row): array
+    {
+        $raw = isset($row->homedir) ? (string) $row->homedir : '';
+        if ($raw === '') return ['/'];
+
+        // Try JSON first — new shape stores '["/a","/b"]'.
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) {
+            $clean = [];
+            foreach ($decoded as $h) {
+                if (is_string($h) && trim($h) !== '') $clean[] = trim($h);
+            }
+            return $clean ?: ['/'];
+        }
+
+        return [trim($raw)];
     }
 }
