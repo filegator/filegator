@@ -218,4 +218,97 @@ class AdminTest extends TestCase
 
         $this->assertStatus(422);
     }
+
+    // --------------------------------------------------------------------
+    // Pins for the existing admin-input boundary behaviour. The multi-folder
+    // refactor preserves these contracts; the tests guard the seams.
+    // --------------------------------------------------------------------
+
+    public function testStoreUserHomedirIsAdminPrefixJoined()
+    {
+        // Pin the exact admin-prefix join behaviour in storeUser
+        // (AdminController.php ~line 87-91): the supplied homedir is
+        // rtrim'd/ltrim'd and concatenated under the admin's homedir, with
+        // NO `..` normalization at create time. Runtime safety for users
+        // whose homedir contains `..` comes from Filesystem::applyPathPrefix
+        // sandboxing every storage operation — not from this step. We pin
+        // the existing string-concatenation shape so the multi-folder
+        // refactor (which loops the same join over each homedirs[] element)
+        // doesn't accidentally change the result.
+        $this->signIn('admin@example.com', 'admin123');
+
+        // Admin's homedir is '/'. Supplied homedir 'subdir' should land as
+        // '/subdir'. Supplied homedir '/subdir' should also land as '/subdir'.
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'Alpha',
+            'username'    => 'alpha@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+            'homedir'     => 'alpha',
+        ]);
+        $this->assertOk();
+
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'Beta',
+            'username'    => 'beta@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+            'homedir'     => '/beta',
+        ]);
+        $this->assertOk();
+
+        $this->sendRequest('GET', '/listusers');
+        $rows = json_decode($this->response->getContent(), true)['data'];
+        $byName = [];
+        foreach ($rows as $u) {
+            $byName[$u['username']] = $u['homedir'];
+        }
+
+        $this->assertSame('/alpha', $byName['alpha@example.com'] ?? null);
+        $this->assertSame('/beta', $byName['beta@example.com'] ?? null);
+    }
+
+    public function testUpdateUserHomedirCanBeAnyString()
+    {
+        // updateUser does NOT apply the admin-prefix join — it accepts the
+        // homedir field as-is. Pin this asymmetry so the multi-folder
+        // refactor preserves it (storeUser joins, updateUser does not).
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('POST', '/updateuser/john@example.com', [
+            'name'        => 'John Doe',
+            'username'    => 'john@example.com',
+            'role'        => 'user',
+            'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
+            'homedir'     => '/relocated/explicit',
+        ]);
+        $this->assertOk();
+
+        $this->assertResponseJsonHas([
+            'data' => [
+                'username' => 'john@example.com',
+                'homedir'  => '/relocated/explicit',
+            ],
+        ]);
+    }
+
+    public function testListUsersShapeIncludesHomedirField()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('GET', '/listusers');
+        $this->assertOk();
+
+        $rows = json_decode($this->response->getContent(), true)['data'];
+        $this->assertNotEmpty($rows);
+        foreach ($rows as $u) {
+            $this->assertArrayHasKey('homedir', $u, 'listUsers row missing homedir key');
+            $this->assertArrayHasKey('username', $u);
+            $this->assertArrayHasKey('role', $u);
+            $this->assertArrayHasKey('name', $u);
+            $this->assertArrayHasKey('permissions', $u);
+        }
+    }
 }
