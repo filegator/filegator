@@ -111,6 +111,9 @@ class CollectionTest extends TestCase
 
         $json = json_encode($user);
 
-        $this->assertEquals('[{"role":"guest","permissions":[],"homedir":"","username":"","name":""},{"role":"guest","permissions":[],"homedir":"","username":"","name":""}]', $json);
+        // Phase 2 of the multi-folder refactor added `homedirs` as a sibling
+        // of `homedir` in User::jsonSerialize. Both keys ship for one
+        // release; Phase 10 drops `homedir`.
+        $this->assertEquals('[{"role":"guest","permissions":[],"homedir":"","homedirs":[],"username":"","name":""},{"role":"guest","permissions":[],"homedir":"","homedirs":[],"username":"","name":""}]', $json);
     }
 }

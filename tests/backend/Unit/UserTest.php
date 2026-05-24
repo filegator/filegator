@@ -61,6 +61,7 @@ class UserTest extends TestCase
         $this->assertEquals([
             'role' => 'guest',
             'homedir' => '',
+            'homedirs' => [],
             'username' => '',
             'name' => '',
             'permissions' => [],
@@ -69,18 +70,20 @@ class UserTest extends TestCase
 
     public function testJsonSerializeKeysAreStable()
     {
-        // Pin the exact key set so the multi-folder refactor (which will add
-        // 'homedirs' as a sibling of 'homedir') doesn't silently drop or
-        // rename any field the frontend reads from this payload.
+        // The exact key set returned by jsonSerialize. Phase 2 added
+        // `homedirs` (array) as a sibling of `homedir` (scalar). Phase 10
+        // will drop `homedir`. Updating this assertion is the explicit
+        // signal that a key was added or removed — guard against unintended
+        // changes.
         $user = new User();
         $user->setRole('user');
         $user->setUsername('john.doe@example.com');
         $user->setName('John Doe');
-        $user->setHomedir('/john');
+        $user->setHomedirs(['/john']);
         $user->setPermissions(['read', 'write']);
 
         $decoded = json_decode(json_encode($user), true);
-        $expected = ['role', 'homedir', 'username', 'name', 'permissions'];
+        $expected = ['role', 'homedir', 'homedirs', 'username', 'name', 'permissions'];
         sort($expected);
         $actualKeys = array_keys($decoded);
         sort($actualKeys);
@@ -90,13 +93,52 @@ class UserTest extends TestCase
 
     public function testGetHomeDirReturnsStringSet()
     {
-        // Pin the existing single-string contract for setHomedir/getHomeDir
-        // so the multi-folder shim (Phase 2) preserves it.
+        // Legacy single-string contract — setHomedir/getHomeDir is now a
+        // shim over setHomedirs/getHomeDirs. The shim must preserve the
+        // string round-trip for any code path that hasn't migrated yet.
         $user = new User();
         $user->setHomedir('/some/path');
 
         $this->assertSame('/some/path', $user->getHomeDir());
         $this->assertIsString($user->getHomeDir());
+    }
+
+    public function testSetHomedirRoutesThroughSetHomedirs()
+    {
+        // Calling setHomedir wraps the value as a single-element homedirs
+        // array, so getHomeDirs() and getHomeDir() agree.
+        $user = new User();
+        $user->setHomedir('/single');
+
+        $this->assertSame(['/single'], $user->getHomeDirs());
+        $this->assertSame('/single', $user->getHomeDir());
+    }
+
+    public function testSetHomedirsNormalisesEntries()
+    {
+        // Trim, drop empties + non-strings, re-index. Pin so the
+        // normalisation can't accidentally drift to allow blanks through.
+        $user = new User();
+        $user->setHomedirs([' /a ', '', '/b', '   ', '/c', 42]);
+
+        $this->assertSame(['/a', '/b', '/c'], $user->getHomeDirs());
+    }
+
+    public function testGetHomeDirReturnsFirstElement()
+    {
+        // Back-compat shim semantics: first element of the array.
+        $user = new User();
+        $user->setHomedirs(['/first', '/second']);
+
+        $this->assertSame('/first', $user->getHomeDir());
+    }
+
+    public function testGetHomeDirReturnsEmptyStringWhenNoFolders()
+    {
+        $user = new User();
+
+        $this->assertSame('', $user->getHomeDir());
+        $this->assertSame([], $user->getHomeDirs());
     }
 
     public function testUserCannotGetNonExistingRole()

@@ -18,7 +18,11 @@ class User implements \JsonSerializable
 
     protected $username = '';
 
-    protected $homedir = '';
+    /** @var string[] List of folder paths this user can access. Single-folder
+     *  users have a 1-element list; multi-folder users have more. The legacy
+     *  scalar setHomedir/getHomeDir methods are kept as deprecated shims over
+     *  setHomedirs/getHomeDirs so callers that haven't migrated still work. */
+    protected $homedirs = [];
 
     protected $name = '';
 
@@ -92,14 +96,46 @@ class User implements \JsonSerializable
         return $this->username;
     }
 
-    public function setHomedir(string $homedir)
+    /**
+     * Replace the user's full folder list. Each entry is trimmed and the
+     * array is re-indexed; blank/non-string entries are dropped.
+     */
+    public function setHomedirs(array $homedirs): void
     {
-        $this->homedir = $homedir;
+        $clean = [];
+        foreach ($homedirs as $h) {
+            if (! is_string($h)) continue;
+            $t = trim($h);
+            if ($t === '') continue;
+            $clean[] = $t;
+        }
+        $this->homedirs = array_values($clean);
     }
 
+    /** @return string[] */
+    public function getHomeDirs(): array
+    {
+        return $this->homedirs;
+    }
+
+    /**
+     * Legacy single-folder setter. Shim over setHomedirs.
+     * @deprecated Use setHomedirs() — kept so LDAP/WPAuth adapters and any
+     *             single-folder call sites keep working without edits.
+     */
+    public function setHomedir(string $homedir)
+    {
+        $this->setHomedirs([$homedir]);
+    }
+
+    /**
+     * Legacy single-folder getter. Returns the first homedir, or '' if none.
+     * @deprecated Use getHomeDirs() — kept for back-compat through the
+     *             rollout. Phase 10 removes it.
+     */
     public function getHomeDir(): string
     {
-        return $this->homedir;
+        return $this->homedirs[0] ?? '';
     }
 
     public function setRole(string $role)
@@ -127,10 +163,14 @@ class User implements \JsonSerializable
 
     public function jsonSerialize()
     {
+        // `homedir` (singular) is preserved for one release so existing
+        // frontend code that reads the scalar keeps working. `homedirs`
+        // (plural) is the new authoritative key. Phase 10 drops `homedir`.
         return [
             'role' => $this->getRole(),
             'permissions' => $this->getPermissions(),
             'homedir' => $this->getHomeDir(),
+            'homedirs' => $this->getHomeDirs(),
             'username' => $this->getUsername(),
             'name' => $this->getName(),
         ];
