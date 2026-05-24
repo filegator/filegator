@@ -143,7 +143,7 @@ class AuditAlertsTest extends TestCase
         $msg = $this->lastAudit();
         $this->assertNotNull($msg);
         $this->assertStringContainsString('Folder changed for john@example.com: /john → /relocated', $msg['subject']);
-        $this->assertStringContainsString('- Homedir: /john → /relocated', $msg['text']);
+        $this->assertStringContainsString('- Folder: /john → /relocated', $msg['text']);
     }
 
     public function testUpdatingPermissionsFiresPermissionsSubject()
@@ -187,7 +187,7 @@ class AuditAlertsTest extends TestCase
         $this->assertStringContainsString('role changed: user → admin', $msg['subject']);
         // Body lists every diff, not just the headline
         $this->assertStringContainsString('- Role: user → admin', $msg['text']);
-        $this->assertStringContainsString('- Homedir: /john → /somewhere', $msg['text']);
+        $this->assertStringContainsString('- Folder: /john → /somewhere', $msg['text']);
         $this->assertStringContainsString('- Permissions:', $msg['text']);
     }
 
@@ -488,6 +488,81 @@ class AuditAlertsTest extends TestCase
             return strpos($m['subject'] ?? '', 'Weekly audit digest') === 0;
         }));
         $this->assertCount(1, $digestAudits);
+    }
+
+    public function testUpdatingHomedirsFromSingleToMultiFiresFoldersAlert()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+
+        // john starts single-folder at /john; expand to two folders.
+        $this->sendRequest('POST', '/updateuser/john@example.com', [
+            'name'        => 'John Doe',
+            'username'    => 'john@example.com',
+            'role'        => 'user',
+            'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
+            'homedirs'    => ['/john', '/john-extra'],
+        ]);
+        $this->assertOk();
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertStringContainsString('Folders changed for john@example.com', $msg['subject']);
+        $this->assertStringContainsString('- Folders: /john → /john, /john-extra', $msg['text']);
+    }
+
+    public function testUpdatingHomedirsOrderIsMeaningfulInDiff()
+    {
+        // Order matters: [/a,/b] is meaningfully different from [/b,/a]
+        // because element 0 is the user's default landing folder.
+        $this->signIn('admin@example.com', 'admin123');
+
+        // First update — establish multi-folder shape.
+        $this->sendRequest('POST', '/updateuser/john@example.com', [
+            'name'        => 'John Doe',
+            'username'    => 'john@example.com',
+            'role'        => 'user',
+            'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
+            'homedirs'    => ['/a', '/b'],
+        ]);
+        InMemoryMailer::reset();
+
+        // Second update — flip the order, same set.
+        $this->sendRequest('POST', '/updateuser/john@example.com', [
+            'name'        => 'John Doe',
+            'username'    => 'john@example.com',
+            'role'        => 'user',
+            'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
+            'homedirs'    => ['/b', '/a'],
+        ]);
+        $this->assertOk();
+
+        // Reordering MUST fire an alert — element 0 changed.
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertStringContainsString('Folders changed for john@example.com', $msg['subject']);
+        $this->assertStringContainsString('/a,/b → /b,/a', $msg['subject']);
+    }
+
+    public function testWeeklyDigestRendersMultipleFoldersForMultiFolderUser()
+    {
+        $app = $this->bootFreshApp();
+        $digest = $app->resolve(WeeklyDigest::class);
+        $auth = $app->resolve(AuthInterface::class);
+        $digest->maybeFire($auth);
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+
+        // Text body shows the multi-folder user with both folders.
+        $this->assertStringContainsString('multi@example.com', $msg['text']);
+        $this->assertStringContainsString('Folders: /multiA, /multiB', $msg['text']);
+
+        // HTML body shows the folder list as a multi-line cell.
+        $this->assertStringContainsString('/multiA', $msg['html']);
+        $this->assertStringContainsString('/multiB', $msg['html']);
+
+        // Single-folder users keep the singular "Folder:" label in text.
+        $this->assertStringContainsString('Folder: /john', $msg['text']);
     }
 
     public function testEmailChangeFiresEmailSubject()

@@ -28,7 +28,7 @@ class AuditMailer implements Service
      * Update-event subject lines are picked from the highest-priority field
      * that changed. Order: most consequential first.
      */
-    const UPDATE_PRIORITY = ['role', 'homedir', 'permissions', 'password', 'email', 'username'];
+    const UPDATE_PRIORITY = ['role', 'homedirs', 'permissions', 'password', 'email', 'username'];
 
     protected $mailer;
 
@@ -56,6 +56,7 @@ class AuditMailer implements Service
     {
         if (! $this->shouldSend()) return;
 
+        $homedirs = $this->extractHomedirs($userSnapshot);
         $subject = sprintf('New user created: %s', $userSnapshot['username'] ?? '(unknown)');
         $body = $this->joinLines([
             sprintf('A new user was created in the %s.', $this->appLabel()),
@@ -63,7 +64,7 @@ class AuditMailer implements Service
             sprintf('Admin: %s', $adminUsername),
             sprintf('Username: %s', $userSnapshot['username'] ?? ''),
             sprintf('Name: %s', $userSnapshot['name'] ?? ''),
-            sprintf('Folder: %s', $userSnapshot['homedir'] ?? ''),
+            sprintf('%s: %s', count($homedirs) === 1 ? 'Folder' : 'Folders', $this->formatHomedirs($homedirs)),
             sprintf('Role: %s', $userSnapshot['role'] ?? ''),
             sprintf('Permissions: %s', $this->formatPermissions($userSnapshot['permissions'] ?? [])),
             sprintf('Email: %s', $email !== null && $email !== '' ? $email : '(none)'),
@@ -79,6 +80,7 @@ class AuditMailer implements Service
         if (! $this->shouldSend()) return;
 
         $username = $userSnapshot['username'] ?? '(unknown)';
+        $homedirs = $this->extractHomedirs($userSnapshot);
         $subject = sprintf('User deleted: %s', $username);
         $body = $this->joinLines([
             sprintf('A user was deleted from the %s.', $this->appLabel()),
@@ -86,7 +88,7 @@ class AuditMailer implements Service
             sprintf('Admin: %s', $adminUsername),
             sprintf('Username: %s', $username),
             sprintf('Name: %s', $userSnapshot['name'] ?? ''),
-            sprintf('Folder at time of deletion: %s', $userSnapshot['homedir'] ?? ''),
+            sprintf('%s at time of deletion: %s', count($homedirs) === 1 ? 'Folder' : 'Folders', $this->formatHomedirs($homedirs)),
             sprintf('Role: %s', $userSnapshot['role'] ?? ''),
             sprintf('Permissions: %s', $this->formatPermissions($userSnapshot['permissions'] ?? [])),
             sprintf('Email: %s', $email !== null && $email !== '' ? $email : '(none)'),
@@ -225,11 +227,12 @@ class AuditMailer implements Service
             '',
         ];
         foreach ($rows as $r) {
+            $homedirs = $this->extractHomedirs($r);
             $lines[] = sprintf('— %s (%s) — %s',
                 $r['username'] ?? '',
                 $r['name'] ?? '',
                 $r['role'] ?? '');
-            $lines[] = sprintf('  Folder: %s', $r['homedir'] ?? '');
+            $lines[] = sprintf('  %s: %s', count($homedirs) === 1 ? 'Folder' : 'Folders', $this->formatHomedirs($homedirs));
             $lines[] = sprintf('  Permissions: %s', $this->formatPermissions($r['permissions'] ?? []));
             $lines[] = sprintf('  MFA: %s', ! empty($r['mfa_enabled']) ? 'on' : 'off');
             $email = $r['email'] ?? null;
@@ -249,11 +252,18 @@ class AuditMailer implements Service
         foreach ($rows as $r) {
             $mfa = ! empty($r['mfa_enabled']) ? '✓' : '—';
             $email = $r['email'] ?? null;
+            $homedirs = $this->extractHomedirs($r);
+            // Each folder rendered in its own <code> on its own line.
+            $homedirCells = empty($homedirs)
+                ? '(none)'
+                : implode('<br>', array_map(function ($h) {
+                    return '<code>'.htmlspecialchars($h, ENT_QUOTES, 'UTF-8').'</code>';
+                }, $homedirs));
             $rowsHtml .= '<tr>'
                 .'<td>'.htmlspecialchars((string) ($r['username'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
                 .'<td>'.htmlspecialchars((string) ($r['name'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
                 .'<td>'.htmlspecialchars((string) ($r['role'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
-                .'<td><code>'.htmlspecialchars((string) ($r['homedir'] ?? ''), ENT_QUOTES, 'UTF-8').'</code></td>'
+                .'<td>'.$homedirCells.'</td>'
                 .'<td>'.htmlspecialchars($this->formatPermissions($r['permissions'] ?? []), ENT_QUOTES, 'UTF-8').'</td>'
                 .'<td style="text-align:center">'.$mfa.'</td>'
                 .'<td>'.htmlspecialchars($email !== null && $email !== '' ? (string) $email : '(none)', ENT_QUOTES, 'UTF-8').'</td>'
@@ -268,7 +278,7 @@ class AuditMailer implements Service
 <p>{$this->summaryLine(count($rows), $mfaOn)}</p>
 <table cellpadding="6" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;font-size:13px">
 <thead style="background:#f9fafb;text-align:left">
-<tr><th>Username</th><th>Name</th><th>Role</th><th>Folder</th><th>Permissions</th><th>MFA</th><th>Email</th></tr>
+<tr><th>Username</th><th>Name</th><th>Role</th><th>Folder(s)</th><th>Permissions</th><th>MFA</th><th>Email</th></tr>
 </thead>
 <tbody>
 {$rowsHtml}
@@ -320,7 +330,18 @@ HTML;
     protected function computeDiffs(array $before, array $after, ?string $beforeEmail, ?string $afterEmail, bool $passwordChanged): array
     {
         $diffs = [];
-        foreach (['role', 'homedir', 'permissions', 'username', 'name'] as $field) {
+
+        // homedirs: order-sensitive comparison. Element 0 is the user's
+        // default folder (where they land first / where single-folder
+        // shim returns), so [/a,/b] is meaningfully different from [/b,/a].
+        $bHomedirs = $this->extractHomedirs($before);
+        $aHomedirs = $this->extractHomedirs($after);
+        if ($bHomedirs !== $aHomedirs) {
+            $diffs['homedirs'] = ['before' => $bHomedirs, 'after' => $aHomedirs];
+        }
+
+        // permissions: order-insensitive (set semantics).
+        foreach (['role', 'permissions', 'username', 'name'] as $field) {
             $b = $before[$field] ?? null;
             $a = $after[$field] ?? null;
             if ($this->normalize($b) !== $this->normalize($a)) {
@@ -357,8 +378,8 @@ HTML;
             switch ($field) {
                 case 'role':
                     return sprintf('User %s role changed: %s → %s', $username, $diffs[$field]['before'], $diffs[$field]['after']);
-                case 'homedir':
-                    return sprintf('Folder changed for %s: %s → %s', $username, $diffs[$field]['before'], $diffs[$field]['after']);
+                case 'homedirs':
+                    return $this->subjectForHomedirsChange($username, $diffs[$field]);
                 case 'permissions':
                     return sprintf('Permissions changed for %s', $username);
                 case 'password':
@@ -370,6 +391,32 @@ HTML;
             }
         }
         return sprintf('Profile updated for %s', $username);
+    }
+
+    /**
+     * Humanise the subject line for an "I changed the user's folders" event.
+     * Reads cleanly across the four common transitions:
+     *   1→1 (rename a single folder)           "Folder changed for X: A → B"
+     *   1→N (single user gained extra access)  "Folders changed for X: 1 → N folders"
+     *   N→1 (multi user reduced to single)     "Folders changed for X: N → 1 folder"
+     *   N→M (multi-folder rearranged)          "Folders changed for X: A,B → A,B,C"
+     */
+    protected function subjectForHomedirsChange(string $username, array $change): string
+    {
+        $before = is_array($change['before'] ?? null) ? $change['before'] : [];
+        $after = is_array($change['after'] ?? null) ? $change['after'] : [];
+
+        if (count($before) === 1 && count($after) === 1) {
+            return sprintf('Folder changed for %s: %s → %s', $username, $before[0], $after[0]);
+        }
+        if (count($before) <= 1 && count($after) > 1) {
+            return sprintf('Folders changed for %s: %d → %d folders', $username, count($before), count($after));
+        }
+        if (count($before) > 1 && count($after) <= 1) {
+            return sprintf('Folders changed for %s: %d → %d folder%s', $username, count($before), count($after), count($after) === 1 ? '' : 's');
+        }
+        // N → M, both >1
+        return sprintf('Folders changed for %s: %s → %s', $username, implode(',', $before), implode(',', $after));
     }
 
     protected function formatDiffLine(string $field, array $change): string
@@ -389,6 +436,15 @@ HTML;
                     ($change['before'] ?? '') !== '' && $change['before'] !== null ? $change['before'] : '(none)',
                     ($change['after'] ?? '') !== '' && $change['after'] !== null ? $change['after'] : '(none)'
                 );
+            case 'homedirs':
+                $before = is_array($change['before'] ?? null) ? $change['before'] : [];
+                $after = is_array($change['after'] ?? null) ? $change['after'] : [];
+                return sprintf(
+                    '%s: %s → %s',
+                    count($before) <= 1 && count($after) <= 1 ? 'Folder' : 'Folders',
+                    $this->formatHomedirs($before),
+                    $this->formatHomedirs($after)
+                );
             default:
                 return sprintf(
                     '%s: %s → %s',
@@ -405,6 +461,33 @@ HTML;
         if (! is_array($perms) || empty($perms)) return '(none)';
         $perms = array_filter($perms, function ($p) { return $p !== ''; });
         return $perms ? implode(', ', $perms) : '(none)';
+    }
+
+    /**
+     * Pull the homedirs list out of a User snapshot regardless of which
+     * key was populated. Prefers the new `homedirs` array; falls back to
+     * wrapping the legacy `homedir` scalar so snapshots taken at any point
+     * during the transition continue to render correctly.
+     */
+    protected function extractHomedirs(array $snapshot): array
+    {
+        if (isset($snapshot['homedirs']) && is_array($snapshot['homedirs'])) {
+            $clean = [];
+            foreach ($snapshot['homedirs'] as $h) {
+                if (is_string($h) && trim($h) !== '') $clean[] = $h;
+            }
+            return $clean;
+        }
+        if (isset($snapshot['homedir']) && is_string($snapshot['homedir']) && trim($snapshot['homedir']) !== '') {
+            return [$snapshot['homedir']];
+        }
+        return [];
+    }
+
+    protected function formatHomedirs(array $homedirs): string
+    {
+        if (empty($homedirs)) return '(none)';
+        return implode(', ', $homedirs);
     }
 
     protected function scalar($v): string

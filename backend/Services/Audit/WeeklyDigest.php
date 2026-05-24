@@ -161,7 +161,11 @@ class WeeklyDigest implements Service
                 'username' => $username,
                 'name' => $u->getName(),
                 'role' => $u->getRole(),
+                // Both keys during the transition. AuditMailer prefers
+                // `homedirs` and falls back to `homedir`; Phase 10 will
+                // drop the scalar from this snapshot.
                 'homedir' => $u->getHomeDir(),
+                'homedirs' => $u->getHomeDirs(),
                 'permissions' => $u->getPermissions(),
                 'mfa_enabled' => (bool) ($meta[$username]['enabled'] ?? false),
                 'email' => $meta[$username]['email'] ?? null,
