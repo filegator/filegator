@@ -183,6 +183,10 @@ const api = {
         name: params.name,
         username: params.username,
         email: params.email,
+        // Both keys during the rollout transition. Backend prefers
+        // `homedirs` via normaliseHomedirsInput; the legacy `homedir`
+        // scalar is the back-compat fallback Phase 10 removes.
+        homedirs: params.homedirs,
         homedir: params.homedir,
         password: params.password,
         permissions: params.permissions,
@@ -198,6 +202,7 @@ const api = {
         name: params.name,
         username: params.username,
         email: params.email,
+        homedirs: params.homedirs,
         homedir: params.homedir,
         password: params.password,
         permissions: params.permissions,

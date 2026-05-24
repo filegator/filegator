@@ -52,7 +52,7 @@ class AuthController
             if ($auth->authenticate($username, $password)) {
                 $this->seedActiveHomedirAfterLogin($session, $auth, $username);
                 $this->logger->log("Logged in {$username} from IP ".$ip);
-                return $response->json($auth->user());
+                return $response->json($this->userResponsePayload($auth->user(), $session));
             }
             return $this->failLogin($tmpfs, $response, $username, $ip);
         }
@@ -106,7 +106,7 @@ class AuthController
         $auth->establishSessionFor($username);
         $this->seedActiveHomedirAfterLogin($session, $auth, $username);
         $this->logger->log("Logged in {$username} from IP ".$ip);
-        return $response->json($auth->user());
+        return $response->json($this->userResponsePayload($auth->user(), $session));
     }
 
     public function loginMfa(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)
@@ -151,7 +151,7 @@ class AuthController
         $this->completeMfaLogin($auth, $session, $username);
 
         $this->logger->log("MFA login complete for {$username} from {$ip}");
-        return $response->json($auth->user());
+        return $response->json($this->userResponsePayload($auth->user(), $session));
     }
 
     public function loginMfaSetup(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)
@@ -185,7 +185,7 @@ class AuthController
 
         $this->logger->log("MFA setup complete for {$username} from {$ip}");
         return $response->json([
-            'user' => $auth->user(),
+            'user' => $this->userResponsePayload($auth->user(), $session),
             'backup_codes' => $backupCodes,
         ]);
     }
@@ -201,11 +201,25 @@ class AuthController
         return $response->json($auth->forget());
     }
 
-    public function getUser(Response $response, AuthInterface $auth)
+    public function getUser(Response $response, AuthInterface $auth, SessionStorageInterface $session)
     {
         $user = $auth->user() ?: $auth->getGuest();
 
-        return $response->json($user);
+        return $response->json($this->userResponsePayload($user, $session));
+    }
+
+    /**
+     * Build the public user-response payload. Merges User::jsonSerialize
+     * with the session-stored active_homedir so the frontend bootstrap
+     * (and Login.vue post-auth path) can route multi-folder users
+     * straight into '/' when their previously-picked folder is still
+     * valid, instead of bouncing back to the picker on every reload.
+     */
+    protected function userResponsePayload($user, SessionStorageInterface $session): array
+    {
+        $payload = $user->jsonSerialize();
+        $payload['active_homedir'] = $session->get(FileController::SESSION_ACTIVE_HOMEDIR, null);
+        return $payload;
     }
 
     public function changePassword(Request $request, Response $response, AuthInterface $auth, Validator $validator)

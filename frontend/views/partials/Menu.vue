@@ -97,8 +97,14 @@ export default {
             this.$router.push('/').catch(() => {})
           } else {
             // Force the browser to re-list at the new folder root.
+            // changeDir returns {files, location}; setCwd expects
+            // {content, location} — match the shape Browser.vue uses in
+            // loadFiles or the listing renders empty.
             api.changeDir({ to: '/' })
-              .then(content => this.$store.commit('setCwd', content))
+              .then(ret => this.$store.commit('setCwd', {
+                content: ret.files,
+                location: ret.location,
+              }))
               .catch(error => this.handleError(error))
           }
         })
