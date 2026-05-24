@@ -11,36 +11,45 @@
 namespace Filegator\Controllers;
 
 use Filegator\Config\Config;
+use Filegator\Controllers\Concerns\ResolvesActiveHomedir;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
+use Filegator\Services\Session\SessionStorageInterface as Session;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Services\Tmpfs\TmpfsInterface;
 
 class UploadController
 {
+    use ResolvesActiveHomedir;
+
     protected $auth;
 
     protected $config;
+
+    protected $session;
 
     protected $storage;
 
     protected $tmpfs;
 
-    public function __construct(Config $config, AuthInterface $auth, Filesystem $storage, TmpfsInterface $tmpfs)
+    public function __construct(Config $config, Session $session, AuthInterface $auth, Filesystem $storage, TmpfsInterface $tmpfs)
     {
         $this->config = $config;
+        $this->session = $session;
         $this->auth = $auth;
         $this->tmpfs = $tmpfs;
-
-        $user = $this->auth->user() ?: $this->auth->getGuest();
-
         $this->storage = $storage;
-        $this->storage->setPathPrefix($user->getHomeDir());
+
+        // No setPathPrefix() here — applied lazily by ensureActiveHomedir()
+        // at the top of each public method. See FileController for the
+        // rationale.
     }
 
     public function chunkCheck(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $file_name = $request->input('resumableFilename', 'file');
         $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
         $username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $this->auth->user()->getUsername());
@@ -57,6 +66,8 @@ class UploadController
 
     public function upload(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $file_name = $request->input('resumableFilename', 'file');
         $destination = $request->input('resumableRelativePath');
         $chunk_number = (int) $request->input('resumableChunkNumber');

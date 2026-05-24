@@ -11,6 +11,7 @@
 namespace Filegator\Controllers;
 
 use Filegator\Config\Config;
+use Filegator\Controllers\Concerns\ResolvesActiveHomedir;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Archiver\ArchiverInterface;
@@ -20,7 +21,16 @@ use Filegator\Services\Storage\Filesystem;
 
 class FileController
 {
+    use ResolvesActiveHomedir;
+
     const SESSION_CWD = 'current_path';
+
+    /**
+     * Session key holding the user's currently-selected folder (one of
+     * their homedirs). Auto-seeded at login for single-folder users;
+     * set via selectFolder() for multi-folder users.
+     */
+    const SESSION_ACTIVE_HOMEDIR = 'active_homedir';
 
     protected $session;
 
@@ -37,17 +47,20 @@ class FileController
         $this->session = $session;
         $this->config = $config;
         $this->auth = $auth;
-
-        $user = $this->auth->user() ?: $this->auth->getGuest();
-
         $this->storage = $storage;
-        $this->storage->setPathPrefix($user->getHomeDir());
-
         $this->separator = $this->storage->getSeparator();
+
+        // NB: deliberately NO setPathPrefix() here. The path prefix is
+        // resolved lazily by ensureActiveHomedir() at the top of every
+        // public method, so a multi-folder user with no active folder
+        // can be rejected with a clean 422 rather than a constructor
+        // exception bubbling up as a 500.
     }
 
     public function changeDirectory(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $path = $request->input('to', $this->separator);
 
         $this->session->set(self::SESSION_CWD, $path);
@@ -57,6 +70,8 @@ class FileController
 
     public function getDirectory(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $path = $request->input('dir', $this->session->get(self::SESSION_CWD, $this->separator));
 
         $content = $this->storage->getDirectoryCollection($path);
@@ -66,6 +81,8 @@ class FileController
 
     public function createNew(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $type = $request->input('type', 'file');
         $name = $request->input('name');
         $path = $this->session->get(self::SESSION_CWD, $this->separator);
@@ -82,6 +99,8 @@ class FileController
 
     public function copyItems(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
 
@@ -99,6 +118,8 @@ class FileController
 
     public function moveItems(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
 
@@ -114,6 +135,8 @@ class FileController
 
     public function zipItems(Request $request, Response $response, ArchiverInterface $archiver)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
         $name = $request->input('name', $this->config->get('frontend_config.default_archive_name'));
@@ -136,6 +159,8 @@ class FileController
 
     public function unzipItem(Request $request, Response $response, ArchiverInterface $archiver)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $source = $request->input('item');
         $destination = $request->input('destination', $this->separator);
 
@@ -143,9 +168,11 @@ class FileController
 
         return $response->json('Done');
     }
-    
+
     public function chmodItems(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $items = $request->input('items', []);
         $permissions = $request->input('permissions', 0);
         /** @var null|'all'|'folders'|'files' */
@@ -160,6 +187,8 @@ class FileController
 
     public function renameItem(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $destination = $request->input('destination', $this->separator);
         $from = $request->input('from');
         $to = $request->input('to');
@@ -171,6 +200,8 @@ class FileController
 
     public function deleteItems(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $items = $request->input('items', []);
 
         foreach ($items as $item) {
@@ -187,6 +218,8 @@ class FileController
 
     public function saveContent(Request $request, Response $response)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $path = $request->input('dir', $this->session->get(self::SESSION_CWD, $this->separator));
 
         $name = $request->input('name');
@@ -204,5 +237,44 @@ class FileController
         }
 
         return $response->json('Done');
+    }
+
+    /**
+     * Switch the user's active folder. Required for multi-folder users
+     * before any file-op endpoint will accept their requests; single-
+     * folder users auto-seed via ensureActiveHomedir on the first
+     * file-op request, but they can still call this endpoint as a
+     * no-op identity check.
+     *
+     * Validates the requested path against the LIVE homedirs list
+     * (read from the auth adapter, not from session), so an admin
+     * removing a folder mid-session is honoured immediately.
+     */
+    public function selectFolder(Request $request, Response $response)
+    {
+        $current = $this->auth->user();
+        if (! $current) {
+            return $response->json('Not authenticated', 401);
+        }
+
+        $path = (string) $request->input('homedir', '');
+        if ($path === '') {
+            return $response->json(['homedir' => 'This field is required'], 422);
+        }
+
+        $fresh = $this->auth->find($current->getUsername());
+        $homedirs = $fresh ? $fresh->getHomeDirs() : [];
+
+        if (! in_array($path, $homedirs, true)) {
+            return $response->json('Invalid folder', 422);
+        }
+
+        $this->session->set(self::SESSION_ACTIVE_HOMEDIR, $path);
+        // Reset CWD to the new folder's root so a stale path from the
+        // previous folder doesn't cause a phantom "not found" on the
+        // next getdir.
+        $this->session->set(self::SESSION_CWD, $this->separator);
+
+        return $response->json(['active_homedir' => $path]);
     }
 }

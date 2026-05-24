@@ -11,6 +11,7 @@
 namespace Filegator\Controllers;
 
 use Filegator\Config\Config;
+use Filegator\Controllers\Concerns\ResolvesActiveHomedir;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Kernel\StreamedResponse;
@@ -24,6 +25,8 @@ use Symfony\Component\Mime\MimeTypes;
 
 class DownloadController
 {
+    use ResolvesActiveHomedir;
+
     protected $auth;
 
     protected $session;
@@ -37,15 +40,16 @@ class DownloadController
         $this->session = $session;
         $this->config = $config;
         $this->auth = $auth;
-
-        $user = $this->auth->user() ?: $this->auth->getGuest();
-
         $this->storage = $storage;
-        $this->storage->setPathPrefix($user->getHomeDir());
+
+        // Path prefix applied lazily by ensureActiveHomedir() — see
+        // FileController for the rationale.
     }
 
     public function download(Request $request, Response $response, StreamedResponse $streamedResponse)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         try {
             $file = $this->storage->readStream((string) base64_decode($request->input('path')));
         } catch (\Exception $e) {
@@ -118,6 +122,8 @@ class DownloadController
 
     public function batchDownloadCreate(Request $request, Response $response, ArchiverInterface $archiver)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $items = $request->input('items', []);
 
         $uniqid = $archiver->createArchive($this->storage);
@@ -139,8 +145,10 @@ class DownloadController
         return $response->json(['uniqid' => $uniqid]);
     }
 
-    public function batchDownloadStart(Request $request, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
+    public function batchDownloadStart(Request $request, Response $response, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
     {
+        if (! $this->ensureActiveHomedir($response)) return;
+
         $uniqid = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('uniqid'));
         $file = $tmpfs->readStream($uniqid);
 
