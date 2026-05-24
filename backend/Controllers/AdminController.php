@@ -71,7 +71,6 @@ class AdminController
         $validation = $validator->validate($request->all(), [
             'name' => 'required',
             'username' => 'required',
-            'homedir' => 'required',
             'password' => 'required',
         ]);
 
@@ -79,6 +78,11 @@ class AdminController
             $errors = $validation->errors();
 
             return $response->json($errors->firstOfAll(), 422);
+        }
+
+        $homedirs = $this->normaliseHomedirsInput($request);
+        if (empty($homedirs)) {
+            return $response->json(['homedir' => 'This field is required'], 422);
         }
 
         $email = $request->input('email', null);
@@ -93,11 +97,15 @@ class AdminController
         try {
             $user->setName($request->input('name'));
             $user->setUsername($request->input('username'));
-            $user->setHomedir(
-                rtrim($this->auth->user()->getHomeDir(), $this->storage->getSeparator())
-                .$this->storage->getSeparator()
-                .ltrim($request->input('homedir'), $this->storage->getSeparator())
-            );
+            // Apply the admin-prefix join to EACH supplied homedir. Same
+            // shape as the pre-refactor single-string join, just looped.
+            // Admin is assumed single-folder (Elliff CPA invariant); we
+            // use the first homedir of whoever is acting as admin.
+            $adminBase = rtrim((string) ($this->auth->user()->getHomeDirs()[0] ?? ''), $this->storage->getSeparator());
+            $separator = $this->storage->getSeparator();
+            $user->setHomedirs(array_map(function ($h) use ($adminBase, $separator) {
+                return $adminBase . $separator . ltrim((string) $h, $separator);
+            }, $homedirs));
             $user->setRole($request->input('role', 'user'));
             $user->setPermissions($request->input('permissions'));
             $ret = $this->auth->add($user, $request->input('password'));
@@ -130,13 +138,17 @@ class AdminController
         $validation = $validator->validate($request->all(), [
             'name' => 'required',
             'username' => 'required',
-            'homedir' => 'required',
         ]);
 
         if ($validation->fails()) {
             $errors = $validation->errors();
 
             return $response->json($errors->firstOfAll(), 422);
+        }
+
+        $homedirs = $this->normaliseHomedirsInput($request);
+        if (empty($homedirs)) {
+            return $response->json(['homedir' => 'This field is required'], 422);
         }
 
         if ($username != $request->input('username') && $this->auth->find($request->input('username'))) {
@@ -159,7 +171,10 @@ class AdminController
         try {
             $user->setName($request->input('name'));
             $user->setUsername($request->input('username'));
-            $user->setHomedir($request->input('homedir'));
+            // updateUser preserves the existing asymmetry: NO admin-prefix
+            // join. Supplied homedirs are stored verbatim (matches the
+            // pre-refactor scalar updateUser behaviour, pinned in Phase 1).
+            $user->setHomedirs($homedirs);
             $user->setRole($request->input('role', 'user'));
             $user->setPermissions($request->input('permissions'));
 
@@ -252,5 +267,39 @@ class AdminController
     {
         $current = $this->auth->user();
         return $current ? $current->getUsername() : 'unknown';
+    }
+
+    /**
+     * Read the homedirs list from the request, supporting both shapes
+     * during the transition:
+     * - new: `homedirs` (array of strings)
+     * - legacy: `homedir` (single string) — wrapped into a 1-element array
+     *
+     * Returns a clean array (trimmed, non-empty entries, re-indexed) or
+     * empty array if nothing usable was provided.
+     */
+    protected function normaliseHomedirsInput(Request $request): array
+    {
+        $raw = $request->input('homedirs', null);
+        if (is_array($raw)) {
+            $clean = [];
+            foreach ($raw as $h) {
+                if (! is_string($h)) continue;
+                $t = trim($h);
+                if ($t === '') continue;
+                $clean[] = $t;
+            }
+            return $clean;
+        }
+
+        // Legacy single scalar — accept for one release so the existing
+        // frontend can keep submitting `homedir` until Phase 7 lands.
+        $legacy = $request->input('homedir', null);
+        if (is_string($legacy)) {
+            $t = trim($legacy);
+            if ($t !== '') return [$t];
+        }
+
+        return [];
     }
 }

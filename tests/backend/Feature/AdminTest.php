@@ -305,10 +305,179 @@ class AdminTest extends TestCase
         $this->assertNotEmpty($rows);
         foreach ($rows as $u) {
             $this->assertArrayHasKey('homedir', $u, 'listUsers row missing homedir key');
+            $this->assertArrayHasKey('homedirs', $u, 'listUsers row missing homedirs key (Phase 2)');
             $this->assertArrayHasKey('username', $u);
             $this->assertArrayHasKey('role', $u);
             $this->assertArrayHasKey('name', $u);
             $this->assertArrayHasKey('permissions', $u);
         }
+    }
+
+    // --------------------------------------------------------------------
+    // Phase 4: storeUser/updateUser accept `homedirs[]` while preserving
+    // back-compat for the legacy `homedir` scalar payload shape.
+    // --------------------------------------------------------------------
+
+    public function testStoreUserAcceptsHomedirsArray()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'Multi Maker',
+            'username'    => 'mm@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+            'homedirs'    => ['mfolderA', '/mfolderB'],
+        ]);
+        $this->assertOk();
+
+        $this->sendRequest('GET', '/listusers');
+        $rows = json_decode($this->response->getContent(), true)['data'];
+        $mm = null;
+        foreach ($rows as $u) {
+            if ($u['username'] === 'mm@example.com') $mm = $u;
+        }
+        $this->assertNotNull($mm);
+        // Admin is at '/' — join is /<each>. Both shapes ('plain' and
+        // '/leading-slash') normalise to /plain and /leading-slash.
+        $this->assertSame(['/mfolderA', '/mfolderB'], $mm['homedirs']);
+        // Back-compat scalar key is the first element.
+        $this->assertSame('/mfolderA', $mm['homedir']);
+    }
+
+    public function testStoreUserAcceptsLegacyHomedirString()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+
+        // Legacy frontend payload — single string. Must still work through
+        // Phase 10.
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'Legacy',
+            'username'    => 'legacy@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+            'homedir'     => '/legacy',
+        ]);
+        $this->assertOk();
+
+        $this->sendRequest('GET', '/listusers');
+        $rows = json_decode($this->response->getContent(), true)['data'];
+        $legacy = null;
+        foreach ($rows as $u) {
+            if ($u['username'] === 'legacy@example.com') $legacy = $u;
+        }
+        $this->assertNotNull($legacy);
+        $this->assertSame(['/legacy'], $legacy['homedirs']);
+    }
+
+    public function testStoreUserRejectsEmptyHomedirs()
+    {
+        $this->signIn('admin@example.com', 'admin123');
+
+        // Empty array
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'No Folders',
+            'username'    => 'nf@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+            'homedirs'    => [],
+        ]);
+        $this->assertStatus(422);
+
+        // Blank-only strings
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'No Folders',
+            'username'    => 'nf@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+            'homedirs'    => ['', '   ', '  '],
+        ]);
+        $this->assertStatus(422);
+
+        // Missing both keys entirely
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'No Folders',
+            'username'    => 'nf@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+        ]);
+        $this->assertStatus(422);
+    }
+
+    public function testStoreUserAdminPrefixJoinAppliesToEachElement()
+    {
+        // Pin: each element of homedirs gets the same admin-prefix join
+        // that the pre-refactor scalar storeUser did to its single input.
+        // Admin is at '/' in the test fixture; supplied 'x' becomes '/x'.
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('POST', '/storeuser', [
+            'name'        => 'JoinTest',
+            'username'    => 'jt@example.com',
+            'role'        => 'user',
+            'permissions' => [],
+            'password'    => 'pass123',
+            'homedirs'    => ['a', 'b', 'c'],
+        ]);
+        $this->assertOk();
+
+        $this->sendRequest('GET', '/listusers');
+        $rows = json_decode($this->response->getContent(), true)['data'];
+        foreach ($rows as $u) {
+            if ($u['username'] === 'jt@example.com') {
+                $this->assertSame(['/a', '/b', '/c'], $u['homedirs']);
+                return;
+            }
+        }
+        $this->fail('jt@example.com not found in listUsers');
+    }
+
+    public function testUpdateUserHomedirsArrayPath()
+    {
+        // Move john from single-folder to multi-folder via updateUser.
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('POST', '/updateuser/john@example.com', [
+            'name'        => 'John Doe',
+            'username'    => 'john@example.com',
+            'role'        => 'user',
+            'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
+            'homedirs'    => ['/jext1', '/jext2'],
+        ]);
+        $this->assertOk();
+        $this->assertResponseJsonHas([
+            'data' => [
+                'username' => 'john@example.com',
+                'homedirs' => ['/jext1', '/jext2'],
+                // back-compat scalar = first element
+                'homedir'  => '/jext1',
+            ],
+        ]);
+    }
+
+    public function testUpdateUserNoPrefixJoin()
+    {
+        // Asymmetry pin: updateUser stores the supplied value verbatim,
+        // unlike storeUser which prefixes with the admin's homedir.
+        $this->signIn('admin@example.com', 'admin123');
+
+        $this->sendRequest('POST', '/updateuser/john@example.com', [
+            'name'        => 'John Doe',
+            'username'    => 'john@example.com',
+            'role'        => 'user',
+            'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
+            'homedirs'    => ['raw-no-leading-slash'],
+        ]);
+        $this->assertOk();
+        $this->assertResponseJsonHas([
+            'data' => [
+                'homedirs' => ['raw-no-leading-slash'],
+            ],
+        ]);
     }
 }
