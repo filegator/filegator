@@ -7,6 +7,7 @@ import shared from './mixins/shared'
 import axios from 'axios'
 import api from './api/api'
 import VueLazyload from 'vue-lazyload'
+import { routeAfterLogin } from './mixins/postLogin'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/css/fontawesome.css'
 
@@ -51,7 +52,10 @@ new Vue({
             // intended route can render.
             const preservedRoutes = ['forgot-password', 'reset-password']
             if (!preservedRoutes.includes(this.$route.name)) {
-              this.$router.push('/').catch(() => {})
+              // routeAfterLogin handles the three branches: guest → '/',
+              // single-folder → '/' (with defensive selectFolder), and
+              // multi-folder without active selection → '/select-folder'.
+              routeAfterLogin(this.$store.state.user, this.$router, this.$store)
             }
           })
           .catch(() => {

@@ -17,7 +17,14 @@ export default new Vuex.Store({
       role: 'guest',
       permissions: [],
       name: '',
-      username: ''
+      username: '',
+      // Multi-folder fields. `homedirs` is the canonical list of folders
+      // the user can access; for single-folder users it's a 1-element
+      // array. `active_homedir` is the folder they're currently in
+      // (selected via the picker, or auto-set at login for single-folder
+      // users). Both come from the GET /getuser response.
+      homedirs: [],
+      active_homedir: null,
     },
     cwd: {
       location: '/',
@@ -57,7 +64,21 @@ export default new Vuex.Store({
       state.config = {...state.config, ...data}
     },
     setUser(state, data) {
-      state.user = data
+      // Defensive normalisation: backend may send either the new
+      // `homedirs` array, the legacy `homedir` scalar, or both (during
+      // the transition through Phase 10). Always populate the array
+      // form for downstream consumers.
+      const normalised = { ...data }
+      if (!Array.isArray(normalised.homedirs)) {
+        normalised.homedirs = normalised.homedir ? [normalised.homedir] : []
+      }
+      if (typeof normalised.active_homedir === 'undefined') {
+        normalised.active_homedir = null
+      }
+      state.user = normalised
+    },
+    setActiveHomedir(state, path) {
+      state.user.active_homedir = path
     },
     destroyUser(state) {
       state.user = {
@@ -65,6 +86,8 @@ export default new Vuex.Store({
         permissions: [],
         name: '',
         username: '',
+        homedirs: [],
+        active_homedir: null,
       }
     },
     setCwd(state, data) {

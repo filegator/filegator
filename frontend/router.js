@@ -6,17 +6,23 @@ import Login from './views/Login.vue'
 import Security from './views/Security.vue'
 import ForgotPassword from './views/ForgotPassword.vue'
 import ResetPassword from './views/ResetPassword.vue'
+import SelectFolder from './views/SelectFolder.vue'
 import store from './store'
 
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   mode: 'hash',
   routes: [
     {
       path: '/',
       name: 'browser',
       component: Browser,
+    },
+    {
+      path: '/select-folder',
+      name: 'select-folder',
+      component: SelectFolder,
     },
     {
       path: '/login',
@@ -59,3 +65,27 @@ export default new Router({
     },
   ]
 })
+
+// Multi-folder guard: a user with more than one folder and no active
+// selection must pick before entering the browser view. Prevents the
+// deep-link case where someone bookmarks `/` and lands there directly
+// without going through routeAfterLogin's branch.
+router.beforeEach((to, from, next) => {
+  if (to.name !== 'browser') {
+    next()
+    return
+  }
+  const user = store.state.user
+  if (!user || user.role === 'guest') {
+    next()
+    return
+  }
+  const homedirs = Array.isArray(user.homedirs) ? user.homedirs : []
+  if (homedirs.length > 1 && !user.active_homedir) {
+    next('/select-folder')
+    return
+  }
+  next()
+})
+
+export default router

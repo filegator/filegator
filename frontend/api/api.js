@@ -49,6 +49,18 @@ const api = {
         .catch(error => reject(error))
     })
   },
+  selectFolder(params) {
+    // Multi-folder users call this before any file-op request will
+    // succeed. Single-folder users have it auto-seeded server-side at
+    // login but can still call it as a no-op identity check.
+    return new Promise((resolve, reject) => {
+      axios.post('selectfolder', {
+        homedir: params.homedir,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
   getDir(params) {
     return new Promise((resolve, reject) => {
       axios.post('getdir', {

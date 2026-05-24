@@ -156,6 +156,7 @@
 <script>
 import api from '../api/api'
 import QRCode from 'qrcode'
+import { routeAfterLogin } from '../mixins/postLogin'
 
 export default {
   name: 'Login',
@@ -199,7 +200,11 @@ export default {
             return
           }
           this.$store.commit('setUser', data)
-          api.changeDir({ to: '/' }).then(() => this.$router.push('/').catch(() => {}))
+          // routeAfterLogin handles single vs multi-folder branching.
+          // The defensive changeDir is no longer needed: SelectFolder.vue
+          // does its own setup for multi-folder users, and routeAfterLogin
+          // fires a defensive selectFolder for the single-folder branch.
+          routeAfterLogin(this.$store.state.user, this.$router, this.$store)
         })
         .catch(error => {
           if (error.response && error.response.data) {
@@ -214,7 +219,7 @@ export default {
       api.loginMfa({ code: this.mfaCode, useBackup: this.useBackup })
         .then(user => {
           this.$store.commit('setUser', user)
-          api.changeDir({ to: '/' }).then(() => this.$router.push('/').catch(() => {}))
+          routeAfterLogin(this.$store.state.user, this.$router, this.$store)
         })
         .catch(() => {
           this.error = this.lang('Invalid code')
@@ -242,7 +247,7 @@ export default {
     },
     finishSetup() {
       this.$store.commit('setUser', this.pendingUser)
-      api.changeDir({ to: '/' }).then(() => this.$router.push('/').catch(() => {}))
+      routeAfterLogin(this.$store.state.user, this.$router, this.$store)
     },
     toggleBackup() {
       this.useBackup = !this.useBackup
