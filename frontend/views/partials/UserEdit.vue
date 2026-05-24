@@ -43,8 +43,36 @@
           </div>
         </div>
 
-        <b-field :label="lang('Homedir')" :type="formErrors.homedir ? 'is-danger' : ''" :message="formErrors.homedir">
-          <b-input v-model="formFields.homedir" @focus="selectDir" />
+        <b-field :label="folderFieldLabel" :type="formErrors.homedir ? 'is-danger' : ''" :message="formErrors.homedir">
+          <div class="folders-list">
+            <div
+              v-for="(folder, idx) in formFields.homedirs"
+              :key="idx"
+              class="field has-addons folder-row"
+            >
+              <b-input
+                v-model="formFields.homedirs[idx]"
+                expanded
+                @focus="() => selectDir(idx)"
+                @input="formErrors.homedir = ''"
+              />
+              <p v-if="formFields.homedirs.length > 1" class="control">
+                <button
+                  type="button"
+                  class="button is-danger"
+                  :title="lang('Remove this folder')"
+                  @click="removeFolder(idx)"
+                >×</button>
+              </p>
+            </div>
+            <button
+              type="button"
+              class="button is-small is-info is-light add-folder-btn"
+              @click="addFolder"
+            >
+              + {{ lang('Add another folder') }}
+            </button>
+          </div>
         </b-field>
 
         <b-field :label="lang('Permissions')">
@@ -100,7 +128,12 @@ export default {
         name: this.user.name,
         username: this.user.username,
         email: this.user.email || '',
-        homedir: this.user.homedir,
+        // Multi-folder: copy the array, falling back to wrapping a legacy
+        // scalar homedir. Always ensure at least one (possibly empty) row
+        // so the dialog renders the input even for new users.
+        homedirs: (Array.isArray(this.user.homedirs) && this.user.homedirs.length)
+          ? [...this.user.homedirs]
+          : [this.user.homedir || ''],
         password: '',
       },
       formErrors: {},
@@ -116,6 +149,11 @@ export default {
     }
   },
   computed: {
+    folderFieldLabel() {
+      return this.formFields.homedirs.length > 1
+        ? this.lang('Folders')
+        : this.lang('Folder')
+    },
   },
   watch: {
     'permissions.read' (val) {
@@ -159,7 +197,7 @@ export default {
     },
   },
   methods: {
-    selectDir() {
+    selectDir(idx) {
       this.formErrors.homedir = ''
 
       this.$modal.open({
@@ -168,10 +206,22 @@ export default {
         component: Tree,
         events: {
           selected: dir => {
-            this.formFields.homedir = dir.path
+            // $set is required for index assignment to stay reactive in
+            // Vue 2. Plain `this.formFields.homedirs[idx] = path` would
+            // mutate the array but skip change detection on that slot.
+            this.$set(this.formFields.homedirs, idx, dir.path)
           }
         },
       })
+    },
+    addFolder() {
+      this.formFields.homedirs.push('')
+    },
+    removeFolder(idx) {
+      // Keep at least one row visible; the validator on the backend
+      // will reject an empty homedirs array regardless.
+      if (this.formFields.homedirs.length <= 1) return
+      this.formFields.homedirs.splice(idx, 1)
     },
     getPermissionsArray() {
       return _.reduce(this.permissions, (result, value, key) => {
@@ -218,13 +268,26 @@ export default {
 
       let method = this.action == 'add' ? api.storeUser : api.updateUser
 
+      // Strip blank rows before submitting; the backend would do the
+      // same but trimming here gives a tighter payload and lets
+      // single-element submissions still set the legacy `homedir`
+      // back-compat field correctly.
+      const homedirs = this.formFields.homedirs
+        .map(h => (typeof h === 'string') ? h.trim() : '')
+        .filter(h => h !== '')
+
       method({
         key: this.user.username,
         role: this.formFields.role,
         name: this.formFields.name,
         username: this.formFields.username,
         email: this.formFields.email,
-        homedir: this.formFields.homedir,
+        // New canonical key — Phase 4 backend reads this first.
+        homedirs: homedirs,
+        // Back-compat scalar — read by pre-refactor backends; harmless
+        // for the new backend (normaliseHomedirsInput prefers the array).
+        // Phase 10 drops this.
+        homedir: homedirs[0] || '',
         password: this.formFields.password,
         permissions: this.getPermissionsArray(),
       })
@@ -252,3 +315,17 @@ export default {
 }
 </script>
 
+<style scoped>
+.folders-list {
+  width: 100%;
+}
+.folder-row {
+  margin-bottom: 0.4em;
+}
+.folder-row:last-of-type {
+  margin-bottom: 0.5em;
+}
+.add-folder-btn {
+  margin-top: 0.25em;
+}
+</style>
