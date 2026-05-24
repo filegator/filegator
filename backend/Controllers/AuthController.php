@@ -11,6 +11,7 @@
 namespace Filegator\Controllers;
 
 use Filegator\Config\Config;
+use Filegator\Controllers\FileController;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
 use Filegator\Services\Auth\AuthInterface;
@@ -49,6 +50,7 @@ class AuthController
         $supportsMfa = ($auth instanceof MfaCapableInterface) && $mfa->isSupported();
         if (! $supportsMfa) {
             if ($auth->authenticate($username, $password)) {
+                $this->seedActiveHomedirAfterLogin($session, $auth, $username);
                 $this->logger->log("Logged in {$username} from IP ".$ip);
                 return $response->json($auth->user());
             }
@@ -102,6 +104,7 @@ class AuthController
         // Plain login: password already verified above, so bypass authenticate()'s
         // bcrypt rerun and use establishSessionFor to finalise the session.
         $auth->establishSessionFor($username);
+        $this->seedActiveHomedirAfterLogin($session, $auth, $username);
         $this->logger->log("Logged in {$username} from IP ".$ip);
         return $response->json($auth->user());
     }
@@ -230,11 +233,38 @@ class AuthController
     {
         if ($auth instanceof MfaCapableInterface) {
             $auth->establishSessionFor($username);
-            return;
+        } else {
+            $user = $auth->find($username);
+            if ($user) $auth->store($user);
+            $session->migrate(true);
         }
-        $user = $auth->find($username);
-        if ($user) $auth->store($user);
-        $session->migrate(true);
+
+        // Both branches above migrate the session (preserving data); we
+        // then seed the active homedir for single-folder users so the
+        // first file-op request after login doesn't need a picker step.
+        $this->seedActiveHomedirAfterLogin($session, $auth, $username);
+    }
+
+    /**
+     * For single-folder users, write SESSION_ACTIVE_HOMEDIR and
+     * SESSION_CWD now so file-op requests can act immediately. For
+     * multi-folder users, leave the keys unset — the frontend routes
+     * them through SelectFolder.vue, which calls POST /selectfolder to
+     * populate the session.
+     *
+     * Reads live homedirs via auth->find() so a mid-deploy admin edit
+     * is honoured on the very first post-login request.
+     */
+    protected function seedActiveHomedirAfterLogin(SessionStorageInterface $session, AuthInterface $auth, string $username): void
+    {
+        $fresh = $auth->find($username);
+        if (! $fresh) return;
+
+        $homedirs = $fresh->getHomeDirs();
+        if (count($homedirs) === 1) {
+            $session->set(FileController::SESSION_ACTIVE_HOMEDIR, $homedirs[0]);
+            $session->set(FileController::SESSION_CWD, '/');
+        }
     }
 
     protected function failLogin(TmpfsInterface $tmpfs, Response $response, string $username, string $ip)

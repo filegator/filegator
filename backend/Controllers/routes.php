@@ -193,6 +193,20 @@ return [
         ],
     ],
     [
+        // Switch the user's active folder. Required for multi-folder users
+        // before any file-op endpoint will succeed; for single-folder users
+        // the active homedir is auto-seeded at login.
+        'route' => [
+            'POST', '/selectfolder', '\Filegator\Controllers\FileController@selectFolder',
+        ],
+        'roles' => [
+            'user', 'admin',
+        ],
+        'permissions' => [
+            'read',
+        ],
+    ],
+    [
         'route' => [
             'POST', '/getdir', '\Filegator\Controllers\FileController@getDirectory',
         ],
