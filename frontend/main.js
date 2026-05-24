@@ -48,7 +48,7 @@ new Vue({
             this.$router.push('/').catch(() => {})
           })
           .catch(() => {
-            this.$notification.open({
+            this.$buefy.notification.open({
               message: this.lang('Something went wrong'),
               type: 'is-danger',
               queue: false,
@@ -57,7 +57,7 @@ new Vue({
           })
       })
       .catch(() => {
-        this.$notification.open({
+        this.$buefy.notification.open({
           message: this.lang('Something went wrong'),
           type: 'is-danger',
           queue: false,
