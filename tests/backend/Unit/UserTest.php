@@ -67,6 +67,38 @@ class UserTest extends TestCase
         ], $decoded);
     }
 
+    public function testJsonSerializeKeysAreStable()
+    {
+        // Pin the exact key set so the multi-folder refactor (which will add
+        // 'homedirs' as a sibling of 'homedir') doesn't silently drop or
+        // rename any field the frontend reads from this payload.
+        $user = new User();
+        $user->setRole('user');
+        $user->setUsername('john.doe@example.com');
+        $user->setName('John Doe');
+        $user->setHomedir('/john');
+        $user->setPermissions(['read', 'write']);
+
+        $decoded = json_decode(json_encode($user), true);
+        $expected = ['role', 'homedir', 'username', 'name', 'permissions'];
+        sort($expected);
+        $actualKeys = array_keys($decoded);
+        sort($actualKeys);
+
+        $this->assertEquals($expected, $actualKeys, 'jsonSerialize key set changed unexpectedly');
+    }
+
+    public function testGetHomeDirReturnsStringSet()
+    {
+        // Pin the existing single-string contract for setHomedir/getHomeDir
+        // so the multi-folder shim (Phase 2) preserves it.
+        $user = new User();
+        $user->setHomedir('/some/path');
+
+        $this->assertSame('/some/path', $user->getHomeDir());
+        $this->assertIsString($user->getHomeDir());
+    }
+
     public function testUserCannotGetNonExistingRole()
     {
         $user = new User();

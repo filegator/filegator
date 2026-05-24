@@ -29,6 +29,29 @@ class AuthTest extends TestCase
         $this->assertOk();
     }
 
+    public function testLoginResponsePayloadShape()
+    {
+        // Pin the exact user-object payload returned by POST /login so the
+        // upcoming multi-folder refactor (which adds a 'homedirs' array
+        // alongside the existing 'homedir' scalar) doesn't accidentally
+        // drop the legacy key the frontend currently consumes.
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ]);
+
+        $this->assertOk();
+        $this->assertResponseJsonHas([
+            'data' => [
+                'username'    => 'john@example.com',
+                'name'        => 'John Doe',
+                'role'        => 'user',
+                'homedir'     => '/john',
+                'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload'],
+            ],
+        ]);
+    }
+
     public function testBadLogin()
     {
         $this->sendRequest('POST', '/login', [
