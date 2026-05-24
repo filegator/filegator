@@ -692,4 +692,223 @@ class FilesTest extends TestCase
 
         $this->assertEquals('lorem ipsum new', $updated);
     }
+
+    // --------------------------------------------------------------------
+    // Cross-user folder isolation — characterization pins.
+    //
+    // Today FileController constructs a single path prefix from the user's
+    // homedir; every storage operation runs through Filesystem::applyPathPrefix
+    // which collapses any `..` path back to the prefix root. These tests pin
+    // that contract: a user A authenticated session cannot leak filesystem
+    // contents from another user B's homedir, regardless of the crafted path
+    // shape (absolute, traversal, mixed). This is the safety net the upcoming
+    // multi-folder refactor must preserve.
+    // --------------------------------------------------------------------
+
+    protected function seedJohnAndJaneWithSecret(): void
+    {
+        mkdir(TEST_REPOSITORY.'/john');
+        touch(TEST_REPOSITORY.'/john/john-public.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY.'/jane');
+        file_put_contents(TEST_REPOSITORY.'/jane/secret.txt', 'jane-private-payload');
+    }
+
+    public function testJohnCannotListJanesHomedirViaChangedirAbsolute()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        // Absolute path pointing at jane's homedir. applyPathPrefix joins it
+        // under john's prefix → /john/jane → doesn't exist → empty listing.
+        $this->sendRequest('POST', '/changedir', ['to' => '/jane']);
+
+        $body = (string) $this->response->getContent();
+        $this->assertStringNotContainsString('secret.txt', $body);
+        $this->assertStringNotContainsString('jane-private-payload', $body);
+    }
+
+    public function testJohnCannotListJanesHomedirViaChangedirTraversal()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        // ../../jane and friends — Filesystem::applyPathPrefix collapses any
+        // `..` segment to the prefix root.
+        foreach (['../jane', '/../jane', '../../jane', '/../../jane'] as $path) {
+            $this->sendRequest('POST', '/changedir', ['to' => $path]);
+            $body = (string) $this->response->getContent();
+            $this->assertStringNotContainsString(
+                'secret.txt',
+                $body,
+                "Traversal path {$path} leaked jane's secret.txt"
+            );
+        }
+    }
+
+    public function testJohnCannotListJanesHomedirViaGetdir()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        foreach (['/jane', '../jane', '/../jane'] as $path) {
+            $this->sendRequest('POST', '/getdir', ['dir' => $path]);
+            $body = (string) $this->response->getContent();
+            $this->assertStringNotContainsString(
+                'secret.txt',
+                $body,
+                "getdir path {$path} leaked jane's secret.txt"
+            );
+        }
+    }
+
+    public function testJohnCannotReadJanesFileViaDownload()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        // Crafted relative + absolute paths; the download endpoint base64-decodes
+        // the `path` query value and feeds it through Filesystem.
+        foreach (['../jane/secret.txt', '/jane/secret.txt', '/../jane/secret.txt'] as $craft) {
+            $path_encoded = base64_encode($craft);
+            $this->sendRequest('GET', '/download&path='.$path_encoded);
+
+            // Either a redirect (download-missing path) or any non-200 is fine —
+            // the failure case is a 200 carrying jane's content.
+            if ($this->response->isOk()) {
+                // If somehow OK, body must not contain jane's payload.
+                $body = (string) $this->response->getContent();
+                $this->assertStringNotContainsString('jane-private-payload', $body, "Crafted path {$craft} leaked jane's content");
+            }
+
+            // jane's file must still exist on disk untouched.
+            $this->assertSame('jane-private-payload', file_get_contents(TEST_REPOSITORY.'/jane/secret.txt'));
+        }
+    }
+
+    public function testJohnCannotWriteIntoJanesHomedirViaSaveContent()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        // Crafted name with `..` — escapeDots() should strip the traversal
+        // segment so it lands under /john, not /jane.
+        try {
+            $this->sendRequest('POST', '/savecontent', [
+                'name' => '../jane/secret.txt',
+                'content' => 'overwritten-by-john',
+            ]);
+        } catch (Exception $e) {
+            // Acceptable: any thrown exception means the write didn't land.
+        }
+
+        // jane's file must be untouched.
+        $this->assertSame('jane-private-payload', file_get_contents(TEST_REPOSITORY.'/jane/secret.txt'));
+    }
+
+    public function testJohnCannotRenameAcrossHomedirs()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        try {
+            $this->sendRequest('POST', '/renameitem', [
+                'from' => '/jane/secret.txt',
+                'to'   => '/john-public.txt',
+            ]);
+        } catch (Exception $e) {
+            // expected — source doesn't exist inside john's prefix.
+        }
+
+        $this->assertFileExists(TEST_REPOSITORY.'/jane/secret.txt');
+        $this->assertSame('jane-private-payload', file_get_contents(TEST_REPOSITORY.'/jane/secret.txt'));
+    }
+
+    public function testJohnCannotMoveItemsIntoJanesHomedir()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        try {
+            $this->sendRequest('POST', '/moveitems', [
+                'items' => [
+                    ['type' => 'file', 'path' => '/john-public.txt', 'name' => 'john-public.txt', 'time' => $this->timestamp],
+                ],
+                'destination' => '../jane',
+            ]);
+        } catch (Exception $e) {
+        }
+
+        // applyPathPrefix collapses `../` so destination becomes /john root.
+        // The file may have been moved within john's homedir, but it must NOT
+        // have landed inside jane's actual /jane folder.
+        $this->assertFileNotExists(TEST_REPOSITORY.'/jane/john-public.txt');
+        // jane's secret stays intact regardless.
+        $this->assertFileExists(TEST_REPOSITORY.'/jane/secret.txt');
+    }
+
+    public function testJohnCannotCopyJanesFileIntoOwnHomedir()
+    {
+        $this->signIn('john@example.com', 'john123');
+        $this->seedJohnAndJaneWithSecret();
+
+        try {
+            $this->sendRequest('POST', '/copyitems', [
+                'items' => [
+                    ['type' => 'file', 'path' => '/jane/secret.txt', 'name' => 'secret.txt', 'time' => $this->timestamp],
+                ],
+                'destination' => '/',
+            ]);
+        } catch (Exception $e) {
+            // expected — source path doesn't resolve inside john's prefix.
+        }
+
+        // jane's secret content must not have been duplicated into /john.
+        $this->assertFileNotExists(TEST_REPOSITORY.'/john/secret.txt');
+        $this->assertSame('jane-private-payload', file_get_contents(TEST_REPOSITORY.'/jane/secret.txt'));
+    }
+
+    public function testChangedirTraversalCollapsesToHomedirRoot()
+    {
+        $this->signIn('john@example.com', 'john123');
+        mkdir(TEST_REPOSITORY.'/john');
+        touch(TEST_REPOSITORY.'/john/marker.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY.'/elsewhere');
+        touch(TEST_REPOSITORY.'/elsewhere/elsewhere.txt', $this->timestamp);
+
+        // All these escape attempts should collapse back to john's root, NOT
+        // surface /elsewhere or any sibling content.
+        foreach (['..', '../', '/../', '../..', '/../../', '../../../etc'] as $craft) {
+            $this->sendRequest('POST', '/changedir', ['to' => $craft]);
+            $body = (string) $this->response->getContent();
+
+            $this->assertStringContainsString('marker.txt', $body, "Crafted path {$craft} did not resolve to john's root");
+            $this->assertStringNotContainsString('elsewhere.txt', $body, "Crafted path {$craft} leaked sibling content");
+        }
+    }
+
+    public function testSessionCwdIsolatedAcrossUsers()
+    {
+        // Pin the invariant that one user's SESSION_CWD cannot affect another
+        // user's session. signIn() creates a fresh session, but the contract
+        // is worth pinning so the multi-folder refactor (which adds
+        // SESSION_ACTIVE_HOMEDIR alongside SESSION_CWD) can't accidentally
+        // start sharing state across users.
+        $this->signIn('john@example.com', 'john123');
+        mkdir(TEST_REPOSITORY.'/john');
+        mkdir(TEST_REPOSITORY.'/john/johnsub');
+        $this->sendRequest('POST', '/changedir', ['to' => '/johnsub']);
+        $this->assertOk();
+
+        // Switch users — fresh session.
+        $this->signIn('jane@example.com', 'jane123');
+        mkdir(TEST_REPOSITORY.'/jane');
+        touch(TEST_REPOSITORY.'/jane/jane-marker.txt', $this->timestamp);
+
+        $this->sendRequest('POST', '/getdir');
+        $body = (string) $this->response->getContent();
+
+        // jane gets her own homedir root, not whatever john last set as cwd.
+        $this->assertStringContainsString('jane-marker.txt', $body);
+        $this->assertStringNotContainsString('johnsub', $body);
+    }
 }
