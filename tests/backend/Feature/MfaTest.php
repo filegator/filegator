@@ -398,8 +398,9 @@ class MfaTest extends TestCase
         $this->assertOk();
         $rows = $this->decodeResponseJson()['data'];
 
-        // MockUsers seeds exactly four (guest, admin, john, jane).
-        $this->assertCount(4, $rows, 'Test isolation drifted — expected exactly the 4 seeded users');
+        // MockUsers seeds five users: guest, admin, john, jane, plus the
+        // multi-folder fixture added in Phase 2 of the homedirs refactor.
+        $this->assertCount(5, $rows, 'Test isolation drifted — expected exactly the 5 seeded users');
         foreach ($rows as $row) {
             $this->assertArrayHasKey('mfa_enabled', $row, "User {$row['username']} missing mfa_enabled");
             $this->assertArrayHasKey('backup_codes_remaining', $row, "User {$row['username']} missing backup_codes_remaining");

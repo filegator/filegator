@@ -96,10 +96,21 @@ class MockUsers extends JsonFile implements Service, AuthInterface
         $jane->setName('Jane Doe');
         $jane->setPermissions(['read', 'write']);
 
+        // Multi-folder fixture for tests that exercise the picker/switch flow.
+        // Phase 3+ tests sign in as this user; the two folders need to exist
+        // on disk for filesystem-touching tests — those tests mkdir as needed.
+        $multi = new User();
+        $multi->setRole('user');
+        $multi->setHomedirs(['/multiA', '/multiB']);
+        $multi->setUsername('multi@example.com');
+        $multi->setName('Multi Folder');
+        $multi->setPermissions(['read', 'write', 'upload', 'download', 'batchdownload']);
+
         $this->add($guest, '');
         $this->add($admin, 'admin123');
         $this->add($john, 'john123');
         $this->add($jane, 'jane123');
+        $this->add($multi, 'multi123');
     }
 
 }
