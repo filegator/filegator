@@ -105,7 +105,7 @@ class AdminController
 
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $request->getClientIp());
 
         try {
             $user->setName($request->input('name'));
@@ -178,7 +178,7 @@ class AdminController
 
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $request->getClientIp());
 
         $beforeSnapshot = $user->jsonSerialize();
         $beforeEmail = null;
@@ -236,7 +236,7 @@ class AdminController
 
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $request->getClientIp());
 
         $snapshot = $user->jsonSerialize();
         $email = null;
@@ -275,7 +275,7 @@ class AdminController
 
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $request->getClientIp());
 
         $this->auth->disableMfa($username);
         $this->logger->log(sprintf(
@@ -327,14 +327,6 @@ class AdminController
         );
     }
 
-    /**
-     * Thin admin-side wrapper around the shared trait helper. Resolves the
-     * acting admin's username from $this->auth so callers stay terse.
-     */
-    protected function auditAdminBackupCodeIfUsed(array $check, AuditMailer $audit, string $ip): void
-    {
-        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $this->auth, $this->currentAdminUsername(), $ip);
-    }
 
     /**
      * Read the homedirs list from the request, supporting both shapes

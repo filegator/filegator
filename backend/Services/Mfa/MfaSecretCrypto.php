@@ -106,22 +106,21 @@ class MfaSecretCrypto implements Service
             return $this->key;
         }
 
-        // Fast path: file already exists.
-        if (file_exists($this->keyPath)) {
-            $this->key = $this->readKeyFromDisk();
-            return $this->key;
-        }
-
-        // Slow path: try to create with O_EXCL. Multiple processes
-        // racing here will all attempt — exactly one fopen() succeeds.
-        // umask(0077) ensures the create lands at 0600 immediately,
-        // closing the perms TOCTOU window from the older chmod-after
-        // pattern.
+        // Try to atomically create the keyfile. fopen('xb') is the single
+        // O_EXCL primitive that distinguishes "created" from "exists":
+        //   - success → this process owns first-create, write the key
+        //   - false   → file exists (overwhelmingly common after first boot)
+        //                OR a different error (perms, etc.) — both routes
+        //                converge on reading the now-present file
+        // No file_exists pre-check: it would just add a syscall and a TOCTOU
+        // window between the stat and the fopen.
+        //
+        // umask(0077) ensures the create lands at 0600 immediately, closing
+        // the perms TOCTOU window from the older chmod-after pattern.
         $previousUmask = umask(0077);
         try {
             $fh = @fopen($this->keyPath, 'xb');
             if ($fh === false) {
-                // Lost the race or another error — re-read the now-present file.
                 $this->key = $this->readKeyFromDisk();
                 return $this->key;
             }
@@ -137,12 +136,12 @@ class MfaSecretCrypto implements Service
             // that 0077 effectively no-op'd, OR in case the filesystem ignored
             // it (some network filesystems do). Idempotent on the happy path.
             @chmod($this->keyPath, 0600);
+
+            $this->key = $generated;
+            return $this->key;
         } finally {
             umask($previousUmask);
         }
-
-        $this->key = $generated;
-        return $this->key;
     }
 
     /**

@@ -32,9 +32,10 @@ use Filegator\Services\Mfa\MfaService;
  * roles that can do destructive things — which `mfa_required_for_admins`
  * accomplishes for the admin role by default.
  *
- * Returns ['ok' => bool, 'used_backup' => bool]. On failure mutates
- * $response to 422 or 429 and returns ['ok' => false]; callers must
- * return immediately when ok is false.
+ * On success returns ['ok' => true, 'used_backup' => bool, 'username' => string]
+ * plus 'backup_codes_remaining' (int) when used_backup is true. On failure
+ * mutates $response to 422 or 429 and returns ['ok' => false]; callers
+ * must return immediately when ok is false.
  */
 trait RequiresStepUpAuth
 {
@@ -93,28 +94,36 @@ trait RequiresStepUpAuth
         }
 
         $lockout->clearForUsername($username);
-        return ['ok' => true, 'used_backup' => $useBackup];
+
+        $result = ['ok' => true, 'used_backup' => $useBackup, 'username' => $username];
+        if ($useBackup) {
+            // post-consume count: pre-consume count - 1 (consumeBackupCode
+            // is single-use on success). Avoids a second getMfaState read.
+            $preCount = (int) ($state['backup_codes_remaining'] ?? 0);
+            $result['backup_codes_remaining'] = max(0, $preCount - 1);
+        }
+        return $result;
     }
 
     /**
      * Fire the backup-code-consumed audit + threshold warning log when
      * the step-up trait reports a backup code was used. No-op otherwise.
-     * Consolidates the per-controller helpers that previously lived in
-     * MfaController and AdminController — single source of truth for the
-     * audit/log shape on every step-up call site.
+     * Reads `username` and `backup_codes_remaining` directly from the
+     * $check payload — stepUpVerify pre-populates both on the
+     * used_backup path, so no extra getMfaState read here.
      */
     protected function auditBackupCodeIfUsed(
         array $check,
         AuditMailer $audit,
         LoggerInterface $logger,
-        AuthInterface $auth,
-        string $username,
         string $ip
     ): void {
         if (empty($check['used_backup'])) return;
-        if (! $auth instanceof MfaCapableInterface) return;
 
-        $remaining = (int) ($auth->getMfaState($username)['backup_codes_remaining'] ?? 0);
+        $username = (string) ($check['username'] ?? '');
+        $remaining = (int) ($check['backup_codes_remaining'] ?? 0);
+        if ($username === '') return;
+
         $audit->mfaBackupCodeConsumed($username, $ip, $remaining);
         if ($remaining <= 2) {
             $logger->log("WARNING: {$username} has {$remaining} MFA backup codes remaining after consume from {$ip}");

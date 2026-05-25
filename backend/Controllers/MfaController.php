@@ -121,7 +121,7 @@ class MfaController
         );
         if (! $check['ok']) return;
 
-        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $auth, $username, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $request->getClientIp());
 
         $mfa->disable($username);
         // mfa_enabled flipped — refresh the session hash so we don't log
@@ -153,7 +153,7 @@ class MfaController
 
         // Audit BEFORE regeneration (which would itself change the count)
         // so the "remaining" count reflects what the user actually saw.
-        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $auth, $username, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $request->getClientIp());
 
         $codes = $mfa->regenerateBackupCodes($username);
         $this->logger->log("MFA backup codes regenerated for {$username}");
