@@ -810,6 +810,131 @@ class MfaTest extends TestCase
         $this->assertUnprocessable();
     }
 
+    public function testIpExactBindingRejectsAnyDifferentIp()
+    {
+        $this->overrideConfig(['mfa_pending_bind_ip_prefix' => 'exact']);
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '192.168.1.10']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        // Even a single-octet change in the same /24 must reject under exact.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['REMOTE_ADDR' => '192.168.1.11']);
+        $this->assertUnprocessable();
+    }
+
+    public function testIpExactBindingAcceptsExactSameIp()
+    {
+        $this->overrideConfig(['mfa_pending_bind_ip_prefix' => 'exact']);
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '192.168.1.10']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['REMOTE_ADDR' => '192.168.1.10']);
+        $this->assertOk();
+    }
+
+    public function testIpPrefixBindingIpv6Slash48Matches()
+    {
+        $this->overrideConfig(['mfa_pending_bind_ip_prefix' => '/48']);
+        $info = $this->enrollMfa('john@example.com');
+
+        // Same /48: differ only in the 4th hextet onward.
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '2001:db8:abcd:1234::1']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['REMOTE_ADDR' => '2001:db8:abcd:5678::99']);
+        $this->assertOk();
+    }
+
+    public function testIpPrefixBindingIpv6Slash48RejectsDifferentPrefix()
+    {
+        $this->overrideConfig(['mfa_pending_bind_ip_prefix' => '/48']);
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '2001:db8:abcd:1234::1']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        // Third hextet differs → different /48 → rejected.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['REMOTE_ADDR' => '2001:db8:beef:1234::1']);
+        $this->assertUnprocessable();
+    }
+
+    public function testIpPrefixBindingUnknownModeFallsBackToExact()
+    {
+        // 'foo' is not a known mode — normalizeIpForBinding falls back to
+        // exact-match. Documented behaviour: unknown modes are safe-by-default
+        // (strict), not permissive. A typo locks down rather than opens up.
+        $this->overrideConfig(['mfa_pending_bind_ip_prefix' => 'foo']);
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '192.168.1.10']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        // Any IP change should reject under fallback-to-exact.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['REMOTE_ADDR' => '192.168.1.11']);
+        $this->assertUnprocessable();
+    }
+
+    public function testUaBindingDisabledToleratesUserAgentChange()
+    {
+        // With both UA-binding OFF and no IP-binding configured, the pending
+        // binding collapses to a constant hash — any client can complete
+        // step 2 of the matched session. Operators see a WARNING log;
+        // tested separately. This case confirms the documented behaviour.
+        $this->overrideConfig(['mfa_pending_bind_ua' => false]);
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['HTTP_USER_AGENT' => 'Mozilla/Browser-A']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['HTTP_USER_AGENT' => 'Mozilla/Browser-B']);
+        $this->assertOk();
+    }
+
     public function testNonceAbsentRejected()
     {
         $info = $this->enrollMfa('john@example.com');

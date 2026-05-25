@@ -11,6 +11,8 @@
 namespace Filegator\Services\Auth;
 
 use Filegator\Kernel\Response;
+use Filegator\Services\Audit\AuditMailer;
+use Filegator\Services\Logger\LoggerInterface;
 use Filegator\Services\Mfa\MfaService;
 
 /**
@@ -92,5 +94,30 @@ trait RequiresStepUpAuth
 
         $lockout->clearForUsername($username);
         return ['ok' => true, 'used_backup' => $useBackup];
+    }
+
+    /**
+     * Fire the backup-code-consumed audit + threshold warning log when
+     * the step-up trait reports a backup code was used. No-op otherwise.
+     * Consolidates the per-controller helpers that previously lived in
+     * MfaController and AdminController — single source of truth for the
+     * audit/log shape on every step-up call site.
+     */
+    protected function auditBackupCodeIfUsed(
+        array $check,
+        AuditMailer $audit,
+        LoggerInterface $logger,
+        AuthInterface $auth,
+        string $username,
+        string $ip
+    ): void {
+        if (empty($check['used_backup'])) return;
+        if (! $auth instanceof MfaCapableInterface) return;
+
+        $remaining = (int) ($auth->getMfaState($username)['backup_codes_remaining'] ?? 0);
+        $audit->mfaBackupCodeConsumed($username, $ip, $remaining);
+        if ($remaining <= 2) {
+            $logger->log("WARNING: {$username} has {$remaining} MFA backup codes remaining after consume from {$ip}");
+        }
     }
 }

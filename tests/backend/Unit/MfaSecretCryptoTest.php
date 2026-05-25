@@ -142,6 +142,18 @@ class MfaSecretCryptoTest extends TestCase
         $this->assertCount(1, array_unique($keys), 'subprocesses saw different keys — race created multiple keyfiles');
         $this->assertNotEmpty($keys[0]);
 
+        // Final keyfile is exactly one key. Catches "two writes appended"
+        // regression where a non-atomic create-or-write would double-write.
+        $this->assertSame(
+            SODIUM_CRYPTO_SECRETBOX_KEYBYTES,
+            filesize($racePath),
+            'keyfile is not exactly one key — non-atomic create may have appended'
+        );
+
+        // Perms are 0600 even on the race-fallback path.
+        $perms = fileperms($racePath) & 0777;
+        $this->assertSame(0600, $perms, sprintf('race-created keyfile perms were 0%o, expected 0600', $perms));
+
         // Cleanup
         @unlink($scriptPath);
         @unlink($racePath);

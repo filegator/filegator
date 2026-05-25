@@ -21,6 +21,8 @@ return [
     ],
 
     'mfa_required_for_admins' => false, // tests override per-case
+    'mfa_pending_bind_ua' => true,      // mirror production default
+    'mfa_pending_bind_ip_prefix' => null,
     'password_reset_token_ttl' => 3600,
     'password_reset_max_per_hour_per_ip' => 3,
     'password_reset_max_per_day_per_email' => 3,

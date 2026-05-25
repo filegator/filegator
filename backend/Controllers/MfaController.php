@@ -121,7 +121,7 @@ class MfaController
         );
         if (! $check['ok']) return;
 
-        $this->auditBackupCodeIfUsed($check, $audit, $auth, $username, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $auth, $username, $request->getClientIp());
 
         $mfa->disable($username);
         // mfa_enabled flipped — refresh the session hash so we don't log
@@ -153,7 +153,7 @@ class MfaController
 
         // Audit BEFORE regeneration (which would itself change the count)
         // so the "remaining" count reflects what the user actually saw.
-        $this->auditBackupCodeIfUsed($check, $audit, $auth, $username, $request->getClientIp());
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $auth, $username, $request->getClientIp());
 
         $codes = $mfa->regenerateBackupCodes($username);
         $this->logger->log("MFA backup codes regenerated for {$username}");
@@ -193,22 +193,6 @@ class MfaController
     protected function mfaUnsupported(AuthInterface $auth, MfaService $mfa): bool
     {
         return ! ($auth instanceof MfaCapableInterface) || ! $mfa->isSupported();
-    }
-
-    /**
-     * Fire the backup-code-consumed audit + threshold warning log when the
-     * step-up trait reports a backup code was used. No-op otherwise.
-     */
-    protected function auditBackupCodeIfUsed(array $check, AuditMailer $audit, AuthInterface $auth, string $username, string $ip): void
-    {
-        if (empty($check['used_backup'])) return;
-        if (! $auth instanceof MfaCapableInterface) return;
-
-        $remaining = (int) ($auth->getMfaState($username)['backup_codes_remaining'] ?? 0);
-        $audit->mfaBackupCodeConsumed($username, $ip, $remaining);
-        if ($remaining <= 2) {
-            $this->logger->log("WARNING: {$username} has {$remaining} MFA backup codes remaining after consume from {$ip}");
-        }
     }
 
     protected function emailValid($email): bool

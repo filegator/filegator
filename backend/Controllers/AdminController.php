@@ -75,7 +75,7 @@ class AdminController
     {
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $validator->setMessage('required', 'This field is required');
         $validation = $validator->validate($request->all(), [
@@ -140,7 +140,7 @@ class AdminController
     {
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $user = $this->auth->find($username);
 
@@ -222,7 +222,7 @@ class AdminController
     {
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $user = $this->auth->find($username);
 
@@ -254,7 +254,7 @@ class AdminController
 
         $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
         if (! $check['ok']) return;
-        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $current = $this->auth->user();
         if ($current && $current->getUsername() === $username) {
@@ -317,21 +317,12 @@ class AdminController
     }
 
     /**
-     * Fire the backup-code-consumed audit when the step-up trait reports a
-     * backup code was used for this sensitive action. Mirrors the helper in
-     * MfaController so admin-side step-up events end up on the same alert.
+     * Thin admin-side wrapper around the shared trait helper. Resolves the
+     * acting admin's username from $this->auth so callers stay terse.
      */
-    protected function auditBackupCodeIfUsed(array $check, AuditMailer $audit, string $ip): void
+    protected function auditAdminBackupCodeIfUsed(array $check, AuditMailer $audit, string $ip): void
     {
-        if (empty($check['used_backup'])) return;
-        if (! $this->auth instanceof MfaCapableInterface) return;
-
-        $username = $this->currentAdminUsername();
-        $remaining = (int) ($this->auth->getMfaState($username)['backup_codes_remaining'] ?? 0);
-        $audit->mfaBackupCodeConsumed($username, $ip, $remaining);
-        if ($remaining <= 2) {
-            $this->logger->log("WARNING: {$username} has {$remaining} MFA backup codes remaining after step-up from {$ip}");
-        }
+        $this->auditBackupCodeIfUsed($check, $audit, $this->logger, $this->auth, $this->currentAdminUsername(), $ip);
     }
 
     /**

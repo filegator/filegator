@@ -93,6 +93,12 @@ class MfaSecretCrypto implements Service
      * absence and both write — exactly one process wins the create;
      * losers fall through to the read path with the same key. Cached
      * in-memory so subsequent encrypt/decrypt calls don't hit disk.
+     *
+     * Perms hardening: wraps fopen in umask(0077) so the file is
+     * created with 0600 from the first byte. The previous
+     * fopen-then-chmod pattern left a TOCTOU window where a
+     * tight-looping peer process on multi-tenant hosts could open the
+     * keyfile during the millisecond between create and chmod.
      */
     protected function loadOrCreateKey(): string
     {
@@ -108,33 +114,56 @@ class MfaSecretCrypto implements Service
 
         // Slow path: try to create with O_EXCL. Multiple processes
         // racing here will all attempt — exactly one fopen() succeeds.
-        $fh = @fopen($this->keyPath, 'xb');
-        if ($fh === false) {
-            // Lost the race or another error — re-read the now-present file.
-            $this->key = $this->readKeyFromDisk();
-            return $this->key;
-        }
-
+        // umask(0077) ensures the create lands at 0600 immediately,
+        // closing the perms TOCTOU window from the older chmod-after
+        // pattern.
+        $previousUmask = umask(0077);
         try {
-            $generated = random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
-            fwrite($fh, $generated);
-            fflush($fh);
+            $fh = @fopen($this->keyPath, 'xb');
+            if ($fh === false) {
+                // Lost the race or another error — re-read the now-present file.
+                $this->key = $this->readKeyFromDisk();
+                return $this->key;
+            }
+
+            try {
+                $generated = random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+                fwrite($fh, $generated);
+                fflush($fh);
+            } finally {
+                fclose($fh);
+            }
+            // Defensive chmod in case the umask was already restrictive enough
+            // that 0077 effectively no-op'd, OR in case the filesystem ignored
+            // it (some network filesystems do). Idempotent on the happy path.
+            @chmod($this->keyPath, 0600);
         } finally {
-            fclose($fh);
+            umask($previousUmask);
         }
-        // O_EXCL doesn't accept a mode; restrict perms now.
-        @chmod($this->keyPath, 0600);
 
         $this->key = $generated;
         return $this->key;
     }
 
+    /**
+     * Read the keyfile bytes, retrying briefly if the file is present
+     * but empty/short. Race window: process A wins fopen('xb'); process
+     * B's fopen('xb') fails and falls into this method; B may arrive
+     * before A's fwrite+fflush completes and see a 0-byte file. A
+     * small backoff loop (capped at ~31ms total) gives the winner time
+     * to finish before we declare the keyfile malformed.
+     */
     protected function readKeyFromDisk(): string
     {
-        $bytes = @file_get_contents($this->keyPath);
-        if ($bytes === false || strlen($bytes) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            throw new \RuntimeException("MFA encryption key file at {$this->keyPath} is missing or malformed");
+        $attempts = 5;
+        for ($i = 0; $i < $attempts; $i++) {
+            $bytes = @file_get_contents($this->keyPath);
+            if ($bytes !== false && strlen($bytes) === SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+                return $bytes;
+            }
+            // 1ms, 2ms, 4ms, 8ms, 16ms — cumulative ~31ms.
+            usleep(1000 * (1 << $i));
         }
-        return $bytes;
+        throw new \RuntimeException("MFA encryption key file at {$this->keyPath} is missing or malformed");
     }
 }

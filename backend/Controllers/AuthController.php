@@ -352,6 +352,13 @@ class AuthController
         }
 
         // No components configured → empty stable binding (effectively off).
+        // Log a warning so operators see a signal they have silently disabled
+        // the cookie-theft + two-tab pollution defenses. Logged here rather
+        // than at boot because Config is per-request and may be overridden.
+        if (empty($components)) {
+            $this->logger->log('WARNING: MFA pending-state binding is effectively disabled (mfa_pending_bind_ua=false AND mfa_pending_bind_ip_prefix=null). Cookie-theft mid-MFA and two-tab pollution defenses are weakened to nonce-only.');
+        }
+
         return hash('sha256', implode('|', $components));
     }
 
