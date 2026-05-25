@@ -289,4 +289,143 @@ class AdminStepUpTest extends TestCase
         ]);
         $this->assertStatus(429);
     }
+
+    // ---------------------------------------------------------------------
+    // Pre-validation runs BEFORE step-up (R-1 regression coverage).
+    // Goal: prove that a no-op admin request (self-reset, missing target,
+    // dup username, etc.) does NOT burn the admin's TOTP / backup code.
+    // ---------------------------------------------------------------------
+
+    public function testResetMfaSelfRejectDoesNotConsumeTotpCode()
+    {
+        $info = $this->signInMfaAdmin();
+        $code = $this->totpFor($info['secret']);
+
+        // First call: self-reset, valid step-up creds. Expected to 422 on
+        // the self-reset guard WITHOUT consuming the TOTP code.
+        $this->sendRequest('POST', '/admin/users/admin@example.com/reset_mfa', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => $code,
+        ]);
+        $this->assertUnprocessable();
+
+        // Second call: use the SAME code on a legitimate operation. If the
+        // self-reset attempt had consumed the code (replay marker), this
+        // would 422 with "Invalid code". The fix guarantees it succeeds.
+        $this->sendRequest('POST', '/deleteuser/john@example.com', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => $code,
+        ]);
+        $this->assertOk();
+    }
+
+    public function testResetMfaSelfRejectDoesNotConsumeBackupCode()
+    {
+        $info = $this->signInMfaAdmin();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $before = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        // Self-reset attempt with a backup code. Must 422 BEFORE the trait
+        // consumes the code.
+        $this->sendRequest('POST', '/admin/users/admin@example.com/reset_mfa', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => $info['backup_codes'][0],
+            'stepup_use_backup' => true,
+        ]);
+        $this->assertUnprocessable();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $after = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        // Count unchanged — the code was not consumed.
+        $this->assertSame($before, $after);
+    }
+
+    public function testResetMfaUnknownTargetDoesNotConsumeBackupCode()
+    {
+        $info = $this->signInMfaAdmin();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $before = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        $this->sendRequest('POST', '/admin/users/nobody@nowhere.test/reset_mfa', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => $info['backup_codes'][0],
+            'stepup_use_backup' => true,
+        ]);
+        $this->assertUnprocessable();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $after = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        $this->assertSame($before, $after);
+    }
+
+    public function testStoreUserDupUsernameDoesNotConsumeBackupCode()
+    {
+        $info = $this->signInMfaAdmin();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $before = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        // john@example.com already exists in the test fixture.
+        $this->sendRequest('POST', '/storeuser', [
+            'name' => 'Imposter',
+            'username' => 'john@example.com',
+            'password' => 'newpw',
+            'homedirs' => ['/'],
+            'role' => 'user',
+            'permissions' => [],
+            'stepup_password' => 'admin123',
+            'stepup_code' => $info['backup_codes'][0],
+            'stepup_use_backup' => true,
+        ]);
+        $this->assertUnprocessable();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $after = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        $this->assertSame($before, $after);
+    }
+
+    public function testDeleteUserUnknownTargetDoesNotConsumeBackupCode()
+    {
+        $info = $this->signInMfaAdmin();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $before = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        $this->sendRequest('POST', '/deleteuser/nobody@nowhere.test', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => $info['backup_codes'][0],
+            'stepup_use_backup' => true,
+        ]);
+        $this->assertUnprocessable();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $after = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        $this->assertSame($before, $after);
+    }
+
+    public function testDeleteUserGuestTargetDoesNotConsumeBackupCode()
+    {
+        $info = $this->signInMfaAdmin();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $before = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        $this->sendRequest('POST', '/deleteuser/guest', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => $info['backup_codes'][0],
+            'stepup_use_backup' => true,
+        ]);
+        $this->assertUnprocessable();
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $after = $app->resolve(AuthInterface::class)->getMfaState('admin@example.com')['backup_codes_remaining'];
+
+        $this->assertSame($before, $after);
+    }
 }

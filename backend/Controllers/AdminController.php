@@ -73,10 +73,9 @@ class AdminController
 
     public function storeUser(User $user, Request $request, Response $response, Validator $validator, AuditMailer $audit, MfaService $mfa, MfaLockout $lockout)
     {
-        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
-        if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
-
+        // Pre-validation FIRST so a malformed request does not burn a TOTP /
+        // backup code on the step-up gate that fires next. No state changes
+        // until step-up succeeds.
         $validator->setMessage('required', 'This field is required');
         $validation = $validator->validate($request->all(), [
             'name' => 'required',
@@ -103,6 +102,10 @@ class AdminController
         if ($this->auth->find($request->input('username'))) {
             return $response->json(['username' => 'Username already taken'], 422);
         }
+
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         try {
             $user->setName($request->input('name'));
@@ -138,10 +141,9 @@ class AdminController
 
     public function updateUser($username, Request $request, Response $response, Validator $validator, AuditMailer $audit, MfaService $mfa, MfaLockout $lockout)
     {
-        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
-        if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
-
+        // Pre-validation FIRST so malformed / no-op requests do not burn a
+        // TOTP / backup code on the step-up gate that fires next. No state
+        // changes until step-up succeeds.
         $user = $this->auth->find($username);
 
         if (! $user) {
@@ -173,6 +175,10 @@ class AdminController
         if (! $this->emailValid($email)) {
             return $response->json(['email' => 'Invalid email address'], 422);
         }
+
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $beforeSnapshot = $user->jsonSerialize();
         $beforeEmail = null;
@@ -220,15 +226,17 @@ class AdminController
 
     public function deleteUser($username, Request $request, Response $response, AuditMailer $audit, MfaService $mfa, MfaLockout $lockout)
     {
-        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
-        if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
-
+        // Pre-validation FIRST so a missing-target or guest-target attempt
+        // does not burn a TOTP / backup code on the step-up gate.
         $user = $this->auth->find($username);
 
         if (! $user || $user->getUsername() == 'guest') {
             return $response->json('User not found', 422);
         }
+
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $snapshot = $user->jsonSerialize();
         $email = null;
@@ -252,10 +260,9 @@ class AdminController
             return $response->json('Not supported', 501);
         }
 
-        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
-        if (! $check['ok']) return;
-        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
-
+        // Pre-validation FIRST. The self-reset guard and target-exists check
+        // must precede step-up so that an admin who fat-fingers a self-reset
+        // does not burn their own TOTP / backup code on a guaranteed 422.
         $current = $this->auth->user();
         if ($current && $current->getUsername() === $username) {
             return $response->json('Cannot reset your own MFA from the admin panel', 422);
@@ -265,6 +272,10 @@ class AdminController
         if (! $target) {
             return $response->json('User not found', 422);
         }
+
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditAdminBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $this->auth->disableMfa($username);
         $this->logger->log(sprintf(
