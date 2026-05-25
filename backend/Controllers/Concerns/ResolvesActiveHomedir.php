@@ -66,10 +66,12 @@ trait ResolvesActiveHomedir
             return true;
         }
 
-        // Re-read the current user's record from the auth adapter so we
-        // see any in-flight admin edit to their homedirs.
-        $fresh = $this->auth->find($effective->getUsername());
-        $homedirs = $fresh ? $fresh->getHomeDirs() : $effective->getHomeDirs();
+        // $effective came from auth->user(), which verifies the session
+        // hash against the live row. A mid-session admin edit to homedirs
+        // changes the hash → user() returns null → effective falls back
+        // to guest. So the cached User's homedirs are guaranteed to match
+        // the live row whenever we reach this line, no extra find() needed.
+        $homedirs = $effective->getHomeDirs();
 
         if (empty($homedirs)) {
             $response->json('Account has no folders configured', 422);
@@ -78,11 +80,15 @@ trait ResolvesActiveHomedir
 
         $active = $this->session->get(FileController::SESSION_ACTIVE_HOMEDIR, null);
 
-        // Auto-seed for single-folder users every request — covers fresh
-        // sessions, post-admin-edit drifts, and any reseting we missed.
+        // Auto-seed for single-folder users — covers fresh sessions and
+        // any reset we missed. Skip the session write when it's already
+        // correct to avoid a no-op session-storage hit on every request.
         if (count($homedirs) === 1) {
-            $active = $homedirs[0];
-            $this->session->set(FileController::SESSION_ACTIVE_HOMEDIR, $active);
+            $only = $homedirs[0];
+            if ($active !== $only) {
+                $this->session->set(FileController::SESSION_ACTIVE_HOMEDIR, $only);
+            }
+            $active = $only;
         }
 
         if ($active === null || ! in_array($active, $homedirs, true)) {

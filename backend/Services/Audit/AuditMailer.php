@@ -13,6 +13,7 @@ namespace Filegator\Services\Audit;
 use Filegator\Services\Logger\LoggerInterface;
 use Filegator\Services\Mailer\MailerInterface;
 use Filegator\Services\Service;
+use Filegator\Utils\Homedirs;
 
 /**
  * Sends operational audit emails whenever an admin mutates a user
@@ -416,7 +417,7 @@ HTML;
             return sprintf('Folders changed for %s: %d → %d folder%s', $username, count($before), count($after), count($after) === 1 ? '' : 's');
         }
         // N → M, both >1
-        return sprintf('Folders changed for %s: %s → %s', $username, implode(',', $before), implode(',', $after));
+        return sprintf('Folders changed for %s: %s → %s', $username, implode(', ', $before), implode(', ', $after));
     }
 
     protected function formatDiffLine(string $field, array $change): string
@@ -465,23 +466,12 @@ HTML;
 
     /**
      * Pull the homedirs list out of a User snapshot regardless of which
-     * key was populated. Prefers the new `homedirs` array; falls back to
-     * wrapping the legacy `homedir` scalar so snapshots taken at any point
-     * during the transition continue to render correctly.
+     * key was populated — prefers the new `homedirs` array, falls back
+     * to wrapping the legacy `homedir` scalar.
      */
     protected function extractHomedirs(array $snapshot): array
     {
-        if (isset($snapshot['homedirs']) && is_array($snapshot['homedirs'])) {
-            $clean = [];
-            foreach ($snapshot['homedirs'] as $h) {
-                if (is_string($h) && trim($h) !== '') $clean[] = $h;
-            }
-            return $clean;
-        }
-        if (isset($snapshot['homedir']) && is_string($snapshot['homedir']) && trim($snapshot['homedir']) !== '') {
-            return [$snapshot['homedir']];
-        }
-        return [];
+        return Homedirs::fromArrayRow($snapshot, []);
     }
 
     protected function formatHomedirs(array $homedirs): string

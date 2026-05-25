@@ -40,6 +40,7 @@
 
 <script>
 import api from '../api/api'
+import { needsFolderPicker } from '../mixins/postLogin'
 
 export default {
   name: 'SelectFolder',
@@ -56,14 +57,10 @@ export default {
     },
   },
   mounted() {
-    // Defensive guards: if the user landed here when they shouldn't have
-    // (single-folder, or already has an active), bounce them to the
-    // browser view.
-    if (this.folders.length <= 1) {
-      this.$router.push('/').catch(() => {})
-      return
-    }
-    if (this.$store.state.user.active_homedir) {
+    // Defensive guard: bounce single-folder or already-selected users
+    // straight to the file browser. Uses the same predicate as the
+    // router guard and routeAfterLogin so the three stay in sync.
+    if (!needsFolderPicker(this.$store.state.user)) {
       this.$router.push('/').catch(() => {})
     }
   },

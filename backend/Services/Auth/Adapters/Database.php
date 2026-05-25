@@ -17,6 +17,7 @@ use Filegator\Services\Auth\User;
 use Filegator\Services\Auth\UsersCollection;
 use Filegator\Services\Service;
 use Filegator\Services\Session\SessionStorageInterface as Session;
+use Filegator\Utils\Homedirs;
 use Filegator\Utils\PasswordHash;
 
 class Database implements Service, AuthInterface
@@ -225,22 +226,16 @@ class Database implements Service, AuthInterface
     /**
      * Read the `homedir` column in whatever historical shape it's in: a
      * JSON-encoded array (post-refactor) or a single path string (legacy
-     * rows from before Phase 2). Defaults to single root folder when
-     * blank, matching pre-refactor behaviour.
+     * rows). Defaults to the root folder when blank.
      */
     protected function extractHomedirsFromRow($row): array
     {
         $raw = isset($row->homedir) ? (string) $row->homedir : '';
         if ($raw === '') return ['/'];
 
-        // Try JSON first — new shape stores '["/a","/b"]'.
         $decoded = json_decode($raw, true);
         if (is_array($decoded)) {
-            $clean = [];
-            foreach ($decoded as $h) {
-                if (is_string($h) && trim($h) !== '') $clean[] = trim($h);
-            }
-            return $clean ?: ['/'];
+            return Homedirs::clean($decoded, ['/']);
         }
 
         return [trim($raw)];

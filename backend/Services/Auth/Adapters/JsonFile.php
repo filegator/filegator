@@ -17,6 +17,7 @@ use Filegator\Services\Auth\User;
 use Filegator\Services\Auth\UsersCollection;
 use Filegator\Services\Service;
 use Filegator\Services\Session\SessionStorageInterface as Session;
+use Filegator\Utils\Homedirs;
 use Filegator\Utils\PasswordHash;
 
 class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordResettableInterface
@@ -482,22 +483,11 @@ class JsonFile implements Service, AuthInterface, MfaCapableInterface, PasswordR
 
     /**
      * Read the homedir list from a users.json row in whatever shape it's
-     * in: the new `homedirs` array, the legacy `homedir` scalar, or
-     * missing entirely (default to single root folder).
+     * in. Defaults to the root folder when neither key has usable data.
      */
     protected function extractHomedirsFromRow(array $u): array
     {
-        if (isset($u['homedirs']) && is_array($u['homedirs'])) {
-            $clean = [];
-            foreach ($u['homedirs'] as $h) {
-                if (is_string($h) && trim($h) !== '') $clean[] = trim($h);
-            }
-            return $clean;
-        }
-        if (isset($u['homedir']) && is_string($u['homedir']) && trim($u['homedir']) !== '') {
-            return [trim($u['homedir'])];
-        }
-        return ['/'];
+        return Homedirs::fromArrayRow($u, ['/']);
     }
 
     protected function getUsers(): array

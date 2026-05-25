@@ -10,6 +10,8 @@
 
 namespace Filegator\Services\Auth;
 
+use Filegator\Utils\Homedirs;
+
 class User implements \JsonSerializable
 {
     protected $role = 'guest';
@@ -102,14 +104,7 @@ class User implements \JsonSerializable
      */
     public function setHomedirs(array $homedirs): void
     {
-        $clean = [];
-        foreach ($homedirs as $h) {
-            if (! is_string($h)) continue;
-            $t = trim($h);
-            if ($t === '') continue;
-            $clean[] = $t;
-        }
-        $this->homedirs = array_values($clean);
+        $this->homedirs = Homedirs::clean($homedirs);
     }
 
     /** @return string[] */

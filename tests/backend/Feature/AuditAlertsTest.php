@@ -540,7 +540,7 @@ class AuditAlertsTest extends TestCase
         $msg = $this->lastAudit();
         $this->assertNotNull($msg);
         $this->assertStringContainsString('Folders changed for john@example.com', $msg['subject']);
-        $this->assertStringContainsString('/a,/b → /b,/a', $msg['subject']);
+        $this->assertStringContainsString('/a, /b → /b, /a', $msg['subject']);
     }
 
     public function testWeeklyDigestRendersMultipleFoldersForMultiFolderUser()

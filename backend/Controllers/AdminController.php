@@ -19,6 +19,7 @@ use Filegator\Services\Auth\MfaCapableInterface;
 use Filegator\Services\Auth\User;
 use Filegator\Services\Logger\LoggerInterface;
 use Filegator\Services\Storage\Filesystem;
+use Filegator\Utils\Homedirs;
 use Rakit\Validation\Validator;
 
 class AdminController
@@ -282,18 +283,11 @@ class AdminController
     {
         $raw = $request->input('homedirs', null);
         if (is_array($raw)) {
-            $clean = [];
-            foreach ($raw as $h) {
-                if (! is_string($h)) continue;
-                $t = trim($h);
-                if ($t === '') continue;
-                $clean[] = $t;
-            }
-            return $clean;
+            return Homedirs::clean($raw);
         }
 
-        // Legacy single scalar — accept for one release so the existing
-        // frontend can keep submitting `homedir` until Phase 7 lands.
+        // Legacy single scalar — accept until the rolling-deploy window
+        // for the older frontend bundle closes.
         $legacy = $request->input('homedir', null);
         if (is_string($legacy)) {
             $t = trim($legacy);

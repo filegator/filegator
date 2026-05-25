@@ -8,6 +8,7 @@ import ForgotPassword from './views/ForgotPassword.vue'
 import ResetPassword from './views/ResetPassword.vue'
 import SelectFolder from './views/SelectFolder.vue'
 import store from './store'
+import { needsFolderPicker } from './mixins/postLogin'
 
 Vue.use(Router)
 
@@ -80,8 +81,7 @@ router.beforeEach((to, from, next) => {
     next()
     return
   }
-  const homedirs = Array.isArray(user.homedirs) ? user.homedirs : []
-  if (homedirs.length > 1 && !user.active_homedir) {
+  if (needsFolderPicker(user)) {
     next('/select-folder')
     return
   }
