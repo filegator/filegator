@@ -88,6 +88,10 @@ return [
         'Filegator\Services\Auth\AuthInterface' => [
             'handler' => '\Tests\MockUsers',
         ],
+        'Filegator\Services\Auth\MfaLockout' => [
+            'handler' => '\Filegator\Services\Auth\MfaLockout',
+            'config' => [],
+        ],
         'Filegator\Services\Archiver\ArchiverInterface' => [
             'handler' => '\Filegator\Services\Archiver\Adapters\ZipArchiver',
             'config' => [],
@@ -99,6 +103,12 @@ return [
         'Filegator\Services\Mailer\MailerInterface' => [
             'handler' => '\Tests\Fakes\InMemoryMailer',
             'config' => [],
+        ],
+        'Filegator\Services\Mfa\MfaSecretCrypto' => [
+            'handler' => '\Filegator\Services\Mfa\MfaSecretCrypto',
+            'config' => [
+                'key_path' => TEST_TMP_PATH.'mfa_encryption.key',
+            ],
         ],
         'Filegator\Services\Mfa\MfaService' => [
             'handler' => '\Filegator\Services\Mfa\MfaService',

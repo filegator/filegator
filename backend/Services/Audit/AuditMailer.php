@@ -173,6 +173,25 @@ class AuditMailer implements Service
         $this->dispatch($subject, $body);
     }
 
+    public function mfaBackupCodeConsumed(string $username, string $ip, int $remaining): void
+    {
+        if (! $this->shouldSend()) return;
+
+        $subject = sprintf('MFA backup code used: %s', $username);
+        $body = $this->joinLines([
+            sprintf('A backup code was used to bypass TOTP in the %s. This typically means the user lost access to their authenticator app, but it is also the canonical signature of a compromised account using leaked recovery codes.', $this->appLabel()),
+            '',
+            sprintf('Username: %s', $username),
+            sprintf('Source IP: %s', $ip),
+            sprintf('Backup codes remaining: %d', $remaining),
+            $remaining <= 2 ? 'WARNING: this user is at or below 2 remaining backup codes — they should regenerate before running out.' : '',
+            '',
+            $this->timestampLine(),
+        ]);
+
+        $this->dispatch($subject, $body);
+    }
+
     /**
      * Send the weekly all-users snapshot.
      *

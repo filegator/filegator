@@ -226,6 +226,7 @@ const api = {
       axios.post('login/mfa', {
         code: params.code,
         use_backup: !!params.useBackup,
+        mfa_nonce: params.nonce,
       })
         .then(res => resolve(res.data.data))
         .catch(error => reject(error))
@@ -235,6 +236,7 @@ const api = {
     return new Promise((resolve, reject) => {
       axios.post('login/mfa/setup', {
         code: params.code,
+        mfa_nonce: params.nonce,
       })
         .then(res => resolve(res.data.data))
         .catch(error => reject(error))

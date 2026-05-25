@@ -170,6 +170,7 @@ export default {
       enrollment: null,
       setupBackupCodes: null,
       pendingUser: null,
+      mfaNonce: '',
       error: '',
       showUsernameHelp: false,
     }
@@ -189,11 +190,14 @@ export default {
       })
         .then(data => {
           if (data && data.mfa_required) {
+            // Round-trip the nonce on /login/mfa to defeat the two-tab race.
+            this.mfaNonce = data.mfa_nonce || ''
             this.step = 'mfa'
             this.$nextTick(() => this.$refs.mfa && this.$refs.mfa.focus())
             return
           }
           if (data && data.mfa_setup_required) {
+            this.mfaNonce = data.mfa_nonce || ''
             this.enrollment = data.enrollment
             this.step = 'mfa_setup'
             this.$nextTick(() => this.drawQr())
@@ -216,7 +220,7 @@ export default {
         })
     },
     verifyMfa() {
-      api.loginMfa({ code: this.mfaCode, useBackup: this.useBackup })
+      api.loginMfa({ code: this.mfaCode, useBackup: this.useBackup, nonce: this.mfaNonce })
         .then(user => {
           this.$store.commit('setUser', user)
           routeAfterLogin(this.$store.state.user, this.$router, this.$store)
@@ -235,7 +239,7 @@ export default {
       }
     },
     completeSetup() {
-      api.loginMfaSetup({ code: this.mfaCode })
+      api.loginMfaSetup({ code: this.mfaCode, nonce: this.mfaNonce })
         .then(res => {
           this.pendingUser = res.user
           this.setupBackupCodes = res.backup_codes
@@ -265,6 +269,7 @@ export default {
       this.enrollment = null
       this.setupBackupCodes = null
       this.pendingUser = null
+      this.mfaNonce = ''
       this.error = ''
       this.$nextTick(() => this.$refs.username && this.$refs.username.focus())
     },

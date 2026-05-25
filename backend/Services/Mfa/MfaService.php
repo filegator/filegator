@@ -31,13 +31,16 @@ class MfaService implements Service
 
     protected $config;
 
+    protected $crypto;
+
     protected $issuer = 'FileGator';
 
-    public function __construct(AuthInterface $auth, TmpfsInterface $tmpfs, Config $config)
+    public function __construct(AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, MfaSecretCrypto $crypto)
     {
         $this->auth = $auth;
         $this->tmpfs = $tmpfs;
         $this->config = $config;
+        $this->crypto = $crypto;
     }
 
     public function init(array $config = [])
@@ -83,7 +86,8 @@ class MfaService implements Service
         $totp->setLabel($username);
         $totp->setIssuer($this->issuer);
 
-        $this->capable()->setMfaSecret($username, $totp->getSecret());
+        // Encrypt at rest so a users.json leak doesn't yield working seeds.
+        $this->capable()->setMfaSecret($username, $this->crypto->encrypt($totp->getSecret()));
 
         return [
             'secret' => $totp->getSecret(),
@@ -102,8 +106,18 @@ class MfaService implements Service
     public function confirmEnrollment(string $username, string $code): ?array
     {
         $state = $this->capable()->getMfaState($username);
-        $secret = $state['secret'] ?? null;
-        if (! $secret) return null;
+        $stored = $state['secret'] ?? null;
+        if (! $stored) return null;
+
+        // beginEnrollment writes encrypted; legacy/test rows may still be
+        // plaintext. Same shape as verifyTotp's decrypt-or-passthrough.
+        if ($this->crypto->isEncrypted($stored)) {
+            $secret = $this->crypto->decrypt($stored);
+            if ($secret === null) return null;
+        } else {
+            $secret = $stored;
+        }
+
         if (! $this->verifyTotpAgainstSecret($secret, $code)) return null;
 
         $plain = BackupCodeGenerator::generate();
@@ -132,10 +146,19 @@ class MfaService implements Service
     public function verifyTotp(string $username, string $code): bool
     {
         $state = $this->capable()->getMfaState($username);
-        $secret = $state['secret'] ?? null;
-        if (! $secret) return false;
+        $stored = $state['secret'] ?? null;
+        if (! $stored) return false;
 
         $code = preg_replace('/\s+/', '', $code) ?? '';
+
+        // Decrypt stored secret (or fall through with the plaintext value
+        // if it's a legacy un-encrypted row — lazy migration runs below).
+        if ($this->crypto->isEncrypted($stored)) {
+            $secret = $this->crypto->decrypt($stored);
+            if ($secret === null) return false;
+        } else {
+            $secret = $stored;
+        }
 
         if (! $this->verifyTotpAgainstSecret($secret, $code)) {
             return false;
@@ -150,6 +173,17 @@ class MfaService implements Service
         $this->gcExpiredReplayMarkers();
         if (! $this->tmpfs->addIfAbsent($this->replayFile($username, $code), '1')) {
             return false;
+        }
+
+        // Lazy migration: upgrade plaintext secrets to encrypted form on
+        // first successful verify. Wrapped in try/catch so a write failure
+        // never blocks the login itself.
+        if (! $this->crypto->isEncrypted($stored)) {
+            try {
+                $this->capable()->setMfaSecret($username, $this->crypto->encrypt($secret));
+            } catch (\Throwable $e) {
+                // Best-effort; swallow.
+            }
         }
 
         return true;

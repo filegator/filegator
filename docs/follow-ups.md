@@ -6,9 +6,9 @@ Original review artifact: `/tmp/compound-engineering/ce-code-review/20260516-130
 
 ## Adversarial hardening
 
-- [ ] **#16 — Two-tab MFA pending pollution.** Two browser tabs starting MFA concurrently overwrite each other's pending state because `MFA_PENDING_KEY` is a single session slot. Fix: include a nonce in the response and require it on `/login/mfa`, or document the single-tab constraint. (manual)
-- [ ] **#25 — MFA step-2 brute-force across rotating IPs.** Per-IP MFA lockout doesn't stop an attacker that rotates IPs. Fix: also track failures on the pending-session payload and lock per-username after N consecutive failures. (gated_auto)
-- [ ] **#26 — MFA pending state not bound to IP/UA.** Cookie theft between step 1 and step 2 lets attacker finish login. Fix: hash(ip|user-agent) into the pending payload and reject if it doesn't match. (gated_auto)
+- [x] **#16 — Two-tab MFA pending pollution.** Closed by the MFA hardening pass (see `docs/solutions/`): `/login` now returns an `mfa_nonce` that must be echoed on `/login/mfa[/setup]`; mismatched nonces are rejected with the same generic 422 as missing pending.
+- [x] **#25 — MFA step-2 brute-force across rotating IPs.** Closed by `MfaLockout`: per-username + per-IP counters share `lockout_attempts` / `lockout_timeout`. Lockout travels with the account, not the source.
+- [x] **#26 — MFA pending state not bound to IP/UA.** Closed: pending payload now stores a binding hash. Default is User-Agent only (NAT-friendly); operators can opt in to IP-prefix binding via `mfa_pending_bind_ip_prefix` (`/24`, `/48`, or `exact`).
 
 ## API contract & UX
 
@@ -34,4 +34,11 @@ Original review artifact: `/tmp/compound-engineering/ce-code-review/20260516-130
 
 ## Documentation
 
-- [ ] **F-004 — New config blocks undocumented in `docs/configuration/security.md`**: `csrf_exempt_paths`, Mailer service, MfaService, PasswordResetService. (advisory)
+- [ ] **F-004 — New config blocks undocumented in `docs/configuration/security.md`**: `csrf_exempt_paths`, Mailer service, MfaService, PasswordResetService, MfaSecretCrypto (private/mfa_encryption.key), MfaLockout, `mfa_pending_bind_ua` + `mfa_pending_bind_ip_prefix`. (advisory)
+
+## From the MFA hardening pass
+
+- [ ] **Frontend step-up dialog** for admin CRUD + reset_mfa. Backend gate landed (AdminController requires `stepup_password` + `stepup_code` for admins with MFA enrolled); the admin panel still needs to prompt for these before submitting `/storeuser`, `/updateuser`, `/deleteuser`, and `/admin/users/{u}/reset_mfa`. (manual, frontend-only)
+- [ ] **Step-up token** to amortise one TOTP across a 5-minute admin-write window. Today every sensitive admin action burns one TOTP (90s replay marker), so an admin doing 5 ops needs 5 codes. Operators are likely to push back once this lands; design a short-lived cookie-bound token issued on successful step-up that authorises further admin writes within a small TTL. (manual)
+- [ ] **MFA encryption-key rotation procedure.** `private/mfa_encryption.key` has no rotation tooling. Document (and later automate) a procedure that loads every encrypted secret with the old key, re-encrypts with the new key, then atomically swaps the keyfile. (advisory)
+- [ ] **Admin self-MFA-loss recovery (cross-ref #32).** If the only admin loses both their device AND their backup codes AND the keyfile, recovery requires editing `private/users.json` directly. Document the procedure in `docs/configuration/security.md` (`"mfa_enabled": false`, `"mfa_secret": null` on the admin row → log in → re-enroll). (advisory)

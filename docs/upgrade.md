@@ -63,14 +63,36 @@ Paste this above the existing `Router` entry, replacing the `dsn` and `reset_url
 
 ## Step 3: Add the new top-level keys
 
-In the same `configuration.php`, add these four keys at the top level (alongside `lockout_attempts`, `timezone`, etc.):
+In the same `configuration.php`, add these top-level keys (alongside `lockout_attempts`, `timezone`, etc.):
 
 ```php
 'mfa_required_for_admins' => true,           // admins must enroll TOTP on first login
+'mfa_pending_bind_ua' => true,               // reject /login/mfa if User-Agent differs from /login
+'mfa_pending_bind_ip_prefix' => null,        // 'exact', '/24', '/48', or null to disable IP binding
 'password_reset_token_ttl' => 3600,          // seconds the reset link stays valid
 'password_reset_max_per_hour_per_ip' => 3,
 'password_reset_max_per_day_per_email' => 3,
 ```
+
+You also need two new service blocks alongside the existing `Filegator\Services\Mfa\MfaService` block (still before the Router entry):
+
+```php
+'Filegator\Services\Auth\MfaLockout' => [
+    'handler' => '\Filegator\Services\Auth\MfaLockout',
+    'config' => [],
+],
+'Filegator\Services\Mfa\MfaSecretCrypto' => [
+    'handler' => '\Filegator\Services\Mfa\MfaSecretCrypto',
+    'config' => [
+        // 32-byte sodium secretbox key. Auto-generated on first use,
+        // mode 0600. Back up alongside users.json — losing one without
+        // the other makes every enrolled TOTP secret unrecoverable.
+        'key_path' => __DIR__.'/private/mfa_encryption.key',
+    ],
+],
+```
+
+The keyfile is created on first MFA enrollment or first TOTP verify against a previously-enrolled user. Existing plaintext secrets are lazy-migrated to encrypted form on the next successful TOTP verify — no manual migration step required.
 
 ## Step 4: Add the CSRF exemption list (recommended)
 

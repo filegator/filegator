@@ -6,6 +6,15 @@
 * Added self-service password reset via emailed link, backed by a new Symfony Mailer service
 * Added a `/security` view where users manage MFA, backup codes, password and email
 * New config keys: `mfa_required_for_admins`, `password_reset_token_ttl`, `password_reset_max_per_hour_per_ip`, `password_reset_max_per_day_per_email`, plus a `Mailer` service block with an SMTP DSN
+* **MFA hardening pass:**
+  * TOTP secrets are now encrypted at rest with libsodium secretbox. Key auto-generated at `private/mfa_encryption.key` (mode 0600) on first use — back up alongside `users.json`. Legacy plaintext secrets auto-migrate on next successful TOTP verify.
+  * Per-username MFA brute-force lockout (in addition to existing per-IP). Closes the rotating-IP attack window. Shares `lockout_attempts` / `lockout_timeout` config.
+  * Pending-MFA state is bound to the User-Agent of the password-step request; mismatches reject step 2 with a generic 422. Opt-in IP-prefix binding via new config key `mfa_pending_bind_ip_prefix` (accepts `/24`, `/48`, `exact`, or `null` to disable).
+  * `/login` response now includes `mfa_nonce` that `/login/mfa[/setup]` must echo. Defeats two-tab pending-state pollution. **Breaking** for API clients that called `/login/mfa` without echoing the nonce; legacy clients receive 422.
+  * Step-up auth required on admin sensitive endpoints (`/storeuser`, `/updateuser`, `/deleteuser`, `/admin/users/{u}/reset_mfa`) when the acting admin has MFA enrolled. Distinct request fields `stepup_password` and `stepup_code` (and optional `stepup_use_backup`) avoid collision with the existing `password` field. **Breaking** for API clients that called these endpoints from an admin-with-MFA session.
+  * Backup-code consumption now fires a `mfaBackupCodeConsumed` audit alert (sent to the configured audit recipient) with a threshold-warning when ≤ 2 codes remain.
+* New services: `Filegator\Services\Mfa\MfaSecretCrypto`, `Filegator\Services\Auth\MfaLockout`.
+* New config keys: `mfa_pending_bind_ua` (default `true`), `mfa_pending_bind_ip_prefix` (default `null`).
 
 ## 7.14.0 - 2026-04-18
 * Reworked bottom pane for file uploads by @NikhilC2209 (see #580)

@@ -1,0 +1,140 @@
+<?php
+
+/*
+ * This file is part of the FileGator package.
+ *
+ * (c) Milos Stojanovic <alcalbg@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE file
+ */
+
+namespace Filegator\Services\Mfa;
+
+use Filegator\Services\Service;
+
+/**
+ * Symmetric encryption for TOTP secrets at rest. Uses libsodium's
+ * crypto_secretbox (XSalsa20 + Poly1305) with a 32-byte key persisted
+ * outside users.json so a disk leak of the user DB alone cannot recover
+ * working TOTP seeds.
+ *
+ * Output format: `v1$` + base64(nonce || ciphertext). The version prefix
+ * lets us rotate the algorithm later without ambiguity, and is also the
+ * lazy-migration sentinel — anything stored without that prefix is
+ * treated as legacy plaintext and re-encrypted on next successful TOTP
+ * verify (see [MfaService::verifyTotp]).
+ *
+ * Key recovery: lose the keyfile and every enrolled user's TOTP seed
+ * becomes undecipherable. The user can still log in via backup codes
+ * (hashed independently and unaffected). For the single-admin case
+ * where the admin loses their key AND their backup codes, the documented
+ * recovery is to edit users.json to `mfa_enabled=false, mfa_secret=null`
+ * for the admin row and re-enroll.
+ */
+class MfaSecretCrypto implements Service
+{
+    const VERSION_PREFIX = 'v1$';
+
+    /** Path to the key file. Set in init() from service config. */
+    protected $keyPath;
+
+    /** @var string|null Cached key bytes; loaded once per process. */
+    protected $key = null;
+
+    public function init(array $config = [])
+    {
+        if (empty($config['key_path'])) {
+            throw new \RuntimeException('MfaSecretCrypto requires a `key_path` config entry');
+        }
+        $this->keyPath = (string) $config['key_path'];
+    }
+
+    public function encrypt(string $plaintext): string
+    {
+        $key = $this->loadOrCreateKey();
+        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $ct = sodium_crypto_secretbox($plaintext, $nonce, $key);
+        return self::VERSION_PREFIX . base64_encode($nonce . $ct);
+    }
+
+    /**
+     * Decrypt a stored ciphertext. Returns null on any failure (MAC
+     * mismatch, malformed input, unknown version) so callers can treat
+     * the secret as unrecoverable without distinguishing reasons.
+     */
+    public function decrypt(string $stored): ?string
+    {
+        if (substr($stored, 0, strlen(self::VERSION_PREFIX)) !== self::VERSION_PREFIX) {
+            return null;
+        }
+        $blob = base64_decode(substr($stored, strlen(self::VERSION_PREFIX)), true);
+        if ($blob === false || strlen($blob) < SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) {
+            return null;
+        }
+        $nonce = substr($blob, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $ct = substr($blob, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        try {
+            $key = $this->loadOrCreateKey();
+        } catch (\Throwable $e) {
+            return null;
+        }
+        $pt = sodium_crypto_secretbox_open($ct, $nonce, $key);
+        return $pt === false ? null : $pt;
+    }
+
+    public function isEncrypted(string $stored): bool
+    {
+        return substr($stored, 0, strlen(self::VERSION_PREFIX)) === self::VERSION_PREFIX;
+    }
+
+    /**
+     * Return the keyfile's bytes. Creates it atomically (O_EXCL) on
+     * first call so two concurrent FPM workers can't both observe
+     * absence and both write — exactly one process wins the create;
+     * losers fall through to the read path with the same key. Cached
+     * in-memory so subsequent encrypt/decrypt calls don't hit disk.
+     */
+    protected function loadOrCreateKey(): string
+    {
+        if ($this->key !== null) {
+            return $this->key;
+        }
+
+        // Fast path: file already exists.
+        if (file_exists($this->keyPath)) {
+            $this->key = $this->readKeyFromDisk();
+            return $this->key;
+        }
+
+        // Slow path: try to create with O_EXCL. Multiple processes
+        // racing here will all attempt — exactly one fopen() succeeds.
+        $fh = @fopen($this->keyPath, 'xb');
+        if ($fh === false) {
+            // Lost the race or another error — re-read the now-present file.
+            $this->key = $this->readKeyFromDisk();
+            return $this->key;
+        }
+
+        try {
+            $generated = random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+            fwrite($fh, $generated);
+            fflush($fh);
+        } finally {
+            fclose($fh);
+        }
+        // O_EXCL doesn't accept a mode; restrict perms now.
+        @chmod($this->keyPath, 0600);
+
+        $this->key = $generated;
+        return $this->key;
+    }
+
+    protected function readKeyFromDisk(): string
+    {
+        $bytes = @file_get_contents($this->keyPath);
+        if ($bytes === false || strlen($bytes) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+            throw new \RuntimeException("MFA encryption key file at {$this->keyPath} is missing or malformed");
+        }
+        return $bytes;
+    }
+}

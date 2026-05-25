@@ -14,8 +14,10 @@ use Filegator\Config\Config;
 use Filegator\Controllers\FileController;
 use Filegator\Kernel\Request;
 use Filegator\Kernel\Response;
+use Filegator\Services\Audit\AuditMailer;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Auth\MfaCapableInterface;
+use Filegator\Services\Auth\MfaLockout;
 use Filegator\Services\Mfa\MfaService;
 use Filegator\Services\Session\SessionStorageInterface;
 use Filegator\Services\Tmpfs\TmpfsInterface;
@@ -76,28 +78,35 @@ class AuthController
         }
 
         if ($mfaState['enabled']) {
+            $nonce = bin2hex(random_bytes(8));
             $session->set(self::MFA_PENDING_KEY, [
                 'username' => $username,
                 'expires' => time() + self::MFA_PENDING_TTL,
                 'phase' => 'verify',
+                'binding' => $this->buildPendingBinding($request, $config),
+                'nonce' => $nonce,
             ]);
             $session->migrate(true);
             $this->logger->log("Password ok for {$username} from {$ip}; awaiting MFA");
-            return $response->json(['mfa_required' => true]);
+            return $response->json(['mfa_required' => true, 'mfa_nonce' => $nonce]);
         }
 
         if ($mfa->isRequiredForUser($username, $user->getRole())) {
             $enrollment = $mfa->beginEnrollment($username);
+            $nonce = bin2hex(random_bytes(8));
             $session->set(self::MFA_PENDING_KEY, [
                 'username' => $username,
                 'expires' => time() + self::MFA_PENDING_TTL,
                 'phase' => 'setup',
+                'binding' => $this->buildPendingBinding($request, $config),
+                'nonce' => $nonce,
             ]);
             $session->migrate(true);
             $this->logger->log("Admin {$username} from {$ip} forced into MFA setup");
             return $response->json([
                 'mfa_setup_required' => true,
                 'enrollment' => $enrollment,
+                'mfa_nonce' => $nonce,
             ]);
         }
 
@@ -109,7 +118,7 @@ class AuthController
         return $response->json($this->userResponsePayload($auth->user(), $session));
     }
 
-    public function loginMfa(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)
+    public function loginMfa(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa, MfaLockout $lockout, AuditMailer $audit)
     {
         $ip = $request->getClientIp();
         $pending = $session->get(self::MFA_PENDING_KEY);
@@ -124,11 +133,24 @@ class AuthController
             return $response->json('Invalid MFA phase', 422);
         }
 
-        if ($this->isLockedOut($tmpfs, $ip, $config, 'mfa')) {
-            return $response->json('Not Allowed', 429);
+        // Binding + nonce checks share the generic "expired or missing"
+        // error so a probing client cannot distinguish "wrong UA" from
+        // "no pending" from "stale nonce".
+        if (! $this->pendingBindingMatches($pending, $request, $config)) {
+            return $response->json('MFA challenge expired or missing', 422);
+        }
+        if (! $this->pendingNonceMatches($pending, (string) $request->input('mfa_nonce', ''))) {
+            return $response->json('MFA challenge expired or missing', 422);
         }
 
         $username = (string) $pending['username'];
+
+        // Per-IP AND per-username lockout. Per-username closes the rotating-IP
+        // brute-force window the per-IP check alone leaves open.
+        if ($lockout->isLocked($ip, $username)) {
+            return $response->json('Not Allowed', 429);
+        }
+
         $code = (string) $request->input('code', '');
         $useBackup = (bool) $request->input('use_backup', false);
 
@@ -137,7 +159,7 @@ class AuthController
             : $mfa->verifyTotp($username, $code);
 
         if (! $ok) {
-            $tmpfs->write(md5($ip).'.mfa.lock', 'x', true);
+            $lockout->recordFailure($ip, $username);
             $this->logger->log("MFA failed for {$username} from {$ip}");
             return $response->json('Invalid code', 422);
         }
@@ -147,6 +169,16 @@ class AuthController
             return $response->json('User not found', 422);
         }
 
+        $lockout->clearForUsername($username);
+
+        if ($useBackup && $auth instanceof MfaCapableInterface) {
+            $remaining = (int) ($auth->getMfaState($username)['backup_codes_remaining'] ?? 0);
+            $audit->mfaBackupCodeConsumed($username, $ip, $remaining);
+            if ($remaining <= 2) {
+                $this->logger->log("WARNING: {$username} has {$remaining} MFA backup codes remaining after consume from {$ip}");
+            }
+        }
+
         // Complete login: bypass password check (already verified at step 1).
         $this->completeMfaLogin($auth, $session, $username);
 
@@ -154,7 +186,7 @@ class AuthController
         return $response->json($this->userResponsePayload($auth->user(), $session));
     }
 
-    public function loginMfaSetup(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa)
+    public function loginMfaSetup(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config, SessionStorageInterface $session, MfaService $mfa, MfaLockout $lockout)
     {
         $ip = $request->getClientIp();
         $pending = $session->get(self::MFA_PENDING_KEY);
@@ -168,18 +200,28 @@ class AuthController
         if (($pending['phase'] ?? '') !== 'setup') {
             return $response->json('Invalid MFA phase', 422);
         }
-        if ($this->isLockedOut($tmpfs, $ip, $config, 'mfa')) {
-            return $response->json('Not Allowed', 429);
+
+        if (! $this->pendingBindingMatches($pending, $request, $config)) {
+            return $response->json('Setup session expired', 422);
+        }
+        if (! $this->pendingNonceMatches($pending, (string) $request->input('mfa_nonce', ''))) {
+            return $response->json('Setup session expired', 422);
         }
 
         $username = (string) $pending['username'];
+        if ($lockout->isLocked($ip, $username)) {
+            return $response->json('Not Allowed', 429);
+        }
+
         $code = (string) $request->input('code', '');
 
         $backupCodes = $mfa->confirmEnrollment($username, $code);
         if ($backupCodes === null) {
-            $tmpfs->write(md5($ip).'.mfa.lock', 'x', true);
+            $lockout->recordFailure($ip, $username);
             return $response->json('Invalid code', 422);
         }
+
+        $lockout->clearForUsername($username);
 
         $this->completeMfaLogin($auth, $session, $username);
 
@@ -286,6 +328,77 @@ class AuthController
         $this->logger->log("Login failed for {$username} from IP ".$ip);
         $tmpfs->write(md5($ip).'.lock', 'x', true);
         return $response->json('Login failed, please try again', 422);
+    }
+
+    /**
+     * Derive a hash binding the pending-MFA state to the requesting
+     * client. Defaults to User-Agent only — UA is more stable than IP
+     * across NAT'd corporate egress and mobile-carrier rotation, and
+     * still defeats the cookie-theft scenario (attacker likely on a
+     * different OS/browser than the victim). Operators can opt into
+     * an IP-prefix component for high-security deploys.
+     */
+    protected function buildPendingBinding(Request $request, Config $config): string
+    {
+        $components = [];
+
+        if ((bool) $config->get('mfa_pending_bind_ua', true)) {
+            $components[] = 'ua=' . (string) $request->headers->get('User-Agent', '');
+        }
+
+        $ipMode = $config->get('mfa_pending_bind_ip_prefix', null);
+        if ($ipMode !== null && $ipMode !== '') {
+            $components[] = 'ip=' . $this->normalizeIpForBinding((string) $request->getClientIp(), (string) $ipMode);
+        }
+
+        // No components configured → empty stable binding (effectively off).
+        return hash('sha256', implode('|', $components));
+    }
+
+    protected function pendingBindingMatches(array $pending, Request $request, Config $config): bool
+    {
+        $stored = (string) ($pending['binding'] ?? '');
+        $current = $this->buildPendingBinding($request, $config);
+        return hash_equals($stored, $current);
+    }
+
+    /**
+     * Compare stored vs request nonce with hash_equals to avoid timing
+     * leaks. Treats absent/empty nonces as mismatch so legacy clients
+     * that don't echo the nonce back are forced to upgrade.
+     */
+    protected function pendingNonceMatches(array $pending, string $supplied): bool
+    {
+        $stored = (string) ($pending['nonce'] ?? '');
+        if ($stored === '' || $supplied === '') return false;
+        return hash_equals($stored, $supplied);
+    }
+
+    protected function normalizeIpForBinding(string $ip, string $mode): string
+    {
+        if ($mode === 'exact') return $ip;
+
+        // Accept "/24" or "/48"; reduce IP to its prefix.
+        if (preg_match('#^/(\d+)$#', $mode, $m)) {
+            $bits = (int) $m[1];
+            $packed = @inet_pton($ip);
+            if ($packed === false) return $ip;
+            $bytes = strlen($packed);
+            $fullBytes = intdiv($bits, 8);
+            $remainBits = $bits % 8;
+            $masked = substr($packed, 0, $fullBytes);
+            if ($remainBits > 0 && $fullBytes < $bytes) {
+                $mask = chr((0xFF << (8 - $remainBits)) & 0xFF);
+                $masked .= ($packed[$fullBytes] & $mask);
+            }
+            // Zero-pad remaining bytes for canonical form.
+            $masked = str_pad($masked, $bytes, "\0");
+            $back = @inet_ntop($masked);
+            return $back === false ? $ip : ($back . '/' . $bits);
+        }
+
+        // Unknown mode — fall back to exact (safe-by-default).
+        return $ip;
     }
 
     protected function isLockedOut(TmpfsInterface $tmpfs, string $ip, Config $config, string $namespace = ''): bool

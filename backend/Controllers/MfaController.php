@@ -16,11 +16,15 @@ use Filegator\Kernel\Response;
 use Filegator\Services\Audit\AuditMailer;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Auth\MfaCapableInterface;
+use Filegator\Services\Auth\MfaLockout;
+use Filegator\Services\Auth\RequiresStepUpAuth;
 use Filegator\Services\Logger\LoggerInterface;
 use Filegator\Services\Mfa\MfaService;
 
 class MfaController
 {
+    use RequiresStepUpAuth;
+
     protected $logger;
 
     public function __construct(LoggerInterface $logger)
@@ -96,7 +100,7 @@ class MfaController
         return $response->json(['backup_codes' => $codes]);
     }
 
-    public function disable(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, AuditMailer $audit)
+    public function disable(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, MfaLockout $lockout, AuditMailer $audit)
     {
         if ($this->mfaUnsupported($auth, $mfa)) {
             return $response->json('MFA not supported', 501);
@@ -109,9 +113,15 @@ class MfaController
             return $response->json('MFA is required for your role and cannot be disabled', 422);
         }
 
-        if (! $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
-            return; // reauthVerify has already mutated $response to a 422
-        }
+        $check = $this->stepUpVerify(
+            $response, $auth, $mfa, $lockout, $username, $request->getClientIp(),
+            (string) $request->input('password', ''),
+            (string) $request->input('code', ''),
+            (bool) $request->input('use_backup', false)
+        );
+        if (! $check['ok']) return;
+
+        $this->auditBackupCodeIfUsed($check, $audit, $auth, $username, $request->getClientIp());
 
         $mfa->disable($username);
         // mfa_enabled flipped — refresh the session hash so we don't log
@@ -124,7 +134,7 @@ class MfaController
         return $response->json('ok');
     }
 
-    public function regenerateBackupCodes(Request $request, Response $response, AuthInterface $auth, MfaService $mfa)
+    public function regenerateBackupCodes(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, MfaLockout $lockout, AuditMailer $audit)
     {
         if ($this->mfaUnsupported($auth, $mfa)) {
             return $response->json('MFA not supported', 501);
@@ -133,9 +143,17 @@ class MfaController
         $user = $auth->user();
         $username = $user->getUsername();
 
-        if (! $this->reauthVerify($request, $response, $auth, $mfa, $username)) {
-            return; // reauthVerify has already mutated $response to a 422
-        }
+        $check = $this->stepUpVerify(
+            $response, $auth, $mfa, $lockout, $username, $request->getClientIp(),
+            (string) $request->input('password', ''),
+            (string) $request->input('code', ''),
+            (bool) $request->input('use_backup', false)
+        );
+        if (! $check['ok']) return;
+
+        // Audit BEFORE regeneration (which would itself change the count)
+        // so the "remaining" count reflects what the user actually saw.
+        $this->auditBackupCodeIfUsed($check, $audit, $auth, $username, $request->getClientIp());
 
         $codes = $mfa->regenerateBackupCodes($username);
         $this->logger->log("MFA backup codes regenerated for {$username}");
@@ -178,35 +196,19 @@ class MfaController
     }
 
     /**
-     * Shared re-auth gate for sensitive MFA actions (disable, regenerate backup codes).
-     * Validates the request carries a password + MFA code, then verifies both. On
-     * failure, mutates $response to the appropriate 422 and returns false. On
-     * success, returns true and leaves $response untouched for the caller.
-     *
-     * Note: $response->json() returns void (see backend/Kernel/Response.php),
-     * which is why we use an explicit boolean rather than returning the
-     * response object.
+     * Fire the backup-code-consumed audit + threshold warning log when the
+     * step-up trait reports a backup code was used. No-op otherwise.
      */
-    protected function reauthVerify(Request $request, Response $response, AuthInterface $auth, MfaService $mfa, string $username): bool
+    protected function auditBackupCodeIfUsed(array $check, AuditMailer $audit, AuthInterface $auth, string $username, string $ip): void
     {
-        $password = (string) $request->input('password', '');
-        $code = (string) $request->input('code', '');
-        $useBackup = (bool) $request->input('use_backup', false);
+        if (empty($check['used_backup'])) return;
+        if (! $auth instanceof MfaCapableInterface) return;
 
-        if ($password === '' || $code === '') {
-            $response->json('Password and current MFA code required', 422);
-            return false;
+        $remaining = (int) ($auth->getMfaState($username)['backup_codes_remaining'] ?? 0);
+        $audit->mfaBackupCodeConsumed($username, $ip, $remaining);
+        if ($remaining <= 2) {
+            $this->logger->log("WARNING: {$username} has {$remaining} MFA backup codes remaining after consume from {$ip}");
         }
-        if (! $auth->verifyPasswordOnly($username, $password)) {
-            $response->json(['password' => 'Wrong password'], 422);
-            return false;
-        }
-        $ok = $useBackup ? $mfa->consumeBackupCode($username, $code) : $mfa->verifyTotp($username, $code);
-        if (! $ok) {
-            $response->json(['code' => 'Invalid code'], 422);
-            return false;
-        }
-        return true;
     }
 
     protected function emailValid($email): bool

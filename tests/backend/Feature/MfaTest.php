@@ -41,6 +41,17 @@ class MfaTest extends TestCase
         return TOTP::createFromSecret($secret)->now();
     }
 
+    /**
+     * Pull the mfa_nonce from the most recent response body. Tests that
+     * post to /login/mfa or /login/mfa/setup must include this in the
+     * request body — the server checks it to defeat the two-tab
+     * pending-state-pollution attack (follow-up #16).
+     */
+    protected function lastMfaNonce(): string
+    {
+        return (string) ($this->decodeResponseJson()['data']['mfa_nonce'] ?? '');
+    }
+
     protected function establishSessionFor(string $username): void
     {
         $app = $this->sendRequest('GET', '/getuser');
@@ -84,9 +95,11 @@ class MfaTest extends TestCase
             'password' => 'john123',
         ]);
         $this->captureSession();
+        $nonce = $this->lastMfaNonce();
 
         $this->sendRequest('POST', '/login/mfa', [
             'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
         ]);
 
         $this->assertOk();
@@ -102,8 +115,9 @@ class MfaTest extends TestCase
             'password' => 'john123',
         ]);
         $this->captureSession();
+        $nonce = $this->lastMfaNonce();
 
-        $this->sendRequest('POST', '/login/mfa', ['code' => '000000']);
+        $this->sendRequest('POST', '/login/mfa', ['code' => '000000', 'mfa_nonce' => $nonce]);
 
         $this->assertUnprocessable();
     }
@@ -116,14 +130,16 @@ class MfaTest extends TestCase
             'password' => 'john123',
         ]);
         $this->captureSession();
+        $nonce = $this->lastMfaNonce();
 
         // First attempt: wrong code, consumes the pending.
-        $this->sendRequest('POST', '/login/mfa', ['code' => '000000']);
+        $this->sendRequest('POST', '/login/mfa', ['code' => '000000', 'mfa_nonce' => $nonce]);
         $this->assertUnprocessable();
 
         // Second attempt with the right code: pending is gone → 422.
         $this->sendRequest('POST', '/login/mfa', [
             'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
         ]);
         $this->assertUnprocessable();
     }
@@ -138,10 +154,12 @@ class MfaTest extends TestCase
             'password' => 'john123',
         ]);
         $this->captureSession();
+        $nonce = $this->lastMfaNonce();
 
         $this->sendRequest('POST', '/login/mfa', [
             'code' => 'ABCDE-12345',
             'use_backup' => true,
+            'mfa_nonce' => $nonce,
         ]);
         $this->assertOk();
 
@@ -154,10 +172,12 @@ class MfaTest extends TestCase
             'password' => 'john123',
         ]);
         $this->captureSession();
+        $nonce = $this->lastMfaNonce();
 
         $this->sendRequest('POST', '/login/mfa', [
             'code' => 'ABCDE-12345',
             'use_backup' => true,
+            'mfa_nonce' => $nonce,
         ]);
         $this->assertUnprocessable();
     }
@@ -187,11 +207,14 @@ class MfaTest extends TestCase
             'password' => 'admin123',
         ]);
         $this->assertOk();
-        $secret = $this->decodeResponseJson()['data']['enrollment']['secret'];
+        $data = $this->decodeResponseJson()['data'];
+        $secret = $data['enrollment']['secret'];
+        $nonce = $data['mfa_nonce'];
         $this->captureSession();
 
         $this->sendRequest('POST', '/login/mfa/setup', [
             'code' => $this->totpFor($secret),
+            'mfa_nonce' => $nonce,
         ]);
 
         $this->assertOk();
@@ -320,12 +343,17 @@ class MfaTest extends TestCase
 
     public function testAdminCannotResetOwnMfa()
     {
-        $this->enrollMfa('admin@example.com');
+        $info = $this->enrollMfa('admin@example.com');
         // signIn() can't drive the two-step MFA flow, so establish the admin
         // session directly. The route guard (admin only) still applies.
         $this->establishSessionFor('admin@example.com');
 
-        $this->sendRequest('POST', '/admin/users/admin@example.com/reset_mfa');
+        // Pass valid step-up creds so the self-reset guard (not the step-up
+        // gate) is what produces the 422.
+        $this->sendRequest('POST', '/admin/users/admin@example.com/reset_mfa', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => $this->totpFor($info['secret']),
+        ]);
         $this->assertUnprocessable();
     }
 
@@ -338,9 +366,10 @@ class MfaTest extends TestCase
             'password' => 'john123',
         ]);
         $this->captureSession();
+        $nonce1 = $this->lastMfaNonce();
         $code = $this->totpFor($info['secret']);
 
-        $this->sendRequest('POST', '/login/mfa', ['code' => $code]);
+        $this->sendRequest('POST', '/login/mfa', ['code' => $code, 'mfa_nonce' => $nonce1]);
         $this->assertOk();
         $this->sendRequest('POST', '/logout');
         $this->captureSession();
@@ -350,8 +379,9 @@ class MfaTest extends TestCase
             'password' => 'john123',
         ]);
         $this->captureSession();
+        $nonce2 = $this->lastMfaNonce();
 
-        $this->sendRequest('POST', '/login/mfa', ['code' => $code]);
+        $this->sendRequest('POST', '/login/mfa', ['code' => $code, 'mfa_nonce' => $nonce2]);
         $this->assertUnprocessable();
     }
 
@@ -429,7 +459,8 @@ class MfaTest extends TestCase
             $this->signOut();
             $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], $ip);
             $this->captureSession();
-            $this->sendRequest('POST', '/login/mfa', ['code' => '000000'], [], $ip);
+            $nonce = $this->lastMfaNonce();
+            $this->sendRequest('POST', '/login/mfa', ['code' => '000000', 'mfa_nonce' => $nonce], [], $ip);
             $this->assertUnprocessable();
         }
 
@@ -437,8 +468,92 @@ class MfaTest extends TestCase
         $this->signOut();
         $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], $ip);
         $this->captureSession();
-        $this->sendRequest('POST', '/login/mfa', ['code' => '111111'], [], $ip);
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => '111111', 'mfa_nonce' => $nonce], [], $ip);
         $this->assertStatus(429);
+    }
+
+    // ---------------------------------------------------------------------
+    // Per-username MFA lockout (workstream 4 — follow-up #25)
+    // ---------------------------------------------------------------------
+
+    public function testMfaStep2LocksOutByUsernameAcrossRotatingIps()
+    {
+        $this->overrideConfig(['lockout_attempts' => 3, 'lockout_timeout' => 60]);
+        $this->enrollMfa('john@example.com');
+
+        // Three failed MFA attempts, each from a different IP — the per-IP
+        // counter never crosses the threshold, but the per-username counter
+        // does. Without per-username lockout the attacker can keep going.
+        $ips = ['1.1.1.1', '2.2.2.2', '3.3.3.3'];
+        foreach ($ips as $ip) {
+            $this->signOut();
+            $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], ['REMOTE_ADDR' => $ip]);
+            $this->captureSession();
+            $nonce = $this->lastMfaNonce();
+            $this->sendRequest('POST', '/login/mfa', ['code' => '000000', 'mfa_nonce' => $nonce], [], ['REMOTE_ADDR' => $ip]);
+            $this->assertUnprocessable();
+        }
+
+        // The 4th attempt from a totally fresh IP must still be locked — the
+        // ban travels with the account, not the source.
+        $this->signOut();
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], ['REMOTE_ADDR' => '4.4.4.4']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => '111111', 'mfa_nonce' => $nonce], [], ['REMOTE_ADDR' => '4.4.4.4']);
+        $this->assertStatus(429);
+    }
+
+    // TTL-expiry coverage lives in tests/backend/Unit/MfaLockoutTest.php
+    // (a unit test that doesn't have to wait through HTTP round-trips for
+    // each fixture step — at the feature level, HTTP setup time exceeds
+    // the lockout_timeout we'd want to use, making the test flaky).
+
+    public function testSuccessfulMfaClearsPerUsernameCounter()
+    {
+        $this->overrideConfig(['lockout_attempts' => 3, 'lockout_timeout' => 60]);
+        $info = $this->enrollMfa('john@example.com');
+
+        // Two failures (one short of the lockout threshold).
+        foreach (['10.0.0.1', '10.0.0.2'] as $ip) {
+            $this->signOut();
+            $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], ['REMOTE_ADDR' => $ip]);
+            $this->captureSession();
+            $nonce = $this->lastMfaNonce();
+            $this->sendRequest('POST', '/login/mfa', ['code' => '000000', 'mfa_nonce' => $nonce], [], ['REMOTE_ADDR' => $ip]);
+            $this->assertUnprocessable();
+        }
+
+        // A legitimate success resets the username counter — so the user does
+        // not stay one failure away from lockout after a fat-fingered code.
+        $this->signOut();
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], ['REMOTE_ADDR' => '10.0.0.3']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => $this->totpFor($info['secret']), 'mfa_nonce' => $nonce], [], ['REMOTE_ADDR' => '10.0.0.3']);
+        $this->assertOk();
+
+        // Two more failures should NOT trip the lockout — the counter is back to zero.
+        // (Per-IP TTL only resets on timeout, so use new IPs.)
+        $this->sendRequest('POST', '/logout');
+        $this->captureSession();
+        foreach (['10.0.0.4', '10.0.0.5'] as $ip) {
+            $this->signOut();
+            $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], ['REMOTE_ADDR' => $ip]);
+            $this->captureSession();
+            $nonce = $this->lastMfaNonce();
+            $this->sendRequest('POST', '/login/mfa', ['code' => '000000', 'mfa_nonce' => $nonce], [], ['REMOTE_ADDR' => $ip]);
+            $this->assertUnprocessable();
+        }
+
+        $this->signOut();
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123'], [], ['REMOTE_ADDR' => '10.0.0.6']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => '111111', 'mfa_nonce' => $nonce], [], ['REMOTE_ADDR' => '10.0.0.6']);
+        // Still 422 (not 429) — username counter was cleared after the win.
+        $this->assertUnprocessable();
     }
 
     // ---------------------------------------------------------------------
@@ -526,7 +641,8 @@ class MfaTest extends TestCase
         $this->signOut();
         $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
         $this->captureSession();
-        $this->sendRequest('POST', '/login/mfa', ['code' => 'OLDAA-11111', 'use_backup' => true]);
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => 'OLDAA-11111', 'use_backup' => true, 'mfa_nonce' => $nonce]);
         $this->assertUnprocessable();
     }
 
@@ -550,6 +666,209 @@ class MfaTest extends TestCase
         $this->sendRequest('POST', '/mfa/backup_codes/regenerate', [
             'password' => 'john123',
             'code' => '000000',
+        ]);
+        $this->assertUnprocessable();
+    }
+
+    // ---------------------------------------------------------------------
+    // TOTP encryption at rest (workstream 1)
+    // ---------------------------------------------------------------------
+
+    public function testLegacyPlaintextSecretIsLazyMigratedOnSuccessfulVerify()
+    {
+        // enrollMfa() writes the secret as plaintext (test convenience —
+        // bypasses MfaService::beginEnrollment which now encrypts).
+        $info = $this->enrollMfa('john@example.com');
+
+        // Snapshot the raw stored value before login — should be plaintext.
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $stateBefore = $auth->getMfaState('john@example.com');
+        $this->assertSame($info['secret'], $stateBefore['secret']);
+        $this->assertStringStartsNotWith('v1$', $stateBefore['secret']);
+
+        // Complete a real MFA login — this triggers the lazy re-encrypt.
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => $this->totpFor($info['secret']), 'mfa_nonce' => $nonce]);
+        $this->assertOk();
+
+        // The stored value should now be the encrypted form.
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $stateAfter = $auth->getMfaState('john@example.com');
+        $this->assertStringStartsWith('v1$', $stateAfter['secret']);
+        $this->assertNotSame($info['secret'], $stateAfter['secret']);
+    }
+
+    public function testCorruptedEncryptedSecretStillAllowsBackupCodeLogin()
+    {
+        // Enroll real backup codes, then overwrite the stored secret with a
+        // corrupted ciphertext — simulates a key rotation or disk corruption.
+        $backupCodes = ['ABCDE-12345', 'WXYZH-98765'];
+        $this->enrollMfa('john@example.com', null, $backupCodes);
+
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        // Valid v1$ prefix but the payload won't decrypt against the real key.
+        $auth->setMfaSecret('john@example.com', 'v1$'.base64_encode(str_repeat("\x00", 64)));
+
+        // TOTP verify is impossible — secret is unrecoverable.
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => '123456', 'mfa_nonce' => $nonce]);
+        $this->assertUnprocessable();
+
+        // But backup codes are hashed separately and unaffected.
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+        $this->sendRequest('POST', '/login/mfa', ['code' => 'ABCDE-12345', 'use_backup' => true, 'mfa_nonce' => $nonce]);
+        $this->assertOk();
+    }
+
+    // ---------------------------------------------------------------------
+    // Pending-state binding + nonce (workstreams 5 & 6 — follow-ups #16, #26)
+    // ---------------------------------------------------------------------
+
+    public function testPendingBindingRejectsMismatchedUserAgent()
+    {
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['HTTP_USER_AGENT' => 'Mozilla/Original']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        // Same cookie + nonce, but different UA — cookie-theft scenario.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['HTTP_USER_AGENT' => 'Mozilla/Attacker']);
+        $this->assertUnprocessable();
+    }
+
+    public function testPendingBindingAcceptsMatchingUserAgent()
+    {
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['HTTP_USER_AGENT' => 'Mozilla/Same']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['HTTP_USER_AGENT' => 'Mozilla/Same']);
+        $this->assertOk();
+    }
+
+    public function testIpPrefixBindingMatchesWithinSameSubnet()
+    {
+        $this->overrideConfig(['mfa_pending_bind_ip_prefix' => '/24']);
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '192.168.1.10']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        // Different last octet, same /24 — accepted.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['REMOTE_ADDR' => '192.168.1.99']);
+        $this->assertOk();
+    }
+
+    public function testIpPrefixBindingRejectsDifferentSubnet()
+    {
+        $this->overrideConfig(['mfa_pending_bind_ip_prefix' => '/24']);
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ], [], ['REMOTE_ADDR' => '192.168.1.10']);
+        $this->captureSession();
+        $nonce = $this->lastMfaNonce();
+
+        // Different /24 — rejected.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonce,
+        ], [], ['REMOTE_ADDR' => '192.168.2.10']);
+        $this->assertUnprocessable();
+    }
+
+    public function testNonceAbsentRejected()
+    {
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ]);
+        $this->captureSession();
+
+        // No mfa_nonce in body — must reject.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+        ]);
+        $this->assertUnprocessable();
+    }
+
+    public function testNonceTamperedRejected()
+    {
+        $info = $this->enrollMfa('john@example.com');
+
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ]);
+        $this->captureSession();
+
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => 'deadbeefdeadbeef',
+        ]);
+        $this->assertUnprocessable();
+    }
+
+    public function testTwoTabRaceOlderNonceLoses()
+    {
+        $info = $this->enrollMfa('john@example.com');
+
+        // Tab 1 opens MFA — captures nonce A and the session.
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ]);
+        $this->captureSession();
+        $nonceA = $this->lastMfaNonce();
+
+        // Tab 2 starts MFA on the same cookie — captures nonce B, overwrites pending.
+        $this->sendRequest('POST', '/login', [
+            'username' => 'john@example.com',
+            'password' => 'john123',
+        ]);
+        $this->captureSession();
+        $nonceB = $this->lastMfaNonce();
+        $this->assertNotSame($nonceA, $nonceB);
+
+        // Tab 1 (older nonce) submits — rejected.
+        $this->sendRequest('POST', '/login/mfa', [
+            'code' => $this->totpFor($info['secret']),
+            'mfa_nonce' => $nonceA,
         ]);
         $this->assertUnprocessable();
     }

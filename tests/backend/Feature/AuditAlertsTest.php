@@ -274,6 +274,83 @@ class AuditAlertsTest extends TestCase
         $this->assertSame([], $this->audits());
     }
 
+    // ---------------------------------------------------------------------
+    // Backup-code-consumed audit (workstream 3)
+    // ---------------------------------------------------------------------
+
+    public function testBackupCodeUseAtLoginFiresAuditAlert()
+    {
+        // 3-codes-remaining fixture is below the threshold, so we expect
+        // BOTH the alert email and the threshold warning to fire.
+        $codes = ['ABCDE-12345', 'WXYZH-98765', 'QQQQQ-11111'];
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $auth->setMfaSecret('john@example.com', TOTP::create()->getSecret());
+        $auth->enableMfa('john@example.com', BackupCodeGenerator::hashAll($codes));
+
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
+        $this->captureSession();
+        $nonce = (string) ($this->decodeResponseJson()['data']['mfa_nonce'] ?? '');
+        $this->sendRequest('POST', '/login/mfa', ['code' => 'ABCDE-12345', 'use_backup' => true, 'mfa_nonce' => $nonce]);
+        $this->assertOk();
+
+        $msg = $this->lastAudit();
+        $this->assertNotNull($msg);
+        $this->assertStringContainsString('MFA backup code used: john@example.com', $msg['subject']);
+        $this->assertStringContainsString('Username: john@example.com', $msg['text']);
+        $this->assertStringContainsString('Backup codes remaining: 2', $msg['text']);
+        $this->assertStringContainsString('WARNING', $msg['text']);
+    }
+
+    public function testFailedBackupCodeAtLoginDoesNotFireAudit()
+    {
+        $codes = ['ABCDE-12345', 'WXYZH-98765'];
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $auth->setMfaSecret('john@example.com', TOTP::create()->getSecret());
+        $auth->enableMfa('john@example.com', BackupCodeGenerator::hashAll($codes));
+
+        $this->sendRequest('POST', '/login', ['username' => 'john@example.com', 'password' => 'john123']);
+        $this->captureSession();
+        $nonce = (string) ($this->decodeResponseJson()['data']['mfa_nonce'] ?? '');
+        $this->sendRequest('POST', '/login/mfa', ['code' => 'WRONG-00000', 'use_backup' => true, 'mfa_nonce' => $nonce]);
+        $this->assertUnprocessable();
+
+        $this->assertSame([], array_values(array_filter(
+            $this->audits(),
+            function ($m) { return strpos($m['subject'] ?? '', 'MFA backup code used') !== false; }
+        )));
+    }
+
+    public function testBackupCodeUseInAdminStepUpFiresAudit()
+    {
+        // Admin uses backup code to step up for a /deleteuser call.
+        $secret = TOTP::create()->getSecret();
+        $codes = ['ADMIN-CODE1', 'ADMIN-CODE2', 'ADMIN-CODE3', 'ADMIN-CODE4'];
+        $app = $this->sendRequest('GET', '/getuser');
+        $auth = $app->resolve(AuthInterface::class);
+        $auth->setMfaSecret('admin@example.com', $secret);
+        $auth->enableMfa('admin@example.com', BackupCodeGenerator::hashAll($codes));
+        $auth->establishSessionFor('admin@example.com');
+        $this->captureSession();
+
+        $this->sendRequest('POST', '/deleteuser/john@example.com', [
+            'stepup_password' => 'admin123',
+            'stepup_code' => 'ADMIN-CODE1',
+            'stepup_use_backup' => true,
+        ]);
+        $this->assertOk();
+
+        $backupAudits = array_values(array_filter(
+            $this->audits(),
+            function ($m) { return strpos($m['subject'] ?? '', 'MFA backup code used: admin@example.com') !== false; }
+        ));
+        $this->assertCount(1, $backupAudits);
+        // 4 - 1 consumed = 3 remaining (above warning threshold).
+        $this->assertStringContainsString('Backup codes remaining: 3', $backupAudits[0]['text']);
+        $this->assertStringNotContainsString('WARNING', $backupAudits[0]['text']);
+    }
+
     public function testUserSelfDisablingMfaFiresAlert()
     {
         $secret = $this->enrollMfa('john@example.com');

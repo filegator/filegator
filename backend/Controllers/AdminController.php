@@ -16,14 +16,19 @@ use Filegator\Services\Audit\AuditMailer;
 use Filegator\Services\Audit\WeeklyDigest;
 use Filegator\Services\Auth\AuthInterface;
 use Filegator\Services\Auth\MfaCapableInterface;
+use Filegator\Services\Auth\MfaLockout;
+use Filegator\Services\Auth\RequiresStepUpAuth;
 use Filegator\Services\Auth\User;
 use Filegator\Services\Logger\LoggerInterface;
+use Filegator\Services\Mfa\MfaService;
 use Filegator\Services\Storage\Filesystem;
 use Filegator\Utils\Homedirs;
 use Rakit\Validation\Validator;
 
 class AdminController
 {
+    use RequiresStepUpAuth;
+
     protected $auth;
 
     protected $storage;
@@ -66,8 +71,12 @@ class AdminController
         return $response->json($rows);
     }
 
-    public function storeUser(User $user, Request $request, Response $response, Validator $validator, AuditMailer $audit)
+    public function storeUser(User $user, Request $request, Response $response, Validator $validator, AuditMailer $audit, MfaService $mfa, MfaLockout $lockout)
     {
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
+
         $validator->setMessage('required', 'This field is required');
         $validation = $validator->validate($request->all(), [
             'name' => 'required',
@@ -127,8 +136,12 @@ class AdminController
         return $response->json($ret);
     }
 
-    public function updateUser($username, Request $request, Response $response, Validator $validator, AuditMailer $audit)
+    public function updateUser($username, Request $request, Response $response, Validator $validator, AuditMailer $audit, MfaService $mfa, MfaLockout $lockout)
     {
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
+
         $user = $this->auth->find($username);
 
         if (! $user) {
@@ -205,8 +218,12 @@ class AdminController
         }
     }
 
-    public function deleteUser($username, Request $request, Response $response, AuditMailer $audit)
+    public function deleteUser($username, Request $request, Response $response, AuditMailer $audit, MfaService $mfa, MfaLockout $lockout)
     {
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
+
         $user = $this->auth->find($username);
 
         if (! $user || $user->getUsername() == 'guest') {
@@ -229,11 +246,15 @@ class AdminController
         return $response->json($ret);
     }
 
-    public function resetMfa($username, Request $request, Response $response, AuditMailer $audit)
+    public function resetMfa($username, Request $request, Response $response, AuditMailer $audit, MfaService $mfa, MfaLockout $lockout)
     {
         if (! $this->auth instanceof MfaCapableInterface) {
             return $response->json('Not supported', 501);
         }
+
+        $check = $this->stepUpForAdmin($request, $response, $mfa, $lockout);
+        if (! $check['ok']) return;
+        $this->auditBackupCodeIfUsed($check, $audit, $request->getClientIp());
 
         $current = $this->auth->user();
         if ($current && $current->getUsername() === $username) {
@@ -268,6 +289,49 @@ class AdminController
     {
         $current = $this->auth->user();
         return $current ? $current->getUsername() : 'unknown';
+    }
+
+    /**
+     * Resolve the acting admin's identity and dispatch the step-up trait.
+     * Reads `stepup_password` and `stepup_code` from the request (distinct
+     * names so they don't collide with storeUser's `password` field for the
+     * new user being created). Trait degrades to a no-op when the acting
+     * admin has no MFA enrolled, so this is safe on every admin endpoint.
+     */
+    protected function stepUpForAdmin(Request $request, Response $response, MfaService $mfa, MfaLockout $lockout): array
+    {
+        $current = $this->auth->user();
+        $username = $current ? $current->getUsername() : '';
+        if ($username === '') {
+            // Should be unreachable — admin routes are role-gated — but
+            // fail closed if it ever happens.
+            $response->json('Not authenticated', 422);
+            return ['ok' => false, 'used_backup' => false];
+        }
+        return $this->stepUpVerify(
+            $response, $this->auth, $mfa, $lockout, $username, $request->getClientIp(),
+            (string) $request->input('stepup_password', ''),
+            (string) $request->input('stepup_code', ''),
+            (bool) $request->input('stepup_use_backup', false)
+        );
+    }
+
+    /**
+     * Fire the backup-code-consumed audit when the step-up trait reports a
+     * backup code was used for this sensitive action. Mirrors the helper in
+     * MfaController so admin-side step-up events end up on the same alert.
+     */
+    protected function auditBackupCodeIfUsed(array $check, AuditMailer $audit, string $ip): void
+    {
+        if (empty($check['used_backup'])) return;
+        if (! $this->auth instanceof MfaCapableInterface) return;
+
+        $username = $this->currentAdminUsername();
+        $remaining = (int) ($this->auth->getMfaState($username)['backup_codes_remaining'] ?? 0);
+        $audit->mfaBackupCodeConsumed($username, $ip, $remaining);
+        if ($remaining <= 2) {
+            $this->logger->log("WARNING: {$username} has {$remaining} MFA backup codes remaining after step-up from {$ip}");
+        }
     }
 
     /**

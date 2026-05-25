@@ -10,6 +10,8 @@ return [
     'lockout_timeout' => 15, // ip lockout timeout in seconds
 
     'mfa_required_for_admins' => true,           // admins must enroll TOTP on first login
+    'mfa_pending_bind_ua' => true,               // reject /login/mfa if User-Agent differs from /login
+    'mfa_pending_bind_ip_prefix' => null,        // 'exact', '/24', '/48', or null to disable IP binding
     'password_reset_token_ttl' => 3600,          // seconds the reset link stays valid
     'password_reset_max_per_hour_per_ip' => 3,   // throttle per IP
     'password_reset_max_per_day_per_email' => 3, // throttle per email
@@ -115,6 +117,10 @@ return [
                 'file' => __DIR__.'/private/users.json',
             ],
         ],
+        'Filegator\Services\Auth\MfaLockout' => [
+            'handler' => '\Filegator\Services\Auth\MfaLockout',
+            'config' => [],
+        ],
         // Mailer / Mfa / PasswordReset must come BEFORE Router. Router::init
         // dispatches the route immediately, so any controller method that
         // type-hints these services (e.g. ViewController::getFrontendConfig)
@@ -135,6 +141,15 @@ return [
                 // and also enforced via a per-request default_socket_timeout clamp. Tune up
                 // for very slow servers; do not set to 0.
                 'timeout' => 5,
+            ],
+        ],
+        'Filegator\Services\Mfa\MfaSecretCrypto' => [
+            'handler' => '\Filegator\Services\Mfa\MfaSecretCrypto',
+            'config' => [
+                // 32-byte sodium secretbox key. Auto-generated on first use,
+                // mode 0600. Back up alongside users.json — losing one without
+                // the other makes every enrolled TOTP secret unrecoverable.
+                'key_path' => __DIR__.'/private/mfa_encryption.key',
             ],
         ],
         'Filegator\Services\Mfa\MfaService' => [
