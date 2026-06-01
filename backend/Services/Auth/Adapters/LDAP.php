@@ -197,9 +197,11 @@ class LDAP implements Service, AuthInterface
 
         // search the LDAP server for users
         $filter = $this->ldap_filter;
-        if (!empty($username))
-            $filter = '(&' . $filter . '(' . $this->ldap_userFieldMapping['username'] . '=' . $username . '))';
-
+        if (!empty($username)) {
+            $safe_username = ldap_escape($username, '', LDAP_ESCAPE_FILTER);
+            $filter = '(&' . $filter . '(' . $this->ldap_userFieldMapping['username'] . '=' . $safe_username . '))';
+        }
+        
         $ldapSearch = @ldap_search($ldapConn, $this->ldap_baseDN, $filter, $this->ldap_attributes);
 
         if (!$ldapSearch) {
