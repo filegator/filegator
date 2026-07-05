@@ -19,7 +19,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 
 # PHP extensions
 RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ \
-    && docker-php-ext-install zip ldap
+    && docker-php-ext-install zip ldap mysqli
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
