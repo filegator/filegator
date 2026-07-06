@@ -36,7 +36,7 @@ RUN apt-get update > /dev/null
 RUN apt-get install -y git libzip-dev libldap2-dev
 
 RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
-RUN docker-php-ext-install zip ldap
+RUN docker-php-ext-install zip ldap mysqli
 RUN docker-php-ext-enable zip ldap
 
 COPY --from=builder /var/www/filegator /var/www/filegator

@@ -8,7 +8,7 @@ FROM php:8.3-apache-bullseye
 RUN apt-get update > /dev/null
 RUN apt-get install -y git libzip-dev wget unzip
 
-RUN docker-php-ext-install zip
+RUN docker-php-ext-install zip mysqli
 RUN docker-php-ext-enable zip
 
 RUN wget https://github.com/filegator/static/raw/master/builds/filegator_latest.zip
