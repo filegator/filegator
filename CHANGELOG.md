@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming...
+* Fix unreadable .box text in dark theme, thanks @TowyTowy (see #589)
 
 ## 7.14.3 - 2026-05-22
 * Added upload speed metric to the bottom pane, thanks @NikhilC2209 (see #581)
