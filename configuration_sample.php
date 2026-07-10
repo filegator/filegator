@@ -8,6 +8,7 @@ return [
     'download_inline' => ['pdf'], // download inline in the browser, array of extensions, use * for all
     'lockout_attempts' => 5, // max failed login attempts before ip lockout
     'lockout_timeout' => 15, // ip lockout timeout in seconds
+    'log_downloads' => false, //log filenames and paths
 
     'frontend_config' => [
         'app_name' => 'FileGator',
