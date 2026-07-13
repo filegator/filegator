@@ -85,7 +85,9 @@ export default {
             if (item.name.toLowerCase().indexOf(this.term.toLowerCase()) > -1) {
               this.results.push({
                 file: item,
-                dir: path,
+                // enter the folder itself when the result is a directory,
+                // otherwise open the parent folder of the matched file
+                dir: item.type === 'dir' ? item.path : path,
               })
             }
           })
