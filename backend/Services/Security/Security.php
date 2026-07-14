@@ -16,6 +16,8 @@ use Filegator\Services\Service;
 use Filegator\Services\Logger\LoggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
+use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
 
 /**
  * @codeCoverageIgnore
@@ -23,9 +25,7 @@ use Symfony\Component\Security\Csrf\CsrfTokenManager;
 class Security implements Service
 {
     protected $request;
-
     protected $response;
-
     protected $logger;
 
     public function __construct(Request $request, Response $response, LoggerInterface $logger)
@@ -37,63 +37,85 @@ class Security implements Service
 
     public function init(array $config = [])
     {
-        if ($config['csrf_protection']) {
+        // 1. Handle CSRF protection
+        if (!empty($config['csrf_protection'])) {
+            $key = $config['csrf_key'] ?? 'protection';
 
-            $key = isset($config['csrf_key']) ? $config['csrf_key'] : 'protection';
+            $tokenStorage = new SessionTokenStorage($this->request->getSession());
+            $tokenGenerator = new UriSafeTokenGenerator();
+            $csrfManager = new CsrfTokenManager($tokenGenerator, $tokenStorage);
 
-            $http_method = $this->request->getMethod();
-            $csrfManager = new CsrfTokenManager();
+            $httpMethod = $this->request->getMethod();
 
-            if (in_array($http_method, ['GET', 'HEAD', 'OPTIONS'])) {
-                $this->response->headers->set('X-CSRF-Token', $csrfManager->getToken($key));
-            } else {
+            // 2. Restrict state-changing endpoints (e.g., /logout) in GET/HEAD/OPTIONS methods
+            $stateChangingEndpoints = ['/logout', '/delete', '/reset'];
+            $rValue = $this->request->get('r');  // Get r value from GET parameters
+
+            if (in_array($httpMethod, ['GET', 'HEAD', 'OPTIONS']) &&
+                $rValue !== null &&
+                in_array($rValue, $stateChangingEndpoints)) {
+                // Prohibit using GET method for state-changing operations
+                $this->response->setStatusCode(405);
+                $this->response->send('Method Not Allowed');
+                $this->logger->log("GET method used for state-changing endpoint: " . $rValue);
+                exit;
+            }
+
+            // 3. POST/PUT/DELETE requests must include a valid X-CSRF-Token
+            if (!in_array($httpMethod, ['GET', 'HEAD', 'OPTIONS'])) {
                 $token = new CsrfToken($key, $this->request->headers->get('X-CSRF-Token'));
 
-                if (! $csrfManager->isTokenValid($token)) {
-                    $this->logger->log("Csrf token not valid");
-                    die;
+                if (!$csrfManager->isTokenValid($token)) {
+                    $this->response->setStatusCode(403);
+                    $this->response->send('Invalid CSRF Token');
+                    $this->logger->log("Invalid CSRF Token for request: " . ($rValue ?? 'unknown'));
+                    exit;
                 }
+            } else {
+                // Only generate token for frontend use
+                $this->response->headers->set('X-CSRF-Token', $csrfManager->getToken($key));
             }
         }
 
-        if (! empty($config['ip_whitelist'])) $config['ip_allowlist'] = $config['ip_whitelist']; // deprecated, compatibility
-
-        if (! empty($config['ip_allowlist'])) {
-            $pass = false;
+        // 4. IP allowlist validation
+        if (!empty($config['ip_whitelist'])) {
+            $config['ip_allowlist'] = $config['ip_whitelist'];
+        }
+        if (!empty($config['ip_allowlist'])) {
+            $allowed = false;
             foreach ($config['ip_allowlist'] as $ip) {
                 if ($this->request->getClientIp() == $ip) {
-                    $pass = true;
+                    $allowed = true;
+                    break;
                 }
             }
-            if (! $pass) {
+            if (!$allowed) {
                 $this->response->setStatusCode(403);
                 $this->response->send();
-                $this->logger->log("Forbidden - IP not found in allowlist ".$this->request->getClientIp());
-                die;
+                $this->logger->log("Forbidden - IP not found in allowlist: " . $this->request->getClientIp());
+                exit;
             }
         }
 
-        if (! empty($config['ip_blacklist'])) $config['ip_denylist'] = $config['ip_blacklist']; // deprecated, compatibility
-
-        if (! empty($config['ip_denylist'])) {
-            $pass = true;
+        // 5. IP denylist validation
+        if (!empty($config['ip_blacklist'])) {
+            $config['ip_denylist'] = $config['ip_blacklist'];
+        }
+        if (!empty($config['ip_denylist'])) {
             foreach ($config['ip_denylist'] as $ip) {
                 if ($this->request->getClientIp() == $ip) {
-                    $pass = false;
+                    $this->response->setStatusCode(403);
+                    $this->response->send();
+                    $this->logger->log("Forbidden - IP matched in denylist: " . $this->request->getClientIp());
+                    exit;
                 }
             }
-            if (! $pass) {
-                $this->response->setStatusCode(403);
-                $this->response->send();
-                $this->logger->log("Forbidden - IP matched against denylist ".$this->request->getClientIp());
-                die;
-            }
         }
 
-
-        if (empty($config['allow_insecure_overlays']) || !$config['allow_insecure_overlays']) {
-            $this->response->headers->set('X-Frame-Options', 'sameorigin');
-            $this->response->headers->set('Content-Security-Policy', 'frame-ancestors \'self\'');
-        }
+        // 6. Set security response headers
+        $this->response->headers->set('X-Frame-Options', 'DENY');
+        $this->response->headers->set('Content-Security-Policy', "frame-ancestors 'none'");
+        $this->response->headers->set('X-Content-Type-Options', 'nosniff');
+        $this->response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
     }
 }

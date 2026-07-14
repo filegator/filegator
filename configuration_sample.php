@@ -24,6 +24,16 @@ return [
         'search_simultaneous' => 5,
         'filter_entries' => [],
         'pagination' => ['', 5, 10, 15],
+        'password_policy' => [
+            'min_length' => 8,
+            'regex' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_\W]).+$/',
+            'error_messages' => [
+                    'required' => 'This field is required',
+                    'min_length' => 'Password must be at least 8 characters',
+                    'regex' => 'Password must contain uppercase, lowercase, numbers and special characters',
+                ],
+            'enabled' => false, // weather to enable password policy
+        ],
     ],
 
     'services' => [
