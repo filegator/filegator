@@ -12,7 +12,6 @@ namespace Filegator\Services\Logger\Adapters;
 
 use Filegator\Services\Logger\LoggerInterface;
 use Filegator\Services\Service;
-use Monolog\ErrorHandler;
 use Monolog\Logger;
 
 class MonoLogger implements Service, LoggerInterface
@@ -26,10 +25,6 @@ class MonoLogger implements Service, LoggerInterface
         foreach ($config['monolog_handlers'] as $handler) {
             $this->logger->pushHandler($handler());
         }
-
-        $handler = new ErrorHandler($this->logger);
-        $handler->registerErrorHandler([], true);
-        $handler->registerFatalHandler();
     }
 
     public function log(string $message, int $level = Logger::INFO)
