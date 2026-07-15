@@ -215,6 +215,25 @@ class FilesTest extends TestCase
         $this->assertOk();
     }
 
+    public function testDownloadUppercaseExtensionPDFFileHeadersInline()
+    {
+        $username = 'john@example.com';
+        $this->signIn($username, 'john123');
+
+        mkdir(TEST_REPOSITORY.'/john');
+        touch(TEST_REPOSITORY.'/john/JOHN.PDF', $this->timestamp);
+
+        $path_encoded = base64_encode('JOHN.PDF');
+        $this->sendRequest('GET', '/download&path='.$path_encoded);
+
+        $headers = $this->streamedResponse->headers;
+        // uppercase extension should still be previewed inline (download_inline => ['pdf'])
+        $this->assertEquals("inline; filename=file; filename*=utf-8''JOHN.PDF", $headers->get('content-disposition'));
+        $this->assertEquals('application/pdf', $headers->get('content-type'));
+
+        $this->assertOk();
+    }
+
     public function testDownloadUTF8File()
     {
         $username = 'john@example.com';
