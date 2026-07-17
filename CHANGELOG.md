@@ -4,6 +4,11 @@
 * Fix unreadable .box text in dark theme, thanks @TowyTowy (see #589)
 * Add Danish translation (see #590)
 * Open the folder itself when selecting a folder search result (see #591 by @TowyTowy)
+* Add a separate "delete" permission so users can be granted write access without being able to delete files/directories
+
+Notes / Breaking Changes:
+
+Deleting files/directories used to only require the "write" permission. It now also requires a new "delete" permission. Existing users who have "write" but not "delete" will no longer be able to delete files/directories after upgrading. If you want them to keep that ability, edit each affected user (Users page in the admin UI, or your users.json/database/LDAP/WordPress permissions directly) and add "delete" alongside "write".
 
 ## 7.14.3 - 2026-05-22
 * Added upload speed metric to the bottom pane, thanks @NikhilC2209 (see #581)
