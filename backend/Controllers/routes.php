@@ -157,7 +157,7 @@ return [
             'guest', 'user', 'admin',
         ],
         'permissions' => [
-            'read', 'write',
+            'read', 'write', 'delete',
         ],
     ],
     [
