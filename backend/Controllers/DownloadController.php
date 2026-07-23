@@ -66,7 +66,7 @@ class DownloadController
             // @codeCoverageIgnoreEnd
         });
 
-        $extension = pathinfo($file['filename'], PATHINFO_EXTENSION);
+        $extension = strtolower(pathinfo($file['filename'], PATHINFO_EXTENSION));
         $mimes = (new MimeTypes())->getMimeTypes($extension);
         $contentType = !empty($mimes) ? $mimes[0] : 'application/octet-stream';
 
