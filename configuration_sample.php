@@ -93,7 +93,7 @@ return [
                 'separator' => '/',
                 'config' => [],
                 'adapter' => function () {
-                    return new \League\Flysystem\Adapter\Local(
+                    return new \League\Flysystem\Local\LocalFilesystemAdapter(
                         __DIR__.'/repository'
                     );
                 },

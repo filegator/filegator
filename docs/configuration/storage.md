@@ -32,9 +32,15 @@ With default adapter you just need to configure where your `repository` folder i
 ```
 
 ## FTP Adapter
-See official [documentation](https://flysystem.thephpleague.com/v1/docs/adapter/ftp/).
+For Flysystem v3 FTP support install the separate FTP adapter package and then use the adapter or Filegator's wrapper.
 
-Sample configuration:
+Install:
+
+```bash
+composer require league/flysystem-ftp:^3.0 -W
+```
+
+Sample configuration (using the Filegator wrapper):
 
 ```
         'Filegator\Services\Storage\Filesystem' => [
@@ -47,6 +53,7 @@ Sample configuration:
                       'host' => 'example.com',
                       'username' => 'demo',
                       'password' => 'password',
+                      'root' => '/public_html',  // FTP root directory path
                       'port' => 21,
                       'timeout' => 10,
                   ]);
@@ -55,6 +62,35 @@ Sample configuration:
         ],
 
 ```
+
+Or instantiate the Flysystem adapter directly:
+
+```
+// In your config adapter:
+$connectionOptions = new \League\Flysystem\Ftp\FtpConnectionOptions(
+    host: 'example.com',
+    root: '/public_html',
+    username: 'demo',
+    password: 'password',
+    port: 21,
+    timeout: 10,
+);
+return new \League\Flysystem\Ftp\FtpAdapter($connectionOptions);
+```
+
+Configuration options:
+- `host` (required): FTP hostname
+- `username` (required): FTP username
+- `password` (required): FTP password
+- `root` (required): FTP root directory path (typically `/public_html` or similar)
+- `port`: FTP port (default: 21)
+- `ssl`: Use SSL/FTPS (default: false)
+- `timeout`: Connection timeout in seconds (default: 90)
+- `passive`: Passive mode (default: true)
+- `utf8`: Enable UTF-8 (default: false)
+
+For full list of options see [Flysystem FTP documentation](https://flysystem.thephpleague.com/docs/adapter/ftp/).
+
 
 ## SFTP Adapter
 You must require additional library `composer require league/flysystem-sftp:^1.0 -W`
