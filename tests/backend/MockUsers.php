@@ -70,10 +70,21 @@ class MockUsers extends JsonFile implements Service, AuthInterface
         $jane->setName('Jane Doe');
         $jane->setPermissions(['read', 'write']);
 
+        // A second regular user with its own home directory and the permissions
+        // required to reach the batch-download endpoints. Used to prove that one
+        // user cannot download another user's batch archive (GHSA-f74m-x83r-c4v4).
+        $jack = new User();
+        $jack->setRole('user');
+        $jack->setHomedir('/jack');
+        $jack->setUsername('jack@example.com');
+        $jack->setName('Jack Doe');
+        $jack->setPermissions(['read', 'write', 'download', 'batchdownload']);
+
         $this->add($guest, '');
         $this->add($admin, 'admin123');
         $this->add($john, 'john123');
         $this->add($jane, 'jane123');
+        $this->add($jack, 'jack123');
     }
 
 }

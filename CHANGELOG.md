@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming...
+* Security fix: batch download archives are now bound to the session that created them, reported by Yulio Valdes (https://github.com/Yunnn-Yulio).
 * Fix unreadable .box text in dark theme, thanks @TowyTowy (see #589)
 * Add Danish translation (see #590)
 * Open the folder itself when selecting a folder search result (see #591 by @TowyTowy)
