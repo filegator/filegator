@@ -41,7 +41,10 @@ class ZipArchiver implements Service, ArchiverInterface
 
     public function createArchive(Storage $storage): string
     {
-        $this->uniqid = uniqid();
+        // Use a cryptographically secure, unguessable id instead of uniqid().
+        // uniqid() is timestamp-derived and predictable, which is unsafe for a
+        // token that gates access to a downloadable archive.
+        $this->uniqid = bin2hex(random_bytes(32));
 
         $this->archive = new Flysystem(
             new ZipAdapter($this->tmpfs->getFileLocation($this->uniqid))

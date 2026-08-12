@@ -24,6 +24,14 @@ use Symfony\Component\Mime\MimeTypes;
 
 class DownloadController
 {
+    // Session key holding the set of batch archive ids created by the current
+    // session. Used to authorize batch downloads (see batchDownloadStart).
+    const BATCH_ARCHIVES_SESSION_KEY = 'batch_download_archives';
+
+    // Upper bound on the ids kept in the session, so it cannot grow forever.
+    // Archives are normally downloaded right after being created.
+    const BATCH_ARCHIVES_LIMIT = 20;
+
     protected $auth;
 
     protected $session;
@@ -122,6 +130,10 @@ class DownloadController
 
         $uniqid = $archiver->createArchive($this->storage);
 
+        // Bind this archive to the current session so that later only its
+        // creator can download it. Must run before the session is saved below.
+        $this->rememberBatchArchive($uniqid);
+
         // close session
         $this->session->save();
 
@@ -139,9 +151,17 @@ class DownloadController
         return $response->json(['uniqid' => $uniqid]);
     }
 
-    public function batchDownloadStart(Request $request, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
+    public function batchDownloadStart(Request $request, Response $response, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
     {
         $uniqid = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('uniqid'));
+
+        // Authorization: only the session that created this archive may download
+        // it. Without this check any user who learns another user's archive id
+        // (e.g. from access logs) could retrieve their files. See GHSA-f74m-x83r-c4v4.
+        if (! $this->ownsBatchArchive($uniqid)) {
+            return $response->redirect('/');
+        }
+
         $file = $tmpfs->readStream($uniqid);
 
         $streamedResponse->setCallback(function () use ($file, $tmpfs, $uniqid) {
@@ -185,5 +205,29 @@ class DownloadController
         $this->session->save();
 
         $streamedResponse->send();
+    }
+
+    protected function rememberBatchArchive(string $uniqid)
+    {
+        $archives = (array) $this->session->get(self::BATCH_ARCHIVES_SESSION_KEY, []);
+
+        $archives[$uniqid] = true;
+
+        if (count($archives) > self::BATCH_ARCHIVES_LIMIT) {
+            $archives = array_slice($archives, -self::BATCH_ARCHIVES_LIMIT, null, true);
+        }
+
+        $this->session->set(self::BATCH_ARCHIVES_SESSION_KEY, $archives);
+    }
+
+    protected function ownsBatchArchive(string $uniqid): bool
+    {
+        if ($uniqid === '') {
+            return false;
+        }
+
+        $archives = (array) $this->session->get(self::BATCH_ARCHIVES_SESSION_KEY, []);
+
+        return isset($archives[$uniqid]);
     }
 }
