@@ -5,7 +5,7 @@ return [
     'public_dir' => APP_PUBLIC_DIR,
     'overwrite_on_upload' => false,
     'timezone' => 'UTC', // https://www.php.net/manual/en/timezones.php
-    'download_inline' => ['pdf'], // download inline in the browser, array of extensions, use * for all
+    'download_inline' => ['pdf'], // download inline in the browser, array of extensions, use * for all. WARNING: Enabling untrusted file types may lead to XSS
     'lockout_attempts' => 5, // max failed login attempts before ip lockout
     'lockout_timeout' => 15, // ip lockout timeout in seconds
 

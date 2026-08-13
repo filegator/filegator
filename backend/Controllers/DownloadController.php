@@ -99,6 +99,10 @@ class DownloadController
             'Content-Transfer-Encoding',
             'binary'
         );
+        $streamedResponse->headers->set(
+            'X-Content-Type-Options',
+            'nosniff'
+        );
         if (isset($file['filesize'])) {
             $streamedResponse->headers->set(
                 'Content-Length',
