@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.15.0 - 2026-08-13
 * Security fix: batch download archives are now bound to the session that created them, reported by Yulio Valdes (https://github.com/Yunnn-Yulio).
 * Security fix: uploads can no longer reach another user's temporary files via the chunk filename, reported by Yulio Valdes (https://github.com/Yunnn-Yulio).
 * Fix unreadable .box text in dark theme, thanks @TowyTowy (see #589)
