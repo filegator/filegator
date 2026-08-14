@@ -46,7 +46,7 @@ class DirectoryCollection implements \JsonSerializable
         }
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         $this->sortByValue('type');
 

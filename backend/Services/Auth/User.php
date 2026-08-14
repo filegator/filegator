@@ -125,7 +125,7 @@ class User implements \JsonSerializable
         return $encoded ? implode('|', $this->permissions) : $this->permissions;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return [
             'role' => $this->getRole(),

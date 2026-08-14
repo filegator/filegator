@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Browser from './views/Browser.vue'
 import Users from './views/Users.vue'
+import Settings from './views/Settings.vue'
 import Login from './views/Login.vue'
 import store from './store'
 
@@ -24,6 +25,16 @@ export default new Router({
       path: '/users',
       name: 'users',
       component: Users,
+      beforeEnter: (to, from, next) => {
+        if (store.state.user.role == 'admin') {
+          next()
+        }
+      },
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: Settings,
       beforeEnter: (to, from, next) => {
         if (store.state.user.role == 'admin') {
           next()

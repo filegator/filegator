@@ -192,6 +192,20 @@ const api = {
         .catch(error => reject(error))
     })
   },
+  getAdminFrontendConfig() {
+    return new Promise((resolve, reject) => {
+      axios.get('admin/frontendconfig')
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
+  updateAdminFrontendConfig(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('admin/frontendconfig', params)
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
   changePassword(params) {
     return new Promise((resolve, reject) => {
       axios.post('changepassword', {

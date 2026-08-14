@@ -38,7 +38,7 @@ trait Collection
         return count($this->items);
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->items;
     }
