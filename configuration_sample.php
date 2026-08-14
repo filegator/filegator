@@ -32,8 +32,14 @@ return [
             'config' => [
                 'monolog_handlers' => [
                     function () {
+                        $log_path = ISPC_ROOT_PATH .'/temp/';
+                        if (! is_writable($log_path)) {
+                            echo 'Folder not writable: ' . $log_path . PHP_EOL;
+                            die;
+                        }
+
                         return new \Monolog\Handler\StreamHandler(
-                            __DIR__.'/private/logs/app.log',
+                            $log_path .'filegator-app.log',
                             \Monolog\Logger::DEBUG
                         );
                     },
