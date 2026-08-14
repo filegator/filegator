@@ -73,7 +73,7 @@ export default {
       this.$router.push('/login').catch(() => {})
     },
     profile() {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Profile,
