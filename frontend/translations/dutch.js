@@ -34,6 +34,7 @@ const data = {
   'Unzip': 'Uitpakken',
   'Delete': 'Verwijder',
   'Download': 'Download',
+  'Copy file path': 'Kopieer bestandspad',
   'Copy link': 'Kopieer link',
   'Done': 'Klaar',
   'File': 'Bestand',
