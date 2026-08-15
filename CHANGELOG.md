@@ -2,6 +2,10 @@
 
 ## Upcoming...
 
+## 7.15.1 - 2026-08-13
+* LDAP security fix (https://github.com/filegator/filegator/security/advisories/GHSA-h3qf-hr78-8c64)
+* nosniff headers added to protect inline downloads
+
 ## 7.15.0 - 2026-08-13
 * Security fix: batch download archives are now bound to the session that created them, reported by Yulio Valdes (https://github.com/Yunnn-Yulio).
 * Security fix: uploads can no longer reach another user's temporary files via the chunk filename, reported by Yulio Valdes (https://github.com/Yunnn-Yulio).
