@@ -72,6 +72,7 @@ describe('Browser', () => {
     cy.contains('.modal .field', 'Download')
     cy.contains('.modal .field', 'Batch Download')
     cy.contains('.modal .field', 'Zip')
+    cy.contains('.modal .field', 'Delete')
     cy.get('.modal-close').click()
   })
 

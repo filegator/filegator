@@ -4,6 +4,7 @@
     "permissions": [
       "read",
       "write",
+      "delete",
       "upload",
       "download",
       "batchdownload",

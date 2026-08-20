@@ -44,6 +44,9 @@
             <b-checkbox v-model="permissions.write">
               {{ lang('Write') }}
             </b-checkbox>
+            <b-checkbox v-model="permissions.delete" :disabled="! permissions.write">
+              {{ lang('Delete') }}
+            </b-checkbox>
             <b-checkbox v-model="permissions.upload">
               {{ lang('Upload') }}
             </b-checkbox>
@@ -100,6 +103,7 @@ export default {
         batchdownload: _.find(this.user.permissions, p => p == 'batchdownload') ? true : false,
         zip: _.find(this.user.permissions, p => p == 'zip') ? true : false,
         chmod: _.find(this.user.permissions, p => p == 'chmod') ? true : false,
+        delete: _.find(this.user.permissions, p => p == 'delete') ? true : false,
       }
     }
   },
@@ -109,6 +113,7 @@ export default {
     'permissions.read' (val) {
       if (!val) {
         this.permissions.write = false
+        this.permissions.delete = false
         this.permissions.batchdownload = false
         this.permissions.zip = false
         this.permissions.chmod = false
@@ -118,6 +123,7 @@ export default {
       if (val) {
         this.permissions.read = true
       } else {
+        this.permissions.delete = false
         this.permissions.zip = false
         this.permissions.chmod = false
       }
@@ -221,4 +227,3 @@ export default {
   },
 }
 </script>
-
