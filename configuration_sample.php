@@ -22,6 +22,7 @@ return [
         'date_format' => 'YY/MM/DD hh:mm:ss', // see: https://momentjs.com/docs/#/displaying/format/
         'guest_redirection' => '', // useful for external auth adapters
         'search_simultaneous' => 5,
+        'search_direct_download' => true,
         'filter_entries' => [],
         'pagination' => ['', 5, 10, 15],
     ],

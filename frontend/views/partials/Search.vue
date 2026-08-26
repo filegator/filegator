@@ -54,6 +54,12 @@ export default {
   },
   methods: {
     select(item) {
+      if (item.file && item.file.type === 'file' && this.can(['download'])) {
+        if (this.$store.state.config.search_direct_download) {
+          window.open(this.getDownloadLink(item.file.path), '_blank')
+          return
+        }
+      }
       this.$emit('selected', item)
       this.$parent.close()
     },
