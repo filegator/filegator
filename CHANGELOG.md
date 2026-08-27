@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming...
+* Hardening: derive the per-user upload temporary namespace from a hash of the username, so accounts whose names differ only by stripped characters no longer share it.
 
 ## 7.15.1 - 2026-08-13
 * LDAP security fix (https://github.com/filegator/filegator/security/advisories/GHSA-h3qf-hr78-8c64)
