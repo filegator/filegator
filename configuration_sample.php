@@ -48,9 +48,16 @@ return [
                     //$save_path = __DIR__.'/private/sessions';
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
 
+                    // send the session cookie with the Secure flag when the
+                    // request is served over HTTPS, so it is never exposed over
+                    // plain HTTP; stays off for HTTP (e.g. local) so login keeps
+                    // working there. Behind a TLS-terminating proxy, set this to
+                    // true explicitly.
+                    $cookie_secure = ! empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
                             "cookie_samesite" => "Lax",
-                            "cookie_secure" => null,
+                            "cookie_secure" => $cookie_secure,
                             "cookie_httponly" => true,
                         ], $handler);
                 },
