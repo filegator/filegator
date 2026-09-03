@@ -44,7 +44,8 @@ class UploadController
         $file_name = $request->input('resumableFilename', 'file');
         $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
         $username = $this->auth->user() ? $this->auth->user()->getUsername() : 'guest';
-        $clean_username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', $username);
+        // same per-user namespace hash as upload() below
+        $clean_username = md5($username);
         $chunk_number = (int) $request->input('resumableChunkNumber');
 
         $chunk_file = 'multipart_'.$clean_username.'_'.$identifier.'_'.$file_name.'.part'.$chunk_number;
@@ -65,7 +66,11 @@ class UploadController
         $total_size = (int) $request->input('resumableTotalSize');
         $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
         $username = $this->auth->user() ? $this->auth->user()->getUsername() : 'guest';
-        $clean_username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', $username);
+        // hash the raw username so distinct users always get distinct tmpfs
+        // namespaces; sanitising with a character class collapses usernames that
+        // differ only by stripped characters (e.g. john.doe@x.com and
+        // johndoe@x.com both become johndoexcom) onto the same namespace
+        $clean_username = md5($username);
 
         $filebag = $request->files;
         $file = $filebag->get('file');

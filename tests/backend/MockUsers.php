@@ -80,11 +80,30 @@ class MockUsers extends JsonFile implements Service, AuthInterface
         $jack->setName('Jack Doe');
         $jack->setPermissions(['read', 'write', 'download', 'batchdownload']);
 
+        // Two distinct users whose usernames collapse to the same value under a
+        // [^0-9a-zA-Z_] sanitiser (both become "bobsmithexamplecom"), used to
+        // prove the upload tmpfs namespace stays isolated across such a pair.
+        $bob = new User();
+        $bob->setRole('user');
+        $bob->setHomedir('/bob');
+        $bob->setUsername('bobsmith@example.com');
+        $bob->setName('Bob Smith');
+        $bob->setPermissions(['read', 'write', 'upload', 'download']);
+
+        $bob2 = new User();
+        $bob2->setRole('user');
+        $bob2->setHomedir('/bob2');
+        $bob2->setUsername('bob.smith@example.com');
+        $bob2->setName('Bob Smith II');
+        $bob2->setPermissions(['read', 'write', 'upload', 'download']);
+
         $this->add($guest, '');
         $this->add($admin, 'admin123');
         $this->add($john, 'john123');
         $this->add($jane, 'jane123');
         $this->add($jack, 'jack123');
+        $this->add($bob, 'bob123');
+        $this->add($bob2, 'bob2123');
     }
 
 }
