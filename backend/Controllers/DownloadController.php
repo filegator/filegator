@@ -26,11 +26,11 @@ class DownloadController
 {
     // Session key holding the set of batch archive ids created by the current
     // session. Used to authorize batch downloads (see batchDownloadStart).
-    const BATCH_ARCHIVES_SESSION_KEY = 'batch_download_archives';
+    public const BATCH_ARCHIVES_SESSION_KEY = 'batch_download_archives';
 
     // Upper bound on the ids kept in the session, so it cannot grow forever.
     // Archives are normally downloaded right after being created.
-    const BATCH_ARCHIVES_LIMIT = 20;
+    public const BATCH_ARCHIVES_LIMIT = 20;
 
     protected $auth;
 
@@ -66,7 +66,9 @@ class DownloadController
             if ($file['stream']) {
                 while (! feof($file['stream'])) {
                     echo fread($file['stream'], 1024 * 8);
-                    if (ob_get_level() > 0) {ob_flush();}
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
                     flush();
                 }
                 fclose($file['stream']);
@@ -80,7 +82,7 @@ class DownloadController
 
         $disposition = HeaderUtils::DISPOSITION_ATTACHMENT;
 
-        $download_inline = (array)$this->config->get('download_inline', ['pdf']);
+        $download_inline = (array) $this->config->get('download_inline', ['pdf']);
         if (in_array($extension, $download_inline) || in_array('*', $download_inline)) {
             $disposition = HeaderUtils::DISPOSITION_INLINE;
         }
@@ -174,7 +176,9 @@ class DownloadController
             if ($file['stream']) {
                 while (! feof($file['stream'])) {
                     echo fread($file['stream'], 1024 * 8);
-                    if (ob_get_level() > 0) {ob_flush();}
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
                     flush();
                 }
                 fclose($file['stream']);

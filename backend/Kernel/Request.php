@@ -22,7 +22,7 @@ class Request extends SymfonyRequest
         // then look into JSON content, fallback to default
         if ($value === null) {
             $content = json_decode((string) $this->getContent());
-            $value = isset($content->{$key}) ? $content->{$key} : $default;
+            $value = $content->{$key} ?? $default;
         }
 
         return $value;

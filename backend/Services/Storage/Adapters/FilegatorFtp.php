@@ -15,7 +15,6 @@ use League\Flysystem\NotSupportedException;
 
 class FilegatorFtp extends Ftp
 {
-
     /**
      * Normalize a file entry.
      *
@@ -66,7 +65,7 @@ class FilegatorFtp extends Ftp
     protected function afterNormalizeUnixObject($result, $item, $base)
     {
         $item = preg_replace('#\s+#', ' ', trim($item), 7);
-        list($permissions, /* $number */, /* $owner */, /* $group */, $size, $month, $day, $timeOrYear, $name) = explode(' ', $item, 9);
+        [$permissions, /* $number */, /* $owner */, /* $group */, $size, $month, $day, $timeOrYear, $name] = explode(' ', $item, 9);
         $permissions = $this->normalizePermissions($permissions);
 
         $result['permissions'] = decoct($permissions);

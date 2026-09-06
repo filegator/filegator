@@ -36,10 +36,10 @@ trait TestResponse
 
             $this->assertTrue(
                 $this->str_contains($actual, $expected),
-                'Unable to find JSON fragment: '.PHP_EOL.PHP_EOL.
-                '['.json_encode([$key => $value]).']'.PHP_EOL.PHP_EOL.
-                'within'.PHP_EOL.PHP_EOL.
-                "[{$actual}]."
+                'Unable to find JSON fragment: ' . PHP_EOL . PHP_EOL
+                . '[' . json_encode([$key => $value]) . ']' . PHP_EOL . PHP_EOL
+                . 'within' . PHP_EOL . PHP_EOL
+                . "[{$actual}]."
             );
         }
 
@@ -97,7 +97,7 @@ trait TestResponse
     {
         $this->assertTrue(
             $this->isOk(),
-            'Response status code ['.$this->getStatusCode().'] does not match expected 200 status code.'
+            'Response status code [' . $this->getStatusCode() . '] does not match expected 200 status code.'
         );
 
         return $this;
@@ -107,7 +107,7 @@ trait TestResponse
     {
         $this->assertTrue(
             $this->isUnprocessable(),
-            'Response status code ['.$this->getStatusCode().'] does not match expected 422 status code.'
+            'Response status code [' . $this->getStatusCode() . '] does not match expected 422 status code.'
         );
 
         return $this;
@@ -140,10 +140,10 @@ trait TestResponse
 
         $actual = json_encode($this->decodeResponseJson(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-        return 'Unable to find JSON: '.PHP_EOL.PHP_EOL.
-            "[{$expected}]".PHP_EOL.PHP_EOL.
-            'within response JSON:'.PHP_EOL.PHP_EOL.
-            "[{$actual}].".PHP_EOL.PHP_EOL;
+        return 'Unable to find JSON: ' . PHP_EOL . PHP_EOL
+            . "[{$expected}]" . PHP_EOL . PHP_EOL
+            . 'within response JSON:' . PHP_EOL . PHP_EOL
+            . "[{$actual}]." . PHP_EOL . PHP_EOL;
     }
 
     protected function jsonSearchStrings($key, $value)
@@ -151,9 +151,9 @@ trait TestResponse
         $needle = substr(json_encode([$key => $value]), 1, -1);
 
         return [
-            $needle.']',
-            $needle.'}',
-            $needle.',',
+            $needle . ']',
+            $needle . '}',
+            $needle . ',',
         ];
     }
 }

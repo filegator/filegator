@@ -51,7 +51,7 @@ class ArchiverTest extends TestCase
         $uniqid = $this->archiver->createArchive($storage);
 
         $this->assertNotNull($uniqid);
-        $this->assertFileNotExists(TEST_TMP_PATH.$uniqid);
+        $this->assertFileNotExists(TEST_TMP_PATH . $uniqid);
     }
 
     public function testAddingDirectoryWithFilesAndSubdir()
@@ -73,7 +73,7 @@ class ArchiverTest extends TestCase
         $this->archiver->addDirectoryFromStorage('/test');
         $this->archiver->closeArchive();
 
-        $this->assertGreaterThan(0, filesize(TEST_TMP_PATH.$name));
+        $this->assertGreaterThan(0, filesize(TEST_TMP_PATH . $name));
     }
 
     public function testUploadingArchiveToStorage()
@@ -95,7 +95,7 @@ class ArchiverTest extends TestCase
         $this->archiver->addDirectoryFromStorage('/test');
         $this->archiver->storeArchive('/destination', 'myarchive.zip');
 
-        $this->assertFileNotExists(TEST_TMP_PATH.$name);
+        $this->assertFileNotExists(TEST_TMP_PATH . $name);
     }
 
     public function testUncompressingArchiveFromStorage()

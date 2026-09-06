@@ -18,7 +18,7 @@ class Config
     {
         $this->config = $config;
 
-        $timezone = isset($this->config['timezone']) ? $this->config['timezone'] : 'UTC';
+        $timezone = $this->config['timezone'] ?? 'UTC';
         date_default_timezone_set($timezone);
     }
 

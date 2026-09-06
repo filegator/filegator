@@ -42,7 +42,7 @@ class RequestTest extends TestCase
             '/somewhere',
             'POST',
             ['param1' => '1', 'param2' => '2']
-            );
+        );
 
         $this->assertEquals([
             'param1' => '1',
@@ -101,7 +101,7 @@ class RequestTest extends TestCase
             '/test?priority=10&something=else',
             'POST',
             ['param' => 'param1', 'priority' => 5]
-            );
+        );
 
         $this->assertEquals([
             'priority' => '10',

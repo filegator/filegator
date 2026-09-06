@@ -20,7 +20,7 @@ use Filegator\Services\Storage\Filesystem;
 
 class FileController
 {
-    const SESSION_CWD = 'current_path';
+    public const SESSION_CWD = 'current_path';
 
     protected $session;
 
@@ -104,8 +104,8 @@ class FileController
 
         foreach ($items as $item) {
             $full_destination = trim($destination, $this->separator)
-                    .$this->separator
-                    .ltrim($item->name, $this->separator);
+                    . $this->separator
+                    . ltrim($item->name, $this->separator);
             $this->storage->move($item->path, $full_destination);
         }
 
@@ -143,7 +143,7 @@ class FileController
 
         return $response->json('Done');
     }
-    
+
     public function chmodItems(Request $request, Response $response)
     {
         $items = $request->input('items', []);
@@ -196,7 +196,7 @@ class FileController
         fwrite($stream, $content);
         rewind($stream);
 
-        $this->storage->deleteFile($path.$this->separator.$name);
+        $this->storage->deleteFile($path . $this->separator . $name);
         $this->storage->store($path, $name, $stream);
 
         if (is_resource($stream)) {

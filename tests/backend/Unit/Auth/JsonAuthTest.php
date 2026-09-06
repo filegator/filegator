@@ -17,18 +17,18 @@ use Filegator\Services\Auth\Adapters\JsonFile;
  */
 class JsonFileTest extends AuthTest
 {
-    private $mock_file = TEST_DIR.'/mockusers.json';
+    private $mock_file = TEST_DIR . '/mockusers.json';
 
     protected function tearDown(): void
     {
         @unlink($this->mock_file);
-        @unlink($this->mock_file.'.blank');
+        @unlink($this->mock_file . '.blank');
     }
 
     public function setAuth()
     {
         @unlink($this->mock_file);
-        @touch($this->mock_file.'.blank');
+        @touch($this->mock_file . '.blank');
 
         $this->auth = new JsonFile($this->session);
         $this->auth->init([

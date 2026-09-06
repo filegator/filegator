@@ -51,8 +51,8 @@ class BatchDownloadAuthorizationTest extends TestCase
         // Jack first creates an archive of his own, so his session is not empty.
         // The check has to be per archive id, not merely "this session created
         // some archive".
-        mkdir(TEST_REPOSITORY.'/jack');
-        file_put_contents(TEST_REPOSITORY.'/jack/jack.txt', 'jack');
+        mkdir(TEST_REPOSITORY . '/jack');
+        file_put_contents(TEST_REPOSITORY . '/jack/jack.txt', 'jack');
 
         $this->sendRequest('POST', '/batchdownload', [
             'items' => [
@@ -82,7 +82,7 @@ class BatchDownloadAuthorizationTest extends TestCase
         );
 
         // The denied request must not consume or delete the victim's archive.
-        $this->assertFileExists(TEST_TMP_PATH.$uniqid);
+        $this->assertFileExists(TEST_TMP_PATH . $uniqid);
     }
 
     public function testUnknownBatchArchiveIdIsDenied()
@@ -121,8 +121,8 @@ class BatchDownloadAuthorizationTest extends TestCase
     {
         $this->signIn($username, $password);
 
-        mkdir(TEST_REPOSITORY.$homedir);
-        file_put_contents(TEST_REPOSITORY.$homedir.'/secret.txt', 'top secret');
+        mkdir(TEST_REPOSITORY . $homedir);
+        file_put_contents(TEST_REPOSITORY . $homedir . '/secret.txt', 'top secret');
 
         $this->sendRequest('POST', '/batchdownload', [
             'items' => [

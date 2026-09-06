@@ -2,7 +2,7 @@
 
 return [
     'public_path' => '',
-    'public_dir' => __DIR__.'/../../dist',
+    'public_dir' => __DIR__ . '/../../dist',
     'overwrite_on_upload' => false,
     'timezone' => 'UTC', // https://www.php.net/manual/en/timezones.php
     'download_inline' => ['pdf'],
@@ -76,7 +76,7 @@ return [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [
                 'query_param' => 'r',
-                'routes_file' => __DIR__.'/../../backend/Controllers/routes.php',
+                'routes_file' => __DIR__ . '/../../backend/Controllers/routes.php',
             ],
         ],
     ],
