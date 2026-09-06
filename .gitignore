@@ -32,3 +32,7 @@ tags
 *.sw*
 .phpactor/
 .phpactor.json
+
+# PHP CS Fixer configuration
+/.php-cs-fixer.cache
+/.php-cs-fixer.php
