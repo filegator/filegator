@@ -26,9 +26,7 @@ class User implements \JsonSerializable
 
     protected $available_permissions = ['read', 'write', 'upload', 'download', 'batchdownload', 'zip', 'chmod'];
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function isGuest(): bool
     {

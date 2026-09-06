@@ -54,9 +54,9 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        mkdir(TEST_REPOSITORY.'/john/johnsub');
-        touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        mkdir(TEST_REPOSITORY . '/john/johnsub');
+        touch(TEST_REPOSITORY . '/john/john.txt', $this->timestamp);
 
         $this->sendRequest('POST', '/changedir', [
             'to' => '/',
@@ -88,9 +88,9 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        mkdir(TEST_REPOSITORY.'/john/johnsub');
-        touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        mkdir(TEST_REPOSITORY . '/john/johnsub');
+        touch(TEST_REPOSITORY . '/john/john.txt', $this->timestamp);
 
         $this->sendRequest('POST', '/getdir', [
             'dir' => '/',
@@ -122,9 +122,9 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        mkdir(TEST_REPOSITORY.'/john/johnsub');
-        touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        mkdir(TEST_REPOSITORY . '/john/johnsub');
+        touch(TEST_REPOSITORY . '/john/john.txt', $this->timestamp);
 
         $items = [
             0 => [
@@ -153,15 +153,15 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
-        file_put_contents(TEST_REPOSITORY.'/john/john.txt', '123456');
-        touch(TEST_REPOSITORY.'/john/image.jpg', $this->timestamp);
-        touch(TEST_REPOSITORY.'/john/vector.svg', $this->timestamp);
-        touch(TEST_REPOSITORY.'/john/inlinedoc.pdf', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        touch(TEST_REPOSITORY . '/john/john.txt', $this->timestamp);
+        file_put_contents(TEST_REPOSITORY . '/john/john.txt', '123456');
+        touch(TEST_REPOSITORY . '/john/image.jpg', $this->timestamp);
+        touch(TEST_REPOSITORY . '/john/vector.svg', $this->timestamp);
+        touch(TEST_REPOSITORY . '/john/inlinedoc.pdf', $this->timestamp);
 
         $path_encoded = base64_encode('john.txt');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
         $headers = $this->streamedResponse->headers;
         $this->assertEquals("attachment; filename=file; filename*=utf-8''john.txt", $headers->get('content-disposition'));
         $this->assertEquals('text/plain', $headers->get('content-type'));
@@ -170,7 +170,7 @@ class FilesTest extends TestCase
         $this->assertOk();
 
         $path_encoded = base64_encode('image.jpg');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
         $headers = $this->streamedResponse->headers;
         $this->assertEquals("attachment; filename=file; filename*=utf-8''image.jpg", $headers->get('content-disposition'));
         $this->assertEquals('image/jpeg', $headers->get('content-type'));
@@ -179,7 +179,7 @@ class FilesTest extends TestCase
         $this->assertOk();
 
         $path_encoded = base64_encode('vector.svg');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
         $headers = $this->streamedResponse->headers;
         $this->assertEquals("attachment; filename=file; filename*=utf-8''vector.svg", $headers->get('content-disposition'));
         $this->assertEquals('image/svg+xml', $headers->get('content-type'));
@@ -187,7 +187,7 @@ class FilesTest extends TestCase
         $this->assertOk();
 
         $path_encoded = base64_encode('inlinedoc.pdf');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
         $headers = $this->streamedResponse->headers;
         $this->assertEquals("inline; filename=file; filename*=utf-8''inlinedoc.pdf", $headers->get('content-disposition'));
         $this->assertEquals('application/pdf', $headers->get('content-type'));
@@ -200,11 +200,11 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        touch(TEST_REPOSITORY.'/john/john.pdf', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        touch(TEST_REPOSITORY . '/john/john.pdf', $this->timestamp);
 
         $path_encoded = base64_encode('john.pdf');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
 
         $headers = $this->streamedResponse->headers;
         $this->assertEquals("inline; filename=file; filename*=utf-8''john.pdf", $headers->get('content-disposition'));
@@ -220,11 +220,11 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        touch(TEST_REPOSITORY.'/john/JOHN.PDF', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        touch(TEST_REPOSITORY . '/john/JOHN.PDF', $this->timestamp);
 
         $path_encoded = base64_encode('JOHN.PDF');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
 
         $headers = $this->streamedResponse->headers;
         // uppercase extension should still be previewed inline (download_inline => ['pdf'])
@@ -239,21 +239,21 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        touch(TEST_REPOSITORY.'/john/ąčęėįšųū.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        touch(TEST_REPOSITORY . '/john/ąčęėįšųū.txt', $this->timestamp);
 
         $path_encoded = base64_encode('/ąčęėįšųū.txt');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
 
         $this->assertOk();
     }
 
     public function testGuestCannotDownloadFilesWithoutDownloadPermissions()
     {
-        touch(TEST_REPOSITORY.'/test.txt', $this->timestamp);
+        touch(TEST_REPOSITORY . '/test.txt', $this->timestamp);
 
         $path_encoded = base64_encode('test.txt');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
 
         $this->assertStatus(404);
     }
@@ -264,11 +264,11 @@ class FilesTest extends TestCase
         $username = 'jane@example.com';
         $this->signIn($username, 'jane123');
 
-        mkdir(TEST_REPOSITORY.'/jane');
-        touch(TEST_REPOSITORY.'/jane/jane.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/jane');
+        touch(TEST_REPOSITORY . '/jane/jane.txt', $this->timestamp);
 
         $path_encoded = base64_encode('jane.txt');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
 
         $this->assertStatus(404);
     }
@@ -279,7 +279,7 @@ class FilesTest extends TestCase
         $this->signIn($username, 'john123');
 
         $path_encoded = base64_encode('missing.txt');
-        $this->sendRequest('GET', '/download&path='.$path_encoded);
+        $this->sendRequest('GET', '/download&path=' . $path_encoded);
 
         $this->assertStatus(302);
     }
@@ -289,8 +289,8 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        touch(TEST_REPOSITORY . '/john/john.txt', $this->timestamp);
 
         $this->sendRequest('POST', '/renameitem', [
             'from' => '/john.txt',
@@ -298,8 +298,8 @@ class FilesTest extends TestCase
         ]);
         $this->assertOk();
 
-        $this->assertFileExists(TEST_REPOSITORY.'/john/john2.txt');
-        $this->assertFileNotExists(TEST_REPOSITORY.'/john/john.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/john2.txt');
+        $this->assertFileNotExists(TEST_REPOSITORY . '/john/john.txt');
     }
 
     public function testRenameMissingfileThrowsException()
@@ -341,7 +341,7 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
+        mkdir(TEST_REPOSITORY . '/john');
 
         $this->sendRequest('POST', '/createnew', [
             'type' => 'dir',
@@ -360,8 +360,8 @@ class FilesTest extends TestCase
         ]);
         $this->assertOk();
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/john/maximus');
-        $this->assertFileExists(TEST_REPOSITORY.'/john/maximus/samplefile.txt');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/john/maximus');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/maximus/samplefile.txt');
     }
 
     public function testCopyAdminFiles()
@@ -369,12 +369,12 @@ class FilesTest extends TestCase
         $username = 'admin@example.com';
         $this->signIn($username, 'admin123');
 
-        touch(TEST_REPOSITORY.'/a.txt', $this->timestamp);
-        touch(TEST_REPOSITORY.'/c.zip', $this->timestamp);
-        mkdir(TEST_REPOSITORY.'/sub');
-        mkdir(TEST_REPOSITORY.'/sub/sub1');
-        mkdir(TEST_REPOSITORY.'/john');
-        mkdir(TEST_REPOSITORY.'/john/johnsub');
+        touch(TEST_REPOSITORY . '/a.txt', $this->timestamp);
+        touch(TEST_REPOSITORY . '/c.zip', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/sub');
+        mkdir(TEST_REPOSITORY . '/sub/sub1');
+        mkdir(TEST_REPOSITORY . '/john');
+        mkdir(TEST_REPOSITORY . '/john/johnsub');
 
         $items = [
             0 => [
@@ -404,10 +404,10 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $this->assertFileExists(TEST_REPOSITORY.'/john/johnsub/a.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/john/johnsub/c.zip');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/john/johnsub/sub/');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/john/johnsub/sub/sub1');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/johnsub/a.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/johnsub/c.zip');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/john/johnsub/sub/');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/john/johnsub/sub/sub1');
     }
 
     public function testCopyInvalidFilesThrowsException()
@@ -437,9 +437,9 @@ class FilesTest extends TestCase
         $username = 'admin@example.com';
         $this->signIn($username, 'admin123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        touch(TEST_REPOSITORY.'/a.txt', $this->timestamp);
-        touch(TEST_REPOSITORY.'/b.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
+        touch(TEST_REPOSITORY . '/a.txt', $this->timestamp);
+        touch(TEST_REPOSITORY . '/b.txt', $this->timestamp);
 
         $items = [
             0 => [
@@ -463,10 +463,10 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $this->assertFileExists(TEST_REPOSITORY.'/john/a.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/john/b.txt');
-        $this->assertFileNotExists(TEST_REPOSITORY.'/a.txt');
-        $this->assertFileNotExists(TEST_REPOSITORY.'/b.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/a.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/b.txt');
+        $this->assertFileNotExists(TEST_REPOSITORY . '/a.txt');
+        $this->assertFileNotExists(TEST_REPOSITORY . '/b.txt');
     }
 
     public function testMoveDirsWithContent()
@@ -474,12 +474,12 @@ class FilesTest extends TestCase
         $username = 'admin@example.com';
         $this->signIn($username, 'admin123');
 
-        mkdir(TEST_REPOSITORY.'/sub');
-        mkdir(TEST_REPOSITORY.'/sub/sub1');
-        touch(TEST_REPOSITORY.'/sub/sub1/f.txt', $this->timestamp);
-        mkdir(TEST_REPOSITORY.'/jane');
-        touch(TEST_REPOSITORY.'/jane/cookie.txt', $this->timestamp);
-        mkdir(TEST_REPOSITORY.'/john');
+        mkdir(TEST_REPOSITORY . '/sub');
+        mkdir(TEST_REPOSITORY . '/sub/sub1');
+        touch(TEST_REPOSITORY . '/sub/sub1/f.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/jane');
+        touch(TEST_REPOSITORY . '/jane/cookie.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
 
         $items = [
             0 => [
@@ -503,15 +503,15 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $this->assertDirectoryNotExists(TEST_REPOSITORY.'/jane');
-        $this->assertDirectoryNotExists(TEST_REPOSITORY.'/sub');
-        $this->assertFileNotExists(TEST_REPOSITORY.'/sub/sub1/f.txt');
+        $this->assertDirectoryNotExists(TEST_REPOSITORY . '/jane');
+        $this->assertDirectoryNotExists(TEST_REPOSITORY . '/sub');
+        $this->assertFileNotExists(TEST_REPOSITORY . '/sub/sub1/f.txt');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/john/jane');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/john/sub');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/john/sub/sub1');
-        $this->assertFileExists(TEST_REPOSITORY.'/john/sub/sub1/f.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/john/jane/cookie.txt');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/john/jane');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/john/sub');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/john/sub/sub1');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/sub/sub1/f.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/jane/cookie.txt');
     }
 
     public function testZipFilesOnly()
@@ -519,9 +519,9 @@ class FilesTest extends TestCase
         $username = 'admin@example.com';
         $this->signIn($username, 'admin123');
 
-        touch(TEST_REPOSITORY.'/a.txt', $this->timestamp);
-        touch(TEST_REPOSITORY.'/b.txt', $this->timestamp);
-        mkdir(TEST_REPOSITORY.'/john');
+        touch(TEST_REPOSITORY . '/a.txt', $this->timestamp);
+        touch(TEST_REPOSITORY . '/b.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john');
 
         $items = [
             0 => [
@@ -546,9 +546,9 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $this->assertFileExists(TEST_REPOSITORY.'/a.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/b.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/john/compressed.zip');
+        $this->assertFileExists(TEST_REPOSITORY . '/a.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/b.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/john/compressed.zip');
     }
 
     public function testZipFilesAndDirectories()
@@ -556,10 +556,10 @@ class FilesTest extends TestCase
         $username = 'admin@example.com';
         $this->signIn($username, 'admin123');
 
-        touch(TEST_REPOSITORY.'/a.txt', $this->timestamp);
-        touch(TEST_REPOSITORY.'/b.txt', $this->timestamp);
-        mkdir(TEST_REPOSITORY.'/sub');
-        mkdir(TEST_REPOSITORY.'/jane');
+        touch(TEST_REPOSITORY . '/a.txt', $this->timestamp);
+        touch(TEST_REPOSITORY . '/b.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/sub');
+        mkdir(TEST_REPOSITORY . '/jane');
 
         $items = [
             0 => [
@@ -590,10 +590,10 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $this->assertFileExists(TEST_REPOSITORY.'/a.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/b.txt');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/sub');
-        $this->assertFileExists(TEST_REPOSITORY.'/jane/compressed2.zip');
+        $this->assertFileExists(TEST_REPOSITORY . '/a.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/b.txt');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/sub');
+        $this->assertFileExists(TEST_REPOSITORY . '/jane/compressed2.zip');
     }
 
     public function testUnzipArchive()
@@ -601,8 +601,8 @@ class FilesTest extends TestCase
         $username = 'admin@example.com';
         $this->signIn($username, 'admin123');
 
-        copy(TEST_ARCHIVE, TEST_REPOSITORY.'/c.zip');
-        mkdir(TEST_REPOSITORY.'/jane');
+        copy(TEST_ARCHIVE, TEST_REPOSITORY . '/c.zip');
+        mkdir(TEST_REPOSITORY . '/jane');
 
         $this->sendRequest('POST', '/unzipitem', [
             'item' => '/c.zip',
@@ -611,10 +611,10 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $this->assertFileExists(TEST_REPOSITORY.'/jane/one.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/jane/two.txt');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/jane/onetwo');
-        $this->assertFileExists(TEST_REPOSITORY.'/jane/onetwo/three.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/jane/one.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/jane/two.txt');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/jane/onetwo');
+        $this->assertFileExists(TEST_REPOSITORY . '/jane/onetwo/three.txt');
     }
 
     public function testDownloadMultipleItems()
@@ -622,11 +622,11 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        touch(TEST_REPOSITORY.'/john/john.txt', $this->timestamp);
-        mkdir(TEST_REPOSITORY.'/john/johnsub');
-        touch(TEST_REPOSITORY.'/john/johnsub/sub.txt', $this->timestamp);
-        mkdir(TEST_REPOSITORY.'/john/johnsub/sub2');
+        mkdir(TEST_REPOSITORY . '/john');
+        touch(TEST_REPOSITORY . '/john/john.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john/johnsub');
+        touch(TEST_REPOSITORY . '/john/johnsub/sub.txt', $this->timestamp);
+        mkdir(TEST_REPOSITORY . '/john/johnsub/sub2');
 
         $items = [
             0 => [
@@ -672,8 +672,8 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        file_put_contents(TEST_REPOSITORY.'/john/john.txt', 'lorem ipsum');
+        mkdir(TEST_REPOSITORY . '/john');
+        file_put_contents(TEST_REPOSITORY . '/john/john.txt', 'lorem ipsum');
 
         $this->sendRequest('POST', '/savecontent', [
             'name' => 'john.txt',
@@ -682,7 +682,7 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $updated = file_get_contents(TEST_REPOSITORY.'/john/john.txt');
+        $updated = file_get_contents(TEST_REPOSITORY . '/john/john.txt');
 
         $this->assertEquals('lorem ipsum new', $updated);
     }
@@ -692,9 +692,9 @@ class FilesTest extends TestCase
         $username = 'john@example.com';
         $this->signIn($username, 'john123');
 
-        mkdir(TEST_REPOSITORY.'/john');
-        mkdir(TEST_REPOSITORY.'/john/sub');
-        file_put_contents(TEST_REPOSITORY.'/john/sub/john.txt', 'lorem ipsum');
+        mkdir(TEST_REPOSITORY . '/john');
+        mkdir(TEST_REPOSITORY . '/john/sub');
+        file_put_contents(TEST_REPOSITORY . '/john/sub/john.txt', 'lorem ipsum');
 
         $this->sendRequest('POST', '/changedir', [
             'to' => '/sub/',
@@ -707,7 +707,7 @@ class FilesTest extends TestCase
 
         $this->assertOk();
 
-        $updated = file_get_contents(TEST_REPOSITORY.'/john/sub/john.txt');
+        $updated = file_get_contents(TEST_REPOSITORY . '/john/sub/john.txt');
 
         $this->assertEquals('lorem ipsum new', $updated);
     }

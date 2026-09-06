@@ -23,10 +23,10 @@ class Database implements Service, AuthInterface
 {
     use PasswordHash;
 
-    const SESSION_KEY = 'database_auth';
-    const SESSION_HASH = 'database_auth_hash';
+    public const SESSION_KEY = 'database_auth';
+    public const SESSION_HASH = 'database_auth_hash';
 
-    const GUEST_USERNAME = 'guest';
+    public const GUEST_USERNAME = 'guest';
 
     protected $session;
 
@@ -49,18 +49,22 @@ class Database implements Service, AuthInterface
 
     public function user(): ?User
     {
-        if (! $this->session) return null;
+        if (! $this->session) {
+            return null;
+        }
 
         $user = $this->session->get(self::SESSION_KEY, null);
         $hash = $this->session->get(self::SESSION_HASH, null);
 
-        if (! $user) return null;
+        if (! $user) {
+            return null;
+        }
 
         $ret = $this->getConnection()
             ->fetch('SELECT * FROM users WHERE username = ?', $user->getUsername())
         ;
 
-        if ($ret && $hash == $ret->password.$ret->permissions.$ret->homedir.$ret->role) {
+        if ($ret && $hash == $ret->password . $ret->permissions . $ret->homedir . $ret->role) {
             return $user;
         }
 
@@ -76,7 +80,7 @@ class Database implements Service, AuthInterface
         if ($ret && $this->verifyPassword($password, $ret->password)) {
             $user = $this->mapToUserObject($ret);
             $this->store($user);
-            $this->session->set(self::SESSION_HASH, $ret->password.$ret->permissions.$ret->homedir.$ret->role);
+            $this->session->set(self::SESSION_HASH, $ret->password . $ret->permissions . $ret->homedir . $ret->role);
             $this->session->migrate(true);
 
             return true;
@@ -194,11 +198,11 @@ class Database implements Service, AuthInterface
     {
         $new = new User();
 
-        $new->setRole(isset($user->role) ? $user->role : 'guest');
-        $new->setHomedir(isset($user->homedir) ? $user->homedir : '/');
-        $new->setPermissions(isset($user->permissions) ? $user->permissions : '', true);
-        $new->setUsername(isset($user->username) ? $user->username : '');
-        $new->setName(isset($user->name) ? $user->name : 'Guest');
+        $new->setRole($user->role ?? 'guest');
+        $new->setHomedir($user->homedir ?? '/');
+        $new->setPermissions($user->permissions ?? '', true);
+        $new->setUsername($user->username ?? '');
+        $new->setName($user->name ?? 'Guest');
 
         return $new;
     }

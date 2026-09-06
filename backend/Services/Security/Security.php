@@ -39,7 +39,7 @@ class Security implements Service
     {
         if ($config['csrf_protection']) {
 
-            $key = isset($config['csrf_key']) ? $config['csrf_key'] : 'protection';
+            $key = $config['csrf_key'] ?? 'protection';
 
             $http_method = $this->request->getMethod();
             $csrfManager = new CsrfTokenManager();
@@ -56,7 +56,9 @@ class Security implements Service
             }
         }
 
-        if (! empty($config['ip_whitelist'])) $config['ip_allowlist'] = $config['ip_whitelist']; // deprecated, compatibility
+        if (! empty($config['ip_whitelist'])) {
+            $config['ip_allowlist'] = $config['ip_whitelist'];
+        } // deprecated, compatibility
 
         if (! empty($config['ip_allowlist'])) {
             $pass = false;
@@ -68,12 +70,14 @@ class Security implements Service
             if (! $pass) {
                 $this->response->setStatusCode(403);
                 $this->response->send();
-                $this->logger->log("Forbidden - IP not found in allowlist ".$this->request->getClientIp());
+                $this->logger->log("Forbidden - IP not found in allowlist " . $this->request->getClientIp());
                 die;
             }
         }
 
-        if (! empty($config['ip_blacklist'])) $config['ip_denylist'] = $config['ip_blacklist']; // deprecated, compatibility
+        if (! empty($config['ip_blacklist'])) {
+            $config['ip_denylist'] = $config['ip_blacklist'];
+        } // deprecated, compatibility
 
         if (! empty($config['ip_denylist'])) {
             $pass = true;
@@ -85,7 +89,7 @@ class Security implements Service
             if (! $pass) {
                 $this->response->setStatusCode(403);
                 $this->response->send();
-                $this->logger->log("Forbidden - IP matched against denylist ".$this->request->getClientIp());
+                $this->logger->log("Forbidden - IP matched against denylist " . $this->request->getClientIp());
                 die;
             }
         }

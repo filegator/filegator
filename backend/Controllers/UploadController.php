@@ -47,7 +47,7 @@ class UploadController
         $clean_username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', $username);
         $chunk_number = (int) $request->input('resumableChunkNumber');
 
-        $chunk_file = 'multipart_'.$clean_username.'_'.$identifier.'_'.$file_name.'.part'.$chunk_number;
+        $chunk_file = 'multipart_' . $clean_username . '_' . $identifier . '_' . $file_name . '.part' . $chunk_number;
 
         if ($this->tmpfs->exists($chunk_file)) {
             return $response->json('Chunk exists', 200);
@@ -85,28 +85,28 @@ class UploadController
             return $response->json('Bad file', 422);
         }
 
-        $prefix = 'multipart_'.$clean_username.'_'.$identifier.'_';
+        $prefix = 'multipart_' . $clean_username . '_' . $identifier . '_';
 
-        if ($this->tmpfs->exists($prefix.'_error')) {
+        if ($this->tmpfs->exists($prefix . '_error')) {
             return $response->json('Chunk too big', 422);
         }
 
         $stream = fopen($file->getPathName(), 'r');
 
-        $this->tmpfs->write($prefix.$file_name.'.part'.$chunk_number, $stream);
+        $this->tmpfs->write($prefix . $file_name . '.part' . $chunk_number, $stream);
 
         // check if all the parts present, and create the final destination file
         $chunks_size = 0;
-        foreach ($this->tmpfs->findAll($prefix.'*') as $chunk) {
+        foreach ($this->tmpfs->findAll($prefix . '*') as $chunk) {
             $chunks_size += $chunk['size'];
         }
 
         // file too big, cleanup to protect server, set error trap
         if ($chunks_size > $this->config->get('frontend_config.upload_max_size')) {
-            foreach ($this->tmpfs->findAll($prefix.'*') as $tmp_chunk) {
+            foreach ($this->tmpfs->findAll($prefix . '*') as $tmp_chunk) {
                 $this->tmpfs->remove($tmp_chunk['name']);
             }
-            $this->tmpfs->write($prefix.'_error', '');
+            $this->tmpfs->write($prefix . '_error', '');
 
             return $response->json('Chunk too big', 422);
         }
@@ -116,10 +116,10 @@ class UploadController
             // Assemble the chunks into a temporary file kept inside this request's
             // own namespace ($prefix already encodes the user), so the assembly can
             // never read, write or delete another user's temporary files.
-            $assembled = $prefix.$file_name;
+            $assembled = $prefix . $file_name;
 
             for ($i = 1; $i <= $total_chunks; ++$i) {
-                $part = $this->tmpfs->readStream($prefix.$file_name.'.part'.$i);
+                $part = $this->tmpfs->readStream($prefix . $file_name . '.part' . $i);
                 $this->tmpfs->write($assembled, $part['stream'], true);
             }
 
@@ -133,7 +133,7 @@ class UploadController
             }
 
             // cleanup
-            foreach ($this->tmpfs->findAll($prefix.'*') as $expired_chunk) {
+            foreach ($this->tmpfs->findAll($prefix . '*') as $expired_chunk) {
                 $this->tmpfs->remove($expired_chunk['name']);
             }
 

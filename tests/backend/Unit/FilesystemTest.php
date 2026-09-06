@@ -102,7 +102,7 @@ class FilesystemTest extends TestCase
                     'name' => '..',
                     'size' => 0,
                     'time' => 0,
-                    'permissions' => -1
+                    'permissions' => -1,
                 ],
             ],
         ]));
@@ -216,7 +216,7 @@ class FilesystemTest extends TestCase
 
         $this->assertTrue($ret);
 
-        $this->assertFileExists(TEST_REPOSITORY.'/loremfile.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/loremfile.txt');
     }
 
     public function testStoringFileToRootSubFolder()
@@ -230,8 +230,8 @@ class FilesystemTest extends TestCase
 
         $this->assertTrue($ret);
 
-        $this->assertFileExists(TEST_REPOSITORY.'/sub/sub1/loremfile.txt');
-        $this->assertFileNotExists(TEST_REPOSITORY.'/loremfile.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/sub/sub1/loremfile.txt');
+        $this->assertFileNotExists(TEST_REPOSITORY . '/loremfile.txt');
     }
 
     public function testUpcountingFilenameOrDirname()
@@ -276,7 +276,7 @@ class FilesystemTest extends TestCase
     {
         // create dummy file
         $string = 'lorem ipsum';
-        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+        $resource = fopen('data://text/plain;base64,' . base64_encode($string), 'r');
 
         // and store it
         $this->storage->store('/', 'singletone.txt', $resource);
@@ -288,7 +288,7 @@ class FilesystemTest extends TestCase
 
         // create another dummy file
         $string = 'croissant';
-        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+        $resource = fopen('data://text/plain;base64,' . base64_encode($string), 'r');
 
         // and store it with the same name
         $this->storage->store('/', 'singletone.txt', $resource, true);
@@ -332,7 +332,7 @@ class FilesystemTest extends TestCase
 
         // create dummy file
         $string = 'lorem ipsum';
-        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+        $resource = fopen('data://text/plain;base64,' . base64_encode($string), 'r');
 
         // and store it
         $this->storage->store('/', 'singletone.txt', $resource);
@@ -344,7 +344,7 @@ class FilesystemTest extends TestCase
 
         // create another dummy file
         $string = 'croissant';
-        $resource = fopen('data://text/plain;base64,'.base64_encode($string), 'r');
+        $resource = fopen('data://text/plain;base64,' . base64_encode($string), 'r');
 
         // and store it with the same name
         $this->storage->store('/', 'singletone.txt', $resource, true);
@@ -375,8 +375,8 @@ class FilesystemTest extends TestCase
         // this dir
         $this->storage->createDir('/', 'test');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/test');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/test (1)'); // goes here
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/test');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/test (1)'); // goes here
     }
 
     public function testCreatingDirectoryWithTheSameNameAsNonEmptyDirUpcountsDestinationDirRecursively()
@@ -389,9 +389,9 @@ class FilesystemTest extends TestCase
         // this dir
         $this->storage->createDir('/', 'test');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/test');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/test (1)');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/test (1) (1)'); // goes here
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/test');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/test (1)');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/test (1) (1)'); // goes here
     }
 
     public function testMovingFileWithTheSameNameUpcountsSecondFilename()
@@ -553,24 +553,24 @@ class FilesystemTest extends TestCase
     public function testDeleteFiles()
     {
         $this->storage->createFile('/', 'sample22.txt');
-        $this->assertFileExists(TEST_REPOSITORY.'/sample22.txt');
+        $this->assertFileExists(TEST_REPOSITORY . '/sample22.txt');
 
         $this->storage->deleteFile('sample22.txt');
 
-        $this->assertFileNotExists(TEST_REPOSITORY.'/sample22.txt');
+        $this->assertFileNotExists(TEST_REPOSITORY . '/sample22.txt');
     }
 
     public function testCreateAndDeleteDirectory()
     {
         $this->storage->createDir('/', 'sample22');
         $this->storage->createDir('/sample22/subsample', 'sample22');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/sample22');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/sample22/subsample');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/sample22');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/sample22/subsample');
 
         $this->storage->deleteDir('sample22');
 
-        $this->assertDirectoryNotExists(TEST_REPOSITORY.'/sample22');
-        $this->assertDirectoryNotExists(TEST_REPOSITORY.'/sample22/subsample');
+        $this->assertDirectoryNotExists(TEST_REPOSITORY . '/sample22');
+        $this->assertDirectoryNotExists(TEST_REPOSITORY . '/sample22/subsample');
     }
 
     public function testReadFileStream()
@@ -747,7 +747,7 @@ class FilesystemTest extends TestCase
 
         $this->storage->copyDir('/missing/', '/tmp/');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/tmp/missing/');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/tmp/missing/');
     }
 
     public function testCopyDir()
@@ -758,7 +758,7 @@ class FilesystemTest extends TestCase
 
         $this->storage->copyDir('/john/johnsub', '/jane/');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/jane/johnsub');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/jane/johnsub');
     }
 
     public function testCopyDirWithSubDirs()
@@ -769,8 +769,8 @@ class FilesystemTest extends TestCase
 
         $this->storage->copyDir('/sub', '/jane/');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/jane/sub');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/jane/sub/sub1');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/jane/sub');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/jane/sub/sub1');
     }
 
     public function testCopyDirWithEmptySubDir()
@@ -781,12 +781,12 @@ class FilesystemTest extends TestCase
         $this->storage->createDir('/tmp/sample22/', 'subsample2');
         $this->storage->createFile('/tmp/sample22/subsample2', 'zzzz');
 
-        $this->assertDirectoryNotExists(TEST_REPOSITORY.'/jane/sample22');
+        $this->assertDirectoryNotExists(TEST_REPOSITORY . '/jane/sample22');
 
         $this->storage->copyDir('/tmp/sample22', '/jane/');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/jane/sample22');
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/jane/sample22/subsample2');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/jane/sample22');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/jane/sample22/subsample2');
         $this->assertTrue($this->storage->fileExists('/jane/sample22/subsample2/zzzz'));
     }
 
@@ -797,7 +797,7 @@ class FilesystemTest extends TestCase
 
         $this->storage->copyDir('/tmp', '/dest');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/dest/tmp');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/dest/tmp');
     }
 
     public function testCopyDirOverExistingUpcountsDestinationDirname()
@@ -824,10 +824,10 @@ class FilesystemTest extends TestCase
 
         $this->storage->copyDir('/tmp', '/dest');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/dest/tmp/');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/dest/tmp/');
         $this->assertTrue($this->storage->fileExists('/dest/tmp/a.txt'));
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/dest/tmp (1)');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/dest/tmp (1)');
         $this->assertTrue($this->storage->fileExists('/dest/tmp (1)/b.txt'));
     }
 
@@ -847,7 +847,7 @@ class FilesystemTest extends TestCase
         $this->storage->createDir('/', 'test2');
         $this->storage->move('/test1', '/test2/test1/');
 
-        $this->assertDirectoryExists(TEST_REPOSITORY.'/test2/test1/');
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/test2/test1/');
     }
 
     public function testCannotGoUpTheHomeDirUsingPathFiddle()

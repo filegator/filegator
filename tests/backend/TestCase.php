@@ -22,11 +22,11 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage;
 
 define('APP_ENV', 'test');
 
-define('TEST_DIR', __DIR__.'/tmp');
-define('TEST_REPOSITORY', TEST_DIR.'/repository');
-define('TEST_ARCHIVE', TEST_DIR.'/testarchive.zip');
-define('TEST_FILE', TEST_DIR.'/sample.txt');
-define('TEST_TMP_PATH', TEST_DIR.'/temp/');
+define('TEST_DIR', __DIR__ . '/tmp');
+define('TEST_REPOSITORY', TEST_DIR . '/repository');
+define('TEST_ARCHIVE', TEST_DIR . '/testarchive.zip');
+define('TEST_FILE', TEST_DIR . '/sample.txt');
+define('TEST_TMP_PATH', TEST_DIR . '/temp/');
 
 /**
  * @internal
@@ -55,7 +55,7 @@ class TestCase extends BaseTestCase
     public function sendRequest($method, $uri, $data = null, $files = [], $server = [])
     {
         $fakeRequest = Request::create(
-            '?r='.$uri,
+            '?r=' . $uri,
             $method,
             [],
             [],
@@ -102,7 +102,7 @@ class TestCase extends BaseTestCase
 
     public function getMockConfig()
     {
-        $config = require __DIR__.'/configuration.php';
+        $config = require __DIR__ . '/configuration.php';
 
         return new Config($config);
     }

@@ -39,7 +39,7 @@ class TmpfsTest extends TestCase
     {
         $this->service->write('a.txt', 'lorem');
 
-        $this->assertFileExists(TEST_TMP_PATH.'/a.txt');
+        $this->assertFileExists(TEST_TMP_PATH . '/a.txt');
     }
 
     public function testWriteContentToTmpFileUsingStream()
@@ -47,7 +47,7 @@ class TmpfsTest extends TestCase
         $stream = fopen(TEST_FILE, 'r');
         $this->service->write('a.txt', $stream);
 
-        $this->assertFileEquals(TEST_TMP_PATH.'/a.txt', TEST_FILE);
+        $this->assertFileEquals(TEST_TMP_PATH . '/a.txt', TEST_FILE);
     }
 
     public function testReadingTmpFileContents()
@@ -74,11 +74,11 @@ class TmpfsTest extends TestCase
     {
         $this->service->write('a.txt', 'lorem');
 
-        $this->assertFileExists(TEST_TMP_PATH.'a.txt');
+        $this->assertFileExists(TEST_TMP_PATH . 'a.txt');
 
         $this->service->remove('a.txt');
 
-        $this->assertFileNotExists(TEST_TMP_PATH.'a.txt');
+        $this->assertFileNotExists(TEST_TMP_PATH . 'a.txt');
     }
 
     public function testCheckExistingFile()
@@ -118,8 +118,8 @@ class TmpfsTest extends TestCase
 
     public function testDeleteOldFilesAutomaticaly()
     {
-        touch(TEST_TMP_PATH.'fresh.txt', time());
-        touch(TEST_TMP_PATH.'old.txt', time() - 60 * 60 * 24 * 10); // 10 days old
+        touch(TEST_TMP_PATH . 'fresh.txt', time());
+        touch(TEST_TMP_PATH . 'old.txt', time() - 60 * 60 * 24 * 10); // 10 days old
 
         $this->service->init([
             'path' => TEST_TMP_PATH,
@@ -127,13 +127,13 @@ class TmpfsTest extends TestCase
             'gc_older_than' => 60 * 60 * 24 * 2, // 2 days
         ]);
 
-        $this->assertFileExists(TEST_TMP_PATH.'fresh.txt');
-        $this->assertFileNotExists(TEST_TMP_PATH.'old.txt');
+        $this->assertFileExists(TEST_TMP_PATH . 'fresh.txt');
+        $this->assertFileNotExists(TEST_TMP_PATH . 'old.txt');
     }
 
     public function testGarbageIsNotDeletedEveryTime()
     {
-        touch(TEST_TMP_PATH.'old.txt', time() - 60 * 60 * 24 * 10); // 10 days old
+        touch(TEST_TMP_PATH . 'old.txt', time() - 60 * 60 * 24 * 10); // 10 days old
 
         $this->service->init([
             'path' => TEST_TMP_PATH,
@@ -141,7 +141,7 @@ class TmpfsTest extends TestCase
             'gc_older_than' => 60 * 60 * 24 * 2, // 2 days
         ]);
 
-        $this->assertFileExists(TEST_TMP_PATH.'old.txt');
+        $this->assertFileExists(TEST_TMP_PATH . 'old.txt');
     }
 
     public function testSanitizeFilename()
@@ -160,9 +160,10 @@ class TmpfsTest extends TestCase
 
         // oversized
         $this->assertEquals(
-                '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+            '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
             $this->invokeMethod($this->service, 'sanitizeFilename', [
-                '1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456'
-            ]));
+                '1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456',
+            ])
+        );
     }
 }

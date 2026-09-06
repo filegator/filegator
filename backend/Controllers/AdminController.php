@@ -59,8 +59,8 @@ class AdminController
             $user->setUsername($request->input('username'));
             $user->setHomedir(
                 rtrim($this->auth->user()->getHomeDir(), $this->storage->getSeparator())
-                .$this->storage->getSeparator()
-                .ltrim($request->input('homedir'), $this->storage->getSeparator())
+                . $this->storage->getSeparator()
+                . ltrim($request->input('homedir'), $this->storage->getSeparator())
             );
             $user->setRole($request->input('role', 'user'));
             $user->setPermissions($request->input('permissions'));

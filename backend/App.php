@@ -31,7 +31,7 @@ class App
         try {
             foreach ($config->get('services', []) as $key => $service) {
                 $container->set($key, $container->get($service['handler']));
-                $container->get($key)->init(isset($service['config']) ? $service['config'] : []);
+                $container->get($key)->init($service['config'] ?? []);
             }
         } catch (\Exception $e) {
 
