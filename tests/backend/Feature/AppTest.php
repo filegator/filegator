@@ -61,7 +61,7 @@ class AppTest extends TestCase
         $request2 = Request::create(
             '?r=/',
             'GET'
-            );
+        );
         $request2->setSession($prev_session);
 
         $app2 = $this->bootFreshApp($config, $request2);

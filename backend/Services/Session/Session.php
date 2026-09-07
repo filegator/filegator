@@ -12,6 +12,4 @@ namespace Filegator\Services\Session;
 
 use Symfony\Component\HttpFoundation\Session\Session as SymfonySession;
 
-class Session extends SymfonySession
-{
-}
+class Session extends SymfonySession {}

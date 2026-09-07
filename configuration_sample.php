@@ -33,7 +33,7 @@ return [
                 'monolog_handlers' => [
                     function () {
                         return new \Monolog\Handler\StreamHandler(
-                            __DIR__.'/private/logs/app.log',
+                            __DIR__ . '/private/logs/app.log',
                             \Monolog\Logger::DEBUG
                         );
                     },
@@ -49,10 +49,10 @@ return [
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-                            "cookie_samesite" => "Lax",
-                            "cookie_secure" => null,
-                            "cookie_httponly" => true,
-                        ], $handler);
+                        "cookie_samesite" => "Lax",
+                        "cookie_secure" => null,
+                        "cookie_httponly" => true,
+                    ], $handler);
                 },
             ],
         ],
@@ -65,7 +65,7 @@ return [
         'Filegator\Services\Tmpfs\TmpfsInterface' => [
             'handler' => '\Filegator\Services\Tmpfs\Adapters\Tmpfs',
             'config' => [
-                'path' => __DIR__.'/private/tmp/',
+                'path' => __DIR__ . '/private/tmp/',
                 'gc_probability_perc' => 10,
                 'gc_older_than' => 60 * 60 * 24 * 2, // 2 days
             ],
@@ -94,7 +94,7 @@ return [
                 'config' => [],
                 'adapter' => function () {
                     return new \League\Flysystem\Adapter\Local(
-                        __DIR__.'/repository'
+                        __DIR__ . '/repository'
                     );
                 },
             ],
@@ -106,14 +106,14 @@ return [
         'Filegator\Services\Auth\AuthInterface' => [
             'handler' => '\Filegator\Services\Auth\Adapters\JsonFile',
             'config' => [
-                'file' => __DIR__.'/private/users.json',
+                'file' => __DIR__ . '/private/users.json',
             ],
         ],
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [
                 'query_param' => 'r',
-                'routes_file' => __DIR__.'/backend/Controllers/routes.php',
+                'routes_file' => __DIR__ . '/backend/Controllers/routes.php',
             ],
         ],
     ],

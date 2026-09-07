@@ -33,27 +33,29 @@ class AuthController
         $password = $request->input('password');
         $ip = $request->getClientIp();
 
-        $lockfile = md5($ip).'.lock';
+        $lockfile = md5($ip) . '.lock';
         $lockout_attempts = $config->get('lockout_attempts', 5);
         $lockout_timeout = $config->get('lockout_timeout', 15);
 
         foreach ($tmpfs->findAll($lockfile) as $flock) {
-            if (time() - $flock['time'] >= $lockout_timeout) $tmpfs->remove($flock['name']);
+            if (time() - $flock['time'] >= $lockout_timeout) {
+                $tmpfs->remove($flock['name']);
+            }
         }
 
         if ($tmpfs->exists($lockfile) && strlen($tmpfs->read($lockfile)) >= $lockout_attempts) {
-            $this->logger->log("Too many login attempts for {$username} from IP ".$ip);
+            $this->logger->log("Too many login attempts for {$username} from IP " . $ip);
 
             return $response->json('Not Allowed', 429);
         }
 
         if ($auth->authenticate($username, $password)) {
-            $this->logger->log("Logged in {$username} from IP ".$ip);
+            $this->logger->log("Logged in {$username} from IP " . $ip);
 
             return $response->json($auth->user());
         }
 
-        $this->logger->log("Login failed for {$username} from IP ".$ip);
+        $this->logger->log("Login failed for {$username} from IP " . $ip);
 
         $tmpfs->write($lockfile, 'x', true);
 

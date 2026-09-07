@@ -28,7 +28,7 @@ class RouterTest extends TestCase
     {
         $this->config_stub = [
             'query_param' => 'r',
-            'routes_file' => __DIR__.'/../testroutes.php',
+            'routes_file' => __DIR__ . '/../testroutes.php',
         ];
 
         parent::setUp();

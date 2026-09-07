@@ -12,6 +12,4 @@ namespace Filegator\Container;
 
 use DI\Container as PHPDIContainer;
 
-class Container extends PHPDIContainer implements ContainerInterface
-{
-}
+class Container extends PHPDIContainer implements ContainerInterface {}

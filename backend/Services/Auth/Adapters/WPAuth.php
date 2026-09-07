@@ -20,7 +20,6 @@ use Filegator\Services\Service;
  */
 class WPAuth implements Service, AuthInterface
 {
-
     protected $permissions = [];
 
     protected $private_repos = false;
@@ -28,10 +27,10 @@ class WPAuth implements Service, AuthInterface
     public function init(array $config = [])
     {
         define('WP_USE_THEMES', false);
-        require_once(rtrim($config['wp_dir'], '/').'/wp-blog-header.php');
+        require_once(rtrim($config['wp_dir'], '/') . '/wp-blog-header.php');
 
-        $this->permissions = isset($config['permissions']) ? (array)$config['permissions'] : [];
-        $this->private_repos = isset($config['private_repos']) ? (bool)$config['private_repos'] : false;
+        $this->permissions = isset($config['permissions']) ? (array) $config['permissions'] : [];
+        $this->private_repos = isset($config['private_repos']) ? (bool) $config['private_repos'] : false;
     }
 
     public function user(): ?User
@@ -56,11 +55,11 @@ class WPAuth implements Service, AuthInterface
 
         // private repositories for each user?
         if ($this->private_repos) {
-            $user->setHomedir('/'.$wpuser->data->user_login);
+            $user->setHomedir('/' . $wpuser->data->user_login);
         }
 
         // ...but not for wp admins
-        if (in_array('administrator', (array)$wpuser->roles)) {
+        if (in_array('administrator', (array) $wpuser->roles)) {
             $user->setHomedir('/');
         }
 
@@ -69,11 +68,11 @@ class WPAuth implements Service, AuthInterface
 
     public function authenticate($username, $password): bool
     {
-        $creds = array(
+        $creds = [
             'user_login'    => $username,
             'user_password' => $password,
-            'remember'      => true
-        );
+            'remember'      => true,
+        ];
 
         $wpuser = wp_signon($creds, false);
 

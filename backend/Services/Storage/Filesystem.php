@@ -28,7 +28,7 @@ class Filesystem implements Service
         $this->path_prefix = $this->separator;
 
         $adapter = $config['adapter'];
-        $config = isset($config['config']) ? $config['config'] : [];
+        $config = $config['config'] ?? [];
 
         $this->storage = new Flysystem($adapter(), $config);
     }
@@ -99,7 +99,7 @@ class Filesystem implements Service
         }
 
         foreach ($contents as $file) {
-            $source_path = $this->separator.ltrim($file['path'], $this->separator);
+            $source_path = $this->separator . ltrim($file['path'], $this->separator);
             $path = substr($source_path, strlen($source), strlen($source_path));
 
             if ($file['type'] == 'dir') {
@@ -177,10 +177,10 @@ class Filesystem implements Service
 
         return $this->storage->putStream($destination, $resource);
     }
-    
+
     /**
      * Change file permissions one item, with optional recursion
-     * 
+     *
      * @param string $path
      * @param int $permissions
      * @param null|'all'|'folders'|'files' $recursive
@@ -195,14 +195,14 @@ class Filesystem implements Service
         }
 
         // ensure every digit is 0-7
-        if (!preg_match('/^[0-7]{1,3}$/', (string)$permissions)) {
+        if (!preg_match('/^[0-7]{1,3}$/', (string) $permissions)) {
             throw new \Exception('Invalid permission value. Must be between 0 and 777.');
         }
 
         $path = $this->applyPathPrefix($path);
         $path = Util::normalizePath($path);
         $adapter = $this->storage->getAdapter();
-        
+
         $mainResult = $this->chmodItem($path, $permissions);
         if ($recursive !== null) {
             if (method_exists($adapter, 'setRecurseManually')) {
@@ -222,12 +222,12 @@ class Filesystem implements Service
                 }
             }
         }
-        
+
         return $mainResult;
     }
     /**
      * Change file permissions for a single item
-     * 
+     *
      * @param string $path
      * @param int $permissions
      * @return bool
@@ -236,7 +236,7 @@ class Filesystem implements Service
     public function chmodItem(string $path, int $permissions)
     {
         $adapter = $this->storage->getAdapter();
-        
+
         switch (get_class($adapter)) {
             case 'League\Flysystem\Adapter\Local':
                 $absolutePath = $adapter->applyPathPrefix($path);
@@ -278,9 +278,9 @@ class Filesystem implements Service
 
             $name = $this->getBaseName($entry['path']);
             $userpath = $this->stripPathPrefix($entry['path']);
-            $dirname = isset($entry['dirname']) ? $entry['dirname'] : $path;
-            $size = isset($entry['size']) ? $entry['size'] : 0;
-            $timestamp = isset($entry['timestamp']) ? $entry['timestamp'] : 0;
+            $dirname = $entry['dirname'] ?? $path;
+            $size = $entry['size'] ?? 0;
+            $timestamp = $entry['timestamp'] ?? 0;
             $permissions = $this->getPermissions($entry);
 
             $collection->addFile($entry['type'], $userpath, $name, $size, $timestamp, $permissions);
@@ -292,12 +292,12 @@ class Filesystem implements Service
 
         return $collection;
     }
-    
+
     protected function getPermissions(array $entry): int
     {
         $adapter = $this->storage->getAdapter();
         $path = $entry['path'];
-        
+
         switch (get_class($adapter)) {
             case 'League\Flysystem\Adapter\Local':
                 $path = $adapter->applyPathPrefix($path); // get the full path
@@ -309,7 +309,7 @@ class Filesystem implements Service
                 return $stat && isset($stat['permissions']) ? substr(decoct($stat['permissions']), -3) : -1;
                 break;
             case 'Filegator\Services\Storage\Adapters\FilegatorFtp':
-                return isset($entry['permissions']) ? $entry['permissions'] : -1;
+                return $entry['permissions'] ?? -1;
                 break;
         }
         return -1;
@@ -318,9 +318,9 @@ class Filesystem implements Service
     protected function upcountCallback($matches)
     {
         $index = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
-        $ext = isset($matches[2]) ? $matches[2] : '';
+        $ext = $matches[2] ?? '';
 
-        return ' ('.$index.')'.$ext;
+        return ' (' . $index . ')' . $ext;
     }
 
     protected function upcountName($name)
@@ -336,8 +336,8 @@ class Filesystem implements Service
     private function applyPathPrefix(string $path): string
     {
         if ($path == '..'
-            || strpos($path, '..'.$this->separator) !== false
-            || strpos($path, $this->separator.'..') !== false
+            || strpos($path, '..' . $this->separator) !== false
+            || strpos($path, $this->separator . '..') !== false
         ) {
             $path = $this->separator;
         }
@@ -347,10 +347,10 @@ class Filesystem implements Service
 
     private function stripPathPrefix(string $path): string
     {
-        $path = $this->separator.ltrim($path, $this->separator);
+        $path = $this->separator . ltrim($path, $this->separator);
 
         if (substr($path, 0, strlen($this->getPathPrefix())) == $this->getPathPrefix()) {
-            $path = $this->separator.substr($path, strlen($this->getPathPrefix()));
+            $path = $this->separator . substr($path, strlen($this->getPathPrefix()));
         }
 
         return $path;
@@ -362,7 +362,7 @@ class Filesystem implements Service
             return $this->separator;
         }
 
-        return $this->separator.trim($dir, $this->separator).$this->separator;
+        return $this->separator . trim($dir, $this->separator) . $this->separator;
     }
 
     private function joinPaths(string $path1, string $path2): string
@@ -374,7 +374,7 @@ class Filesystem implements Service
             return $this->addSeparators($path1);
         }
 
-        return $this->addSeparators($path1).ltrim($path2, $this->separator);
+        return $this->addSeparators($path1) . ltrim($path2, $this->separator);
     }
 
     private function getParent(string $dir): string
@@ -386,7 +386,7 @@ class Filesystem implements Service
         $tmp = explode($this->separator, trim($dir, $this->separator));
         array_pop($tmp);
 
-        return $this->separator.trim(implode($this->separator, $tmp), $this->separator);
+        return $this->separator . trim(implode($this->separator, $tmp), $this->separator);
     }
 
     private function getBaseName(string $path): string

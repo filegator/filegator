@@ -62,17 +62,17 @@ class Router implements Service
         $params = [];
 
         switch ($routeInfo[0]) {
-        case FastRoute\Dispatcher::FOUND:
-            $handler = explode('@', $routeInfo[1]);
-            $controller = $handler[0];
-            $action = $handler[1];
-            $params = $routeInfo[2];
+            case FastRoute\Dispatcher::FOUND:
+                $handler = explode('@', $routeInfo[1]);
+                $controller = $handler[0];
+                $action = $handler[1];
+                $params = $routeInfo[2];
 
-            break;
-        case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-            $action = 'methodNotAllowed';
+                break;
+            case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+                $action = 'methodNotAllowed';
 
-            break;
+                break;
         }
 
         $this->container->call([$controller, $action], $params);

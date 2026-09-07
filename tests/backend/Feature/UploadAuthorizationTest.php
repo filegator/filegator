@@ -41,12 +41,12 @@ class UploadAuthorizationTest extends TestCase
     {
         // A transient file that does not belong to the attacker, sitting in the
         // shared temporary directory (e.g. another user's pending batch archive).
-        file_put_contents(TEST_TMP_PATH.'victimsecret', 'VICTIM SECRET');
+        file_put_contents(TEST_TMP_PATH . 'victimsecret', 'VICTIM SECRET');
 
         // Attacker: a regular user holding the upload permission, with a home dir
         // of their own.
         $this->signIn('john@example.com', 'john123');
-        mkdir(TEST_REPOSITORY.'/john');
+        mkdir(TEST_REPOSITORY . '/john');
 
         $fp = fopen(TEST_FILE, 'w');
         fwrite($fp, 'x');
@@ -66,16 +66,16 @@ class UploadAuthorizationTest extends TestCase
         ], $files);
 
         // The victim's file must not have leaked into the attacker's home dir ...
-        $this->assertFileNotExists(TEST_REPOSITORY.'/john/victimsecret');
+        $this->assertFileNotExists(TEST_REPOSITORY . '/john/victimsecret');
         // ... and it must still be intact in the temporary directory.
-        $this->assertFileExists(TEST_TMP_PATH.'victimsecret');
-        $this->assertEquals('VICTIM SECRET', file_get_contents(TEST_TMP_PATH.'victimsecret'));
+        $this->assertFileExists(TEST_TMP_PATH . 'victimsecret');
+        $this->assertEquals('VICTIM SECRET', file_get_contents(TEST_TMP_PATH . 'victimsecret'));
     }
 
     public function testNormalUploadStillWorks()
     {
         $this->signIn('john@example.com', 'john123');
-        mkdir(TEST_REPOSITORY.'/john');
+        mkdir(TEST_REPOSITORY . '/john');
 
         $fp = fopen(TEST_FILE, 'w');
         fwrite($fp, 'hello world');
@@ -93,7 +93,7 @@ class UploadAuthorizationTest extends TestCase
         ], $files);
 
         $this->assertOk();
-        $this->assertFileExists(TEST_REPOSITORY.'/john/sample.txt');
-        $this->assertEquals('hello world', file_get_contents(TEST_REPOSITORY.'/john/sample.txt'));
+        $this->assertFileExists(TEST_REPOSITORY . '/john/sample.txt');
+        $this->assertEquals('hello world', file_get_contents(TEST_REPOSITORY . '/john/sample.txt'));
     }
 }

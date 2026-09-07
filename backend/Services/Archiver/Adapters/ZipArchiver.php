@@ -35,9 +35,7 @@ class ZipArchiver implements Service, ArchiverInterface
         $this->tmpfs = $tmpfs;
     }
 
-    public function init(array $config = [])
-    {
-    }
+    public function init(array $config = []) {}
 
     public function createArchive(Storage $storage): string
     {
@@ -82,7 +80,7 @@ class ZipArchiver implements Service, ArchiverInterface
 
     public function uncompress(string $source, string $destination, Storage $storage)
     {
-        $name = bin2hex(random_bytes(16)).'.zip';
+        $name = bin2hex(random_bytes(16)) . '.zip';
 
         $remote_archive = $storage->readStream($source);
         $this->tmpfs->write($name, $remote_archive['stream']);
@@ -100,7 +98,7 @@ class ZipArchiver implements Service, ArchiverInterface
             }
             if ($item['type'] == 'file') {
                 $stream = $archive->readStream($item['path']);
-                $storage->store($destination.'/'.$item['dirname'], $item['basename'], $stream);
+                $storage->store($destination . '/' . $item['dirname'], $item['basename'], $stream);
             }
             if (is_resource($stream)) {
                 fclose($stream);
