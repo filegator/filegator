@@ -1,7 +1,10 @@
 # Changelog
 
 ## Upcoming...
+
+## 7.16.0 - 2026-09-07
 * Security fix: the LDAP adapter now regenerates the session id on login and revalidates the session user against the directory on each request, reported by Yulio Valdes (https://github.com/Yunnn-Yulio).
+* Update php-cs-fixer and align php code style
 
 ## 7.15.1 - 2026-08-13
 * LDAP security fix (https://github.com/filegator/filegator/security/advisories/GHSA-h3qf-hr78-8c64)
