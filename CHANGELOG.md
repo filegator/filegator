@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.16.1 - 2026-09-07
+* Fix docker image and ci/cd pipeline
+
 ## 7.16.0 - 2026-09-07
 * Security fix: the LDAP adapter now regenerates the session id on login and revalidates the session user against the directory on each request, reported by Yulio Valdes (https://github.com/Yunnn-Yulio).
 * Update php-cs-fixer and align php code style
