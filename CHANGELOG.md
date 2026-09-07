@@ -2,6 +2,7 @@
 
 ## Upcoming...
 
+## 7.16.2 - 2026-09-07
 ## 7.16.1 - 2026-09-07
 * Fix docker image and ci/cd pipeline
 
