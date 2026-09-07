@@ -31,7 +31,7 @@ RUN vendor/bin/phpunit
 RUN npm run lint
 #RUN npm run test:e2e
 RUN rm -rf node_modules frontend tests docs .git .github
-RUN rm README.md couscous.yml repository/.gitignore babel.config.js cypress* .env* .eslint* .gitignore jest.* .php_cs* phpunit* postcss* vue*
+RUN rm -f README.md couscous.yml repository/.gitignore babel.config.js cypress* .env* .eslint* .gitignore jest.* .php-cs* phpunit* postcss* vue*
 
 #################################
 # stage production
