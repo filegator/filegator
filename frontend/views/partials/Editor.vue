@@ -58,7 +58,7 @@ export default {
         content: this.content,
       })
         .then(() => {
-          this.$toast.open({
+          this.$buefy.toast.open({
             message: this.lang('Updated'),
             type: 'is-success',
           })

@@ -350,7 +350,7 @@ export default {
       this.$refs['ref-single-action-button-'+row.path].click()
     },
     selectDir() {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
@@ -362,7 +362,7 @@ export default {
       })
     },
     copy(event, item) {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
@@ -387,7 +387,7 @@ export default {
       })
     },
     move(event, item) {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Tree,
@@ -420,7 +420,7 @@ export default {
       })
         .then(ret => {
           this.isLoading = false
-          this.$dialog.alert({
+          this.$buefy.dialog.alert({
             message: this.lang('Your file is ready'),
             confirmText: this.lang('Download'),
             onConfirm: () => {
@@ -437,7 +437,7 @@ export default {
       window.open(this.getDownloadLink(item.path), '_blank')
     },
     search() {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Search,
@@ -456,7 +456,7 @@ export default {
       if (this.isText(item.path)) {
         modal = Editor
       }
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         props: { item: item },
         hasModalCard: true,
@@ -467,7 +467,7 @@ export default {
       return item.type == 'file' && item.name.split('.').pop() == 'zip'
     },
     unzip(event, item) {
-      this.$dialog.confirm({
+      this.$buefy.dialog.confirm({
         message: this.lang('Are you sure you want to do this?'),
         type: 'is-danger',
         cancelText: this.lang('Cancel'),
@@ -491,7 +491,7 @@ export default {
       })
     },
     zip(event, item) {
-      this.$dialog.prompt({
+      this.$buefy.dialog.prompt({
         message: this.lang('Name'),
         cancelText: this.lang('Cancel'),
         confirmText: this.lang('Create'),
@@ -524,7 +524,7 @@ export default {
       })
     },
     chmod(event, item) {
-      this.$modal.open({
+      this.$buefy.modal.open({
         parent: this,
         hasModalCard: true,
         component: Permissions,
@@ -555,7 +555,7 @@ export default {
       })
     },
     rename(event, item) {
-      this.$dialog.prompt({
+      this.$buefy.dialog.prompt({
         message: this.lang('New name'),
         cancelText: this.lang('Cancel'),
         confirmText: this.lang('Rename'),
@@ -584,7 +584,7 @@ export default {
       })
     },
     create(type) {
-      this.$dialog.prompt({
+      this.$buefy.dialog.prompt({
         cancelText: this.lang('Cancel'),
         confirmText: this.lang('Create'),
         inputAttrs: {
@@ -613,7 +613,7 @@ export default {
       })
     },
     remove(event, item) {
-      this.$dialog.confirm({
+      this.$buefy.dialog.confirm({
         message: this.lang('Are you sure you want to do this?'),
         type: 'is-danger',
         cancelText: this.lang('Cancel'),

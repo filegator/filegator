@@ -29,7 +29,7 @@
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^24.9.0",
-    "buefy": "^0.7.10",
+    "buefy": "^0.8.20",
     "concurrently": "^4.1.2",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
