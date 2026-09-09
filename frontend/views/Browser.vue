@@ -70,7 +70,7 @@
             <a v-if="can(['write', 'zip']) && checked.length" class="is-inline-block" @click="zip">
               <b-icon icon="file-archive" size="is-small" /> {{ lang('Zip') }}
             </a>
-            <a v-if="can('write') && checked.length" class="is-inline-block" @click="remove">
+            <a v-if="can(['write', 'delete']) && checked.length" class="is-inline-block" @click="remove">
               <b-icon icon="trash-alt" size="is-small" /> {{ lang('Delete') }}
             </a>
           </div>
@@ -144,7 +144,7 @@
                 <b-dropdown-item v-if="can(['write', 'chmod']) && props.row.permissions !== -1" aria-role="listitem" @click="chmod($event, props.row)">
                   <b-icon icon="lock" size="is-small" /> {{ lang('Permissions') }} ({{ props.row.permissions }})
                 </b-dropdown-item>
-                <b-dropdown-item v-if="can('write')" aria-role="listitem" @click="remove($event, props.row)">
+                <b-dropdown-item v-if="can(['write', 'delete'])" aria-role="listitem" @click="remove($event, props.row)">
                   <b-icon icon="trash-alt" size="is-small" /> {{ lang('Delete') }}
                 </b-dropdown-item>
                 <b-dropdown-item v-if="props.row.type == 'file' && can('download')" v-clipboard:copy="getDownloadLink(props.row.path)" aria-role="listitem">
