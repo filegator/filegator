@@ -623,9 +623,12 @@ export default {
           api.removeItems({
             items: item ? [item] : this.getSelected(),
           })
-            .then(() => {
+            .then((result) => {
               this.isLoading = false
               this.loadFiles()
+              if (result !== 'Done') {
+                this.handleError(this.lang('Unable to complete the action'))
+              }
             })
             .catch(error => {
               this.isLoading = false

@@ -70,14 +70,19 @@ class FileController
         $name = $request->input('name');
         $path = $this->session->get(self::SESSION_CWD, $this->separator);
 
+        $success = true;
         if ($type == 'dir') {
-            $this->storage->createDir($path, $request->input('name'));
+            if (!$this->storage->createDir($path, $request->input('name'))) {
+                $success = false;
+            }
         }
         if ($type == 'file') {
-            $this->storage->createFile($path, $request->input('name'));
+            if (!$this->storage->createFile($path, $request->input('name'))) {
+                $success = false;
+            }
         }
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function copyItems(Request $request, Response $response)
@@ -94,7 +99,7 @@ class FileController
             }
         }
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function moveItems(Request $request, Response $response)
@@ -102,14 +107,17 @@ class FileController
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
 
+        $success = true;
         foreach ($items as $item) {
             $full_destination = trim($destination, $this->separator)
                     . $this->separator
                     . ltrim($item->name, $this->separator);
-            $this->storage->move($item->path, $full_destination);
+            if (!$this->storage->move($item->path, $full_destination)) {
+                $success = false;
+            }
         }
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function zipItems(Request $request, Response $response, ArchiverInterface $archiver)
@@ -120,18 +128,25 @@ class FileController
 
         $archiver->createArchive($this->storage);
 
+        $success = true;
         foreach ($items as $item) {
             if ($item->type == 'dir') {
-                $archiver->addDirectoryFromStorage($item->path);
+                if (!$archiver->addDirectoryFromStorage($item->path)) {
+                    $success = false;
+                }
             }
             if ($item->type == 'file') {
-                $archiver->addFileFromStorage($item->path);
+                if (!$archiver->addFileFromStorage($item->path)) {
+                    $success = false;
+                }
             }
         }
 
-        $archiver->storeArchive($destination, $name);
+        if (!$archiver->storeArchive($destination, $name)) {
+            $success = false;
+        }
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function unzipItem(Request $request, Response $response, ArchiverInterface $archiver)
@@ -139,9 +154,9 @@ class FileController
         $source = $request->input('item');
         $destination = $request->input('destination', $this->separator);
 
-        $archiver->uncompress($source, $destination, $this->storage);
+        $success = $archiver->uncompress($source, $destination, $this->storage);
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function chmodItems(Request $request, Response $response)
@@ -151,11 +166,14 @@ class FileController
         /** @var null|'all'|'folders'|'files' */
         $recursive = $request->input('recursive', null);
 
+        $success = true;
         foreach ($items as $item) {
-            $this->storage->chmod($item->path, $permissions, $recursive);
+            if (!$this->storage->chmod($item->path, $permissions, $recursive)) {
+                $success = false;
+            }
         }
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function renameItem(Request $request, Response $response)
@@ -163,26 +181,33 @@ class FileController
         $destination = $request->input('destination', $this->separator);
         $from = $request->input('from');
         $to = $request->input('to');
+        $success = true;
+        if (!$this->storage->rename($destination, $from, $to)) {
+            $success = false;
+        }
 
-        $this->storage->rename($destination, $from, $to);
-
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function deleteItems(Request $request, Response $response)
     {
         $items = $request->input('items', []);
 
+        $success = true;
         foreach ($items as $item) {
             if ($item->type == 'dir') {
-                $this->storage->deleteDir($item->path);
+                if (!$this->storage->deleteDir($item->path)) {
+                    $success = false;
+                }
             }
             if ($item->type == 'file') {
-                $this->storage->deleteFile($item->path);
+                if (!$this->storage->deleteFile($item->path)) {
+                    $success = false;
+                }
             }
         }
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 
     public function saveContent(Request $request, Response $response)
@@ -197,12 +222,12 @@ class FileController
         rewind($stream);
 
         $this->storage->deleteFile($path . $this->separator . $name);
-        $this->storage->store($path, $name, $stream);
+        $success = $this->storage->store($path, $name, $stream);
 
         if (is_resource($stream)) {
             fclose($stream);
         }
 
-        return $response->json('Done');
+        return $response->json($success ? 'Done' : 'Failed');
     }
 }
