@@ -122,6 +122,22 @@ export default {
   mounted() {
     this.resumable = new Resumable({
       target: Vue.config.baseURL+'/upload',
+      generateUniqueIdentifier: (file, event) => {
+        let relativePath = file.webkitRelativePath||file.relativePath||file.fileName||file.name;
+        let size = file.size;
+        let uniqueIdentifier = size + '-' + relativePath.replace(/[^0-9a-zA-Z_-]/img, '');
+
+        if (this.resumable && typeof this.resumable.getFromUniqueIdentifier === 'function') {
+          let existing = this.resumable.getFromUniqueIdentifier(uniqueIdentifier);
+          if (existing) {
+            let entry = this.findEntry(existing);
+            if (!entry || entry.isComplete || entry.isError) {
+              uniqueIdentifier += '-' + Date.now();
+            }
+          }
+        }
+        return uniqueIdentifier;
+      },
       headers: {
         'x-csrf-token': axios.defaults.headers.common['x-csrf-token']
       },
