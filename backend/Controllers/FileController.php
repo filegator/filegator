@@ -90,12 +90,17 @@ class FileController
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
 
+        $success = true;
         foreach ($items as $item) {
             if ($item->type == 'dir') {
-                $this->storage->copyDir($item->path, $destination);
+                if (!$this->storage->copyDir($item->path, $destination)) {
+                    $success = false;
+                }
             }
             if ($item->type == 'file') {
-                $this->storage->copyFile($item->path, $destination);
+                if (!$this->storage->copyFile($item->path, $destination)) {
+                    $success = false;
+                }
             }
         }
 
