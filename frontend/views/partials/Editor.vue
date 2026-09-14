@@ -57,7 +57,11 @@ export default {
         name: this.item.name,
         content: this.content,
       })
-        .then(() => {
+        .then((result) => {
+          if (result.data !== 'Done') {
+            this.handleError(this.lang('Unable to save file'))
+            return
+          }
           this.$toast.open({
             message: this.lang('Updated'),
             type: 'is-success',
