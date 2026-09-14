@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.16.3 - 2026-09-14
+* Add an toast on failures (see #606)
+
 ## 7.16.2 - 2026-09-07
 ## 7.16.1 - 2026-09-07
 * Fix docker image and ci/cd pipeline
