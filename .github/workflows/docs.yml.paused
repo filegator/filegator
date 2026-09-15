@@ -1,3 +1,20 @@
+# Generate docs (gh-pages branch) manually:
+#
+# 1. Install couscous (abandoned, but still works):
+# curl -OSL https://couscous.io/couscous.phar
+# chmod +x couscous.phar
+# sudo mv couscous.phar /usr/local/bin/couscous
+#
+# 2. Preview docs locally (see couscous.yml for configuration):
+# couscous preview 0.0.0.0:8000
+#
+# 3. Generate the docs and publish it to the gh-pages branch:
+# couscous deploy
+#
+# 4. After github finished deploying, you can view the docs at:
+# https://docs.filegator.io or https://filegator.github.io/filegator/
+#
+
 name: Couscous GithubPage
 
 on:
