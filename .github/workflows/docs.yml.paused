@@ -2,6 +2,8 @@
 #
 # 1. Install couscous (abandoned, but still works):
 # curl -OSL https://couscous.io/couscous.phar
+# or
+# curl -OSL https://github.com/filegator/static/raw/refs/heads/master/couscous.phar
 # chmod +x couscous.phar
 # sudo mv couscous.phar /usr/local/bin/couscous
 #
