@@ -104,6 +104,14 @@ docker run --rm -p 8080:8080 filegator/filegator
 visit: http://127.0.0.1:8080 login as admin/admin123
 ```
 
+**Or** deploy with [Easypanel](https://easypanel.io), a self-hosted Docker deployment platform — FileGator has a one-click deployment template there:
+
+[![Deploy on Easypanel][easypanel-btn]][easypanel-deploy]
+
+[easypanel-btn]: https://easypanel.io/img/deploy-on-easypanel-40.svg
+[easypanel-deploy]: https://easypanel.io/templates/filegator
+
+
 ## Download & Installation
 See [install instructions](https://docs.filegator.io/install.html). Get $100 in ([server credits here](https://m.do.co/c/93994ebda78d)) so you can play around.
 
