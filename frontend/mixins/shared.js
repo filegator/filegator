@@ -36,6 +36,7 @@ import persian from '../translations/persian'
 import estonian from '../translations/estonian'
 import ukrainian from '../translations/ukrainian'
 import danish from '../translations/danish'
+import azerbaijani from '../translations/azerbaijani'
 
 const funcs = {
   methods: {
@@ -80,6 +81,7 @@ const funcs = {
         'estonian': estonian,
         'ukrainian': ukrainian,
         'danish': danish,
+        'azerbaijani': azerbaijani,
       }
 
       let language = store.state.config.language
