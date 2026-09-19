@@ -31,13 +31,16 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 
 
 ## Sponsors & Backers
-FileGator is a free, open-source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/filegator/filegator/blob/master/BACKERS.md). If you'd like to join them, please consider:
-
-- [Become a backer or sponsor on Patreon](https://www.patreon.com/alcalbg).
+FileGator is a free, open-source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/filegator/filegator/blob/master/BACKERS.md) and sponsors:
 
 <table align="center">
   <tbody>
     <tr>
+      <td align="center" valign="middle">
+        <a href="https://www.hostinger.com" target="_blank">
+          <img title="Hostinger" width="177px" src="https://filegator.io/img/hstngr.png">
+        </a>
+      </td>
       <td align="center" valign="middle">
         <a href="https://www.linkpreview.net/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
           <img title="Preview Web Links with our Free API service. Get JSON Response for any URL" width="200px" src="https://www.linkpreview.net/images/logo-dark.png">
@@ -57,14 +60,6 @@ FileGator is a free, open-source project. It's an independent project with its o
   </tbody>
 </table>
 
-## Demo
-[https://demo.filegator.io](https://demo.filegator.io)
-
-This is read-only demo with guest account enabled
-- you can log in as `john/john` to see John's private files
-- or `jane/jane` as readonly + download user.
-
-
 ## Typical use cases
 - share a folder with colleagues, your team, friends or family
 - give students access to upload their work
@@ -77,7 +72,7 @@ This is read-only demo with guest account enabled
 
 
 ## Documentation
-[Check out the documentation](https://docs.filegator.io/)
+Check out the official [documentation](https://docs.filegator.io/) on how to download, [install](https://docs.filegator.io/install.html) and use FileGator.
 
 
 ## Features & Goals
@@ -104,55 +99,14 @@ docker run --rm -p 8080:8080 filegator/filegator
 visit: http://127.0.0.1:8080 login as admin/admin123
 ```
 
-## Download & Installation
-See [install instructions](https://docs.filegator.io/install.html). Get $100 in ([server credits here](https://m.do.co/c/93994ebda78d)) so you can play around.
+## Other installation methods
+Sponsored or community-contributed installation methods for various platforms:
 
+- **[One-click deployment](https://www.hostg.xyz/SHK2W)** provided by [Hostinger](https://hostinger.com). No technical setup or manual server configuration is required.                                      
+- **[Deploy with Easypanel](https://easypanel.io/templates/filegator)**, a self-hosted Docker deployment platform.
 
-## Project setup for development (Docker)
+Please note that this section may contain affiliate links. We may earn a commission at no extra cost to you, which helps support FileGator and its development.
 
-```
-git clone https://github.com/filegator/filegator.git
-cd filegator
-docker compose -f docker-compose-dev.yml up
-```
-Once everything is ready visit: [http://localhost:8080](http://localhost:8080) and login as admin/admin123, Ctrl+c to stop.
-
-See `docker-compose-dev.yml` for more informations about configurations and dependencies.
-
-## Project setup for development (Linux)
-
-You must have `git`, `php`, `node (v14)`, `npm`, and `composer` installed.
-
-```
-git clone https://github.com/filegator/filegator.git
-cd filegator
-cp configuration_sample.php configuration.php
-chmod -R 775 private/
-chmod -R 775 repository/
-composer install --ignore-platform-reqs
-npm install
-npm run build
-npm run serve
-```
-Once everything is ready visit: [http://localhost:8080](http://localhost:8080) and login as admin/admin123
-
-
-## Run tests & static analysis
-
-Testing requires xdebug, php-zip and sqlite php extensions.
-
-```
-vendor/bin/phpunit
-vendor/bin/phpstan analyse ./backend
-npm run lint
-```
-
-
-## Deployment
-
-Set the website document root to `filegator/dist` directory. This is also known as 'public' folder.
-
-NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
 
 ## Show your support
 
