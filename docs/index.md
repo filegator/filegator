@@ -51,23 +51,9 @@ visit: http://127.0.0.1:8080 login as admin/admin123
 - File ownership is not supported (chown)
 - Too many files in the same directory can negatively impact performance
 
-## Why Open Source on GitHub?
-
-There are several reasons why we switched to open source model and GitHub.
-
-Basically, we wanted to increase:
-
-- Code quality by bringing more developers on board
-- Code auditability and visibility
-- Security
-- Project lifetime
-
-At the end, the more people who can see and test a set of code, the more likely any flaws will be caught and fixed quickly.
-
 ## Show your support
 
-- Please star this repository on [GitHub](https://github.com/filegator/filegator/stargazers) if this project helped you!
-- Become a backer or sponsor on [Patreon](https://www.patreon.com/alcalbg).
+- Please star this repository on [GitHub](https://github.com/filegator/filegator) if this project helped you!
 
 ## License
 

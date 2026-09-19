@@ -53,13 +53,17 @@ exit
 ```
 Open your browser and go to http://your_server_ip_address
 
+## Other installation methods
+Sponsored or community-contributed installation methods for various platforms:
 
+- **[One-click deployment](https://www.hostg.xyz/SHK2W)** provided by [Hostinger](https://hostinger.com). No technical setup or manual server configuration is required.
+- **[Deploy with Easypanel](https://easypanel.io/templates/filegator)**, a self-hosted Docker deployment platform.
+
+<small>Please note that this section may contain affiliate links. We may earn a commission at no extra cost to you, which helps support FileGator and its development.</small>
 
 ## Show your support
 
-- Please star this repository on [GitHub](https://github.com/filegator/filegator/stargazers) if this project helped you!
-- Become a backer or sponsor on [Patreon](https://www.patreon.com/alcalbg).
-
+- Please star this repository on [GitHub](https://github.com/filegator/filegator) if this project helped you!
 
 ## Upgrade instructions
 
