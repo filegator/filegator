@@ -32,11 +32,6 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 ## Demo
 [https://demo.filegator.io](https://demo.filegator.io)
 
-This is read-only demo with guest account enabled
-
-- you can log in as john/john to see John's private files
-- or jane/jane as readonly + download user.
-
 ## Docker
 Check out [the official docker image](https://hub.docker.com/r/filegator/filegator) with instructions on how to use it
 

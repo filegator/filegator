@@ -27,7 +27,7 @@ Precompiled build is created for non-developers. In this version, the frontend (
 NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
 
 ## Install on fresh Ubuntu 18.04 or Debian 10.3
-On a new server ([get $100 in server credits](https://m.do.co/c/93994ebda78d)) login as root and enter this into the shell:
+On a new server login as root and enter this into the shell:
 ```
 apt update
 apt install -y wget unzip php apache2 libapache2-mod-php php-zip php-mbstring php-dom php-xml
