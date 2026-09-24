@@ -173,4 +173,12 @@ class UserTest extends TestCase
 
         $this->assertTrue($user->hasPermissions('zip'));
     }
+
+    public function testUserCanHaveDeletePermissions()
+    {
+        $user = new User();
+        $user->setPermissions(['delete']);
+
+        $this->assertTrue($user->hasPermissions('delete'));
+    }
 }

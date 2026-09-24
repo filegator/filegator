@@ -40,7 +40,7 @@ Then, import default users with sql query:
 INSERT INTO `users` (`username`, `name`, `role`, `permissions`, `homedir`, `password`)
 VALUES
 ('guest', 'Guest', 'guest', '', '/', ''),
-('admin', 'Admin', 'admin', 'read|write|upload|download|batchdownload|zip', '/', '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq');
+('admin', 'Admin', 'admin', 'read|write|delete|upload|download|batchdownload|zip', '/', '$2y$10$Nu35w4pteLfc7BDCIkDPkecjw8wsH8Y2GMfIewUbXLT7zzW6WOxwq');
 ```
 
 At the end, open `configuration.php` and update AuthInterface handler to reflect your database settings:
@@ -67,7 +67,7 @@ Replace your current Auth handler in `configuration.php` file like this:
             'handler' => '\Filegator\Services\Auth\Adapters\WPAuth',
             'config' => [
                 'wp_dir' => '/var/www/my_wordpress_site/',
-                'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload', 'zip'],
+                'permissions' => ['read', 'write', 'delete', 'upload', 'download', 'batchdownload', 'zip'],
                 'private_repos' => false,
             ],
         ],
@@ -107,7 +107,7 @@ Replace your current Auth handler in `configuration.php` file like this:
                         'username_RemoveDomains' =>['@department1.example.com', '@department2.example.com'],
                         'name' =>'cn',
                         'userDN' =>'dn',
-                        'default_permissions' => 'read|write|upload|download|batchdownload|zip',
+                        'default_permissions' => 'read|write|delete|upload|download|batchdownload|zip',
                         'admin_usernames' =>['user1', 'user2'],
                     ],
             ],
