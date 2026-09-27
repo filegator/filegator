@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.16.5 - 2026-09-27
+* Security fix for GHSA-33r5-wp7h-gc72, reported by @d3ebug
+
 ## 7.16.4 - 2026-09-20
 * Security fix: path traversal in escapeDots filter
 * Add Azerbaijani translation (#611)
