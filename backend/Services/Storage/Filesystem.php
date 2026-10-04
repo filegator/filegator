@@ -74,6 +74,11 @@ class Filesystem implements Service
         $source = $this->applyPathPrefix($source);
         $destination = $this->joinPaths($this->applyPathPrefix($destination), $this->getBaseName($source));
 
+        if ($destination == $source) {
+            throw new \Exception('Cannot copy file to the same path');
+            return false;
+        }
+
         while ($this->storage->has($destination)) {
             $destination = $this->upcountName($destination);
         }
@@ -87,6 +92,11 @@ class Filesystem implements Service
         $destination = $this->applyPathPrefix($this->addSeparators($destination));
         $source_dir = $this->getBaseName($source);
         $real_destination = $this->joinPaths($destination, $source_dir);
+
+        if ($real_destination == $source) {
+            throw new \Exception('Cannot copy folder to the same path');
+            return false;
+        }
 
         while (! empty($this->storage->listContents($real_destination, true))) {
             $real_destination = $this->upcountName($real_destination);
@@ -144,6 +154,11 @@ class Filesystem implements Service
         $from = $this->applyPathPrefix($from);
         $to = $this->applyPathPrefix($to);
 
+        if ($to == $from) {
+            throw new \Exception('Cannot move to the same path');
+            return false;
+        }
+
         while ($this->storage->has($to)) {
             $to = $this->upcountName($to);
         }
@@ -155,6 +170,11 @@ class Filesystem implements Service
     {
         $from = $this->joinPaths($this->applyPathPrefix($destination), $from);
         $to = $this->joinPaths($this->applyPathPrefix($destination), $to);
+
+        if ($to == $from) {
+            throw new \Exception('Cannot rename to the same path');
+            return false;
+        }
 
         while ($this->storage->has($to)) {
             $to = $this->upcountName($to);
