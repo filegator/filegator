@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Качване {0}% от {1}',
   'File size error': '{0} е твърде голям, моля, качете файлове по-малко от {1}',
   'Upload failed': '{0} Грещка при качване',
+  'Upload summary': '{0} успешни, {1} неуспешни, {2} общо',
   'Per page': '{0} На страница',
   'Folder': 'Папка',
   'Login failed, please try again': 'Грешка при вписване, опитайте отново',

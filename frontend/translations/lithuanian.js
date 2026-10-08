@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Įkeliama {0}% iš {1}',
   'File size error': '{0} yra per didelis, prašome įkelti mažesnius failus nei {1}',
   'Upload failed': '{0} nepavyko įkelti',
+  'Upload summary': '{0} sėkmingai, {1} nepavyko, {2} iš viso',
   'Per page': '{0} puslapyje',
   'Folder': 'Aplankas',
   'Login failed, please try again': 'Nepavyko prisijungti, bandykite dar kartą',

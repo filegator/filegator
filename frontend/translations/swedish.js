@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Laddar upp {0}% of {1}',
   'File size error': '{0} är för stor, max filstorlek är {1}',
   'Upload failed': '{0} uppladdning misslyckades',
+  'Upload summary': '{0} lyckades, {1} misslyckades, {2} totalt',
   'Per page': '{0} Per sida',
   'Folder': 'Mapp',
   'Login failed, please try again': 'Inloggning misslyckades, försök igen.',

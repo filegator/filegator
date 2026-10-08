@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Uploader {0}% af {1}',
   'File size error': '{0} er for stor, upload venligst filer mindre end {1}',
   'Upload failed': '{0} kunne ikke uploades',
+  'Upload summary': '{0} gennemført, {1} mislykkedes, {2} i alt',
   'Per page': '{0} pr. side',
   'Folder': 'Mappe',
   'Login failed, please try again': 'Login mislykkedes, prøv venligst igen',
