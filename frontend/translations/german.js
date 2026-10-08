@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Hochladen: {0}% von {1}',
   'File size error': '{0} ist zu groß, bitte nur Dateien hochladen, die kleiner als {1} sind.',
   'Upload failed': '{0} wurde(n) nicht hochgeladen',
+  'Upload summary': '{0} erfolgreich, {1} fehlgeschlagen, {2} insgesamt',
   'Per page': '{0} pro Seite',
   'Folder': 'Ordner',
   'Login failed, please try again': 'Anmeldung fehlgeschlagen, bitte nochmal versuchen.',

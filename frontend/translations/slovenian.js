@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Nalaganje {0}% od {1}',
   'File size error': '{0} datoteka je prevelika, prosimo, naložite datoteko, manjšo od {1}',
   'Upload failed': '{0} napaka med nalaganjem',
+  'Upload summary': '{0} uspešnih, {1} neuspešnih, {2} skupaj',
   'Per page': '{0} Na stran',
   'Folder': 'Mapa',
   'Login failed, please try again': 'Neuspešna prijava, prosimo, poskusite ponovno',
