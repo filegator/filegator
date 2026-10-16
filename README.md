@@ -37,7 +37,7 @@ FileGator is a free, open-source project. It's an independent project with its o
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <a href="https://www.hostinger.com" target="_blank">
+        <a href="https://www.hostg.xyz/aff_c?offer_id=815&aff_id=244019" target="_blank">
           <img title="Hostinger" width="177px" src="https://filegator.io/img/hstngr.png">
         </a>
       </td>
@@ -54,6 +54,11 @@ FileGator is a free, open-source project. It's an independent project with its o
       <td align="center" valign="middle">
         <a href="https://interactive32.com/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
           <img title="Modern approach to software development" width="177px" src="https://interactive32.com/images/logo.png">
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.vanillavoice.com/?utm_campaign=Sponsored%20GitHub%20FileGator" target="_blank">
+          <img title="VanillaVoice - Turn any Text into Human-Sounding Speech" width="200px" src="https://www.vanillavoice.com/static/img/logo.svg">
         </a>
       </td>
     </tr>
@@ -102,7 +107,7 @@ visit: http://127.0.0.1:8080 login as admin/admin123
 ## Other installation methods
 Sponsored or community-contributed installation methods for various platforms:
 
-- **[One-click deployment](https://www.hostg.xyz/SHK2W)** provided by [Hostinger](https://hostinger.com). No technical setup or manual server configuration is required.                                      
+- **[One-click deployment](https://www.hostg.xyz/SHK2W)** provided by [Hostinger](https://www.hostg.xyz/aff_c?offer_id=815&aff_id=244019). No technical setup or manual server configuration is required.                                      
 - **[Deploy with Easypanel](https://easypanel.io/templates/filegator)**, a self-hosted Docker deployment platform.
 
 Please note that this section may contain affiliate links. We may earn a commission at no extra cost to you, which helps support FileGator and its development.
