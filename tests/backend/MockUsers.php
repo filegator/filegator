@@ -54,14 +54,14 @@ class MockUsers extends JsonFile implements Service, AuthInterface
         $admin->setHomedir('/');
         $admin->setUsername('admin@example.com');
         $admin->setName('Admin');
-        $admin->setPermissions(['read', 'write', 'upload', 'download', 'batchdownload', 'zip']);
+        $admin->setPermissions(['read', 'write', 'delete', 'upload', 'download', 'batchdownload', 'zip']);
 
         $john = new User();
         $john->setRole('user');
         $john->setHomedir('/john');
         $john->setUsername('john@example.com');
         $john->setName('John Doe');
-        $john->setPermissions(['read', 'write', 'upload', 'download', 'batchdownload']);
+        $john->setPermissions(['read', 'write', 'delete', 'upload', 'download', 'batchdownload']);
 
         $jane = new User();
         $jane->setRole('user');
