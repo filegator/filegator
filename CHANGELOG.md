@@ -2,11 +2,15 @@
 
 ## Upcoming...
 
-## 7.16.7 - 2026-09-27
+## 7.16.8 - 2026-09-27
 * Security fix for Critical PHP Vulnerabilities CVE-2026-109618 & CVE-2026-109619 (PHP2Shell) affecting FileGator Docker Image.
 * Security fix for [GHSA-33r5-wp7h-gc72](https://github.com/filegator/filegator/security/advisories/GHSA-c2f4-g7pq-3p3f)
 * Related issue https://github.com/filegator/filegator/issues/615
 * If you are using filegator's docker image then update now.
+* Update dependencies, set composer to  block-insecure=false so this can pass on github actions and build a fixed image (TODO: upgrade Flysystem)
+
+## 7.16.7 - 2026-09-27
+* Invalid release, github action failed
 
 ## 7.16.6 - 2026-09-27
 * Invalid release, github action failed

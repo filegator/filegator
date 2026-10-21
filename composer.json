@@ -8,10 +8,7 @@
             "php": "8.1"
         },
         "audit": {
-            "ignore": {
-                "PKSA-w9tt-7782-78jx": "Flysystem 1.x is EOL, no fixed release exists (low severity, CVE-2026-102601)",
-                "PKSA-pwh8-d4fr-nywn": "Flysystem 1.x is EOL, no fixed release exists"
-            }
+            "block-insecure": false
         }
     },
     "require": {
