@@ -48,7 +48,7 @@ FileGator is a free, open-source project. It's an independent project with its o
       </td>
       <td align="center" valign="middle">
         <a href="https://correctme.app/?ref=github.com%2Ffilegator%2Ffilegator" target="_blank">
-          <img title="Free Online Grammar and Spell Checker" width="177px" src="https://correctme.app/logo.png">
+          <img title="Free Online Grammar and Spell Checker" width="177px" src="https://correctme.app/static/img/logo.svg">
         </a>
       </td>
       <td align="center" valign="middle">
