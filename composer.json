@@ -6,14 +6,20 @@
     "config": {
         "platform": {
             "php": "8.1"
+        },
+        "audit": {
+            "ignore": {
+                "PKSA-w9tt-7782-78jx": "Flysystem 1.x is EOL, no fixed release exists (low severity, CVE-2026-102601)",
+                "PKSA-pwh8-d4fr-nywn": "Flysystem 1.x is EOL, no fixed release exists"
+            }
         }
     },
     "require": {
         "php": "^8.1",
         "monolog/monolog": "^1.24",
         "nikic/fast-route": "^1.3",
-        "symfony/security-csrf": "^4.4",
-        "symfony/http-foundation": "^4.4",
+        "symfony/security-csrf": "^5.4",
+        "symfony/http-foundation": "^5.4",
         "dibi/dibi": "^4.1",
         "php-di/php-di": "^6.0",
         "rakit/validation": "^1.1",

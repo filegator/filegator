@@ -2,8 +2,14 @@
 
 ## Upcoming...
 
-## 7.16.5 - 2026-09-27
-* Security fix for GHSA-33r5-wp7h-gc72, reported by @d3ebug
+## 7.16.7 - 2026-09-27
+* Security fix for Critical PHP Vulnerabilities CVE-2026-109618 & CVE-2026-109619 (PHP2Shell) affecting FileGator Docker Image.
+* Security fix for [GHSA-33r5-wp7h-gc72](https://github.com/filegator/filegator/security/advisories/GHSA-c2f4-g7pq-3p3f)
+* Related issue https://github.com/filegator/filegator/issues/615
+* If you are using filegator's docker image then update now.
+
+## 7.16.6 - 2026-09-27
+* Invalid release, github action failed
 
 ## 7.16.4 - 2026-09-20
 * Security fix: path traversal in escapeDots filter
