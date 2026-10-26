@@ -51,6 +51,8 @@ class Security implements Service
 
                 if (! $csrfManager->isTokenValid($token)) {
                     $this->logger->log("Csrf token not valid");
+                    $this->response->json('Csrf token not valid', 403);
+                    $this->response->send();
                     die;
                 }
             }
