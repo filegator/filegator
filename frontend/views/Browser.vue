@@ -173,6 +173,7 @@
 import Vue from 'vue'
 import Menu from './partials/Menu'
 import Tree from './partials/Tree'
+import ConflictModal from './partials/ConflictModal'
 import Permissions from './partials/Permissions'
 import Editor from './partials/Editor'
 import Gallery from './partials/Gallery'
@@ -362,6 +363,7 @@ export default {
       })
     },
     copy(event, item) {
+      let items = item ? [item] : this.getSelected()
       this.$modal.open({
         parent: this,
         hasModalCard: true,
@@ -369,13 +371,28 @@ export default {
         events: {
           selected: dir => {
             this.isLoading = true
-            api.copyItems({
+            api.checkConflicts({
               destination: dir.path,
-              items: item ? [item] : this.getSelected(),
+              items: items,
             })
-              .then(() => {
+              .then(res => {
                 this.isLoading = false
-                this.loadFiles()
+                let conflicts = res && res.conflicts ? res.conflicts : []
+                if (conflicts.length > 0) {
+                  this.$modal.open({
+                    parent: this,
+                    hasModalCard: true,
+                    component: ConflictModal,
+                    props: { conflicts: conflicts },
+                    events: {
+                      resolve: action => {
+                        this.executeCopy(items, dir.path, action)
+                      }
+                    }
+                  })
+                } else {
+                  this.executeCopy(items, dir.path, 'rename')
+                }
               })
               .catch(error => {
                 this.isLoading = false
@@ -386,7 +403,24 @@ export default {
         },
       })
     },
+    executeCopy(items, destination, action) {
+      this.isLoading = true
+      api.copyItems({
+        destination: destination,
+        items: items,
+        action: action,
+      })
+        .then(() => {
+          this.isLoading = false
+          this.loadFiles()
+        })
+        .catch(error => {
+          this.isLoading = false
+          this.handleError(error)
+        })
+    },
     move(event, item) {
+      let items = item ? [item] : this.getSelected()
       this.$modal.open({
         parent: this,
         hasModalCard: true,
@@ -394,13 +428,28 @@ export default {
         events: {
           selected: dir => {
             this.isLoading = true
-            api.moveItems({
+            api.checkConflicts({
               destination: dir.path,
-              items: item ? [item] : this.getSelected(),
+              items: items,
             })
-              .then(() => {
+              .then(res => {
                 this.isLoading = false
-                this.loadFiles()
+                let conflicts = res && res.conflicts ? res.conflicts : []
+                if (conflicts.length > 0) {
+                  this.$modal.open({
+                    parent: this,
+                    hasModalCard: true,
+                    component: ConflictModal,
+                    props: { conflicts: conflicts },
+                    events: {
+                      resolve: action => {
+                        this.executeMove(items, dir.path, action)
+                      }
+                    }
+                  })
+                } else {
+                  this.executeMove(items, dir.path, 'rename')
+                }
               })
               .catch(error => {
                 this.isLoading = false
@@ -410,6 +459,22 @@ export default {
           }
         },
       })
+    },
+    executeMove(items, destination, action) {
+      this.isLoading = true
+      api.moveItems({
+        destination: destination,
+        items: items,
+        action: action,
+      })
+        .then(() => {
+          this.isLoading = false
+          this.loadFiles()
+        })
+        .catch(error => {
+          this.isLoading = false
+          this.handleError(error)
+        })
     },
     batchDownload() {
       let items = this.getSelected()

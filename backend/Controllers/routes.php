@@ -96,6 +96,17 @@ return [
     ],
     [
         'route' => [
+            'POST', '/checkconflicts', '\Filegator\Controllers\FileController@checkConflicts',
+        ],
+        'roles' => [
+            'guest', 'user', 'admin',
+        ],
+        'permissions' => [
+            'read', 'write',
+        ],
+    ],
+    [
+        'route' => [
             'POST', '/moveitems', '\Filegator\Controllers\FileController@moveItems',
         ],
         'roles' => [
