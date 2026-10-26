@@ -43,4 +43,12 @@ class DatabaseAuthTest extends AuthTest
             )');
         $this->conn->fetch('SELECT * FROM users WHERE username = ?', 'admin');
     }
+
+    protected function tearDown(): void
+    {
+        if ($this->conn) {
+            $this->conn->disconnect();
+        }
+        parent::tearDown();
+    }
 }
