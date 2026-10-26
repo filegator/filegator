@@ -317,7 +317,7 @@ class Filesystem implements Service
 
     protected function upcountCallback($matches)
     {
-        $index = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
+        $index = isset($matches[1]) && $matches[1] !== '' ? intval($matches[1]) + 1 : 1;
         $ext = $matches[2] ?? '';
 
         return ' (' . $index . ')' . $ext;
@@ -326,7 +326,7 @@ class Filesystem implements Service
     protected function upcountName($name)
     {
         return preg_replace_callback(
-            '/(?:(?: \(([\d]+)\))?(\.[^.]+))?$/',
+            '/(?: \(([\d]+)\))?(?:(\.[^.]+))?$/',
             [$this, 'upcountCallback'],
             $name,
             1
