@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Przesyłanie {0}% z {1}',
   'Błąd rozmiaru pliku': '{0} jest za duży, prześlij mniejszy plik {1}',
   'Upload failed': '{0} plików nie udało się przesłać',
+  'Upload summary': '{0} udanych, {1} nieudanych, {2} łącznie',
   'Per page': '{0} Na stronę',
   'Folder': 'Folder',
   'Login failed, please try again': 'Zły login lub hasło.',

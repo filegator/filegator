@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Yükleniyor {0}% - {1}',
   'File size error': '{0} çok büyük, lütfen {1} den küçük dosya yükleyin',
   'Upload failed': '{0} yüklenemedi',
+  'Upload summary': '{0} başarılı, {1} başarısız, {2} toplam',
   'Per page': 'Sayfa başına {0} tane',
   'Folder': 'Klasör',
   'Login failed, please try again': 'Giriş başarısız. Lütfen tekrar deneyin',

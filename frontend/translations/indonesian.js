@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Mengunggah {0}% of {1}',
   'File size error': '{0} file terlalu besar, harap unggah file lebih kecil dari {1}',
   'Upload failed': '{0} gagal diunggah',
+  'Upload summary': '{0} berhasil, {1} gagal, {2} total',
   'Per page': '{0} Per halaman',
   'Folder': 'Berkas',
   'Login failed, please try again': 'Gagal masuk, silakan coba lagi',

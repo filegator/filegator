@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Geüpload: {0}% van {1}',
   'File size error': '{0} is te groot, maximale grootte is {1}',
   'Upload failed': '{0} upload mislukt',
+  'Upload summary': '{0} geslaagd, {1} mislukt, {2} totaal',
   'Per page': '{0} per pagina',
   'Folder': 'Map',
   'Login failed, please try again': 'Login mislukt, probeer het nog eens...',

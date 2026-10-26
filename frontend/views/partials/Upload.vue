@@ -21,7 +21,7 @@
                 {{ lang('Done') }}
               </span>
               <span v-if="totalUploadsCount" class="summary-text">
-                ({{ successUploadsCount }} successful, {{ failedUploadsCount }} failed, {{ totalUploadsCount }} total)
+                ({{ lang('Upload summary', successUploadsCount, failedUploadsCount, totalUploadsCount) }})
               </span>
             </div>
             <div class="is-flex">

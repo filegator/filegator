@@ -29,8 +29,8 @@ class AuthController
 
     public function login(Request $request, Response $response, AuthInterface $auth, TmpfsInterface $tmpfs, Config $config)
     {
-        $username = $request->input('username');
-        $password = $request->input('password');
+        $username = (string) $request->input('username');
+        $password = (string) $request->input('password');
         $ip = $request->getClientIp();
 
         $lockfile = md5($ip) . '.lock';

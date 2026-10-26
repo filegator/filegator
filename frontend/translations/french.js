@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Upload {0}% sur {1}',
   'File size error': '{0} est trop volumineux, merci d\'uploader des fichiers inférieurs à {1}',
   'Upload failed': '{0} échec(s) d\'envoi',
+  'Upload summary': '{0} réussi(s), {1} échoué(s), {2} au total',
   'Per page': '{0} par page',
   'Folder': 'Dossier',
   'Login failed, please try again': 'Identification échoué, veuillez réessayer...',

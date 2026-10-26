@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Üleslaadimine {0}% of {1}',
   'File size error': '{0} on liiga suur, palun laadige faile üles vähem kui {1}',
   'Upload failed': '{0} üleslaadimine nurjus',
+  'Upload summary': '{0} õnnestus, {1} nurjus, {2} kokku',
   'Per page': '{0} Lehekülje kohta',
   'Folder': 'Kaust',
   'Login failed, please try again': 'Sisselogimine ebaõnnestus, proovige uuesti',

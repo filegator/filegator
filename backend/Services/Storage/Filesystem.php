@@ -406,6 +406,7 @@ class Filesystem implements Service
         $path = preg_replace('/\.{2,}\\\+/', '', $path);
         $path = preg_replace('/\/+\.{2,}/', '', $path);
         $path = preg_replace('/\.{2,}\/+/', '', $path);
+        $path = preg_replace('#(^|[\\\\/])\.\.($|[\\\\/])#', '$1$2', $path);
 
         return $path;
     }

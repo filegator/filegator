@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Subiendo {0}% de {1}',
   'File size error': '{0} es demasiado grande, por favor suba ficheros menores a {1}',
   'Upload failed': '{0} no se pudo subir',
+  'Upload summary': '{0} correctos, {1} fallidos, {2} en total',
   'Per page': '{0} por página',
   'Folder': 'Carpeta',
   'Login failed, please try again': 'Inicio de sesión incorrecto, por favor pruebe de nuevo',

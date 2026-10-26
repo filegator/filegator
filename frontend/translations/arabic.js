@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'تحميل {0}% من {1}',
   'File size error': '{0} كبير جدًا ، يرجى تحميل ملفات أقل من {1}',
   'Upload failed': '{0} فشل التحميل',
+  'Upload summary': '{0} ناجح، {1} فاشل، {2} الإجمالي',
   'Per page': '{0} لكل صفحة',
   'Folder': 'مجلد',
   'Login failed, please try again': 'فشل تسجيل الدخول, يرجى المحاولة مرة أخرى',

@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Nahrávám {0}% z {1}',
   'File size error': '{0} je příliš velký, nahrávejte soubory menší jak {1}',
   'Upload failed': '{0} se nepodařilo nahrát',
+  'Upload summary': '{0} úspěšných, {1} neúspěšných, {2} celkem',
   'Per page': '{0} na stránku',
   'Folder': 'Adresář',
   'Login failed, please try again': 'Přihlášení neúspěšné, zkuste to znova',

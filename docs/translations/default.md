@@ -60,6 +60,7 @@ const data = {
   'Uploading files': 'Uploading {0}% of {1}',
   'File size error': '{0} is too large, please upload files less than {1}',
   'Upload failed': '{0} failed to upload',
+  'Upload summary': '{0} successful, {1} failed, {2} total',
   'Per page': '{0} Per Page',
   'Folder': 'Folder',
   'Login failed, please try again': 'Login failed, please try again',

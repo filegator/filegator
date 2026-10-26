@@ -3,6 +3,7 @@ const data = {
   'Uploading files': '{1} 중 {0}% 업로드 진행',
   'File size error': '{1} 이하의 파일만 업로드가 가능합니다.',
   'Upload failed': '{0} 업로드 실패',
+  'Upload summary': '성공 {0}, 실패 {1}, 총 {2}',
   'Per page': '{0}개씩 보기',
   'Folder': '폴더',
   'Login failed, please try again': '로그인 실패, 다시 시도하십시오.',

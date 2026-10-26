@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Feltöltés {0}% Feltöltve {1}',
   'File size error': '{0} Túl nagy fájl {1}',
   'Upload failed': '{0} Sikertelen feltöltés',
+  'Upload summary': '{0} sikeres, {1} sikertelen, {2} összesen',
   'Per page': '{0} Oldalanként',
   'Folder': 'Mappa',
   'Login failed, please try again': 'Sikertelen belépés, próbálja újra',

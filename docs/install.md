@@ -27,7 +27,7 @@ Precompiled build is created for non-developers. In this version, the frontend (
 NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
 
 ## Install on fresh Ubuntu 18.04 or Debian 10.3
-On a new server ([get $100 in server credits](https://m.do.co/c/93994ebda78d)) login as root and enter this into the shell:
+On a new server login as root and enter this into the shell:
 ```
 apt update
 apt install -y wget unzip php apache2 libapache2-mod-php php-zip php-mbstring php-dom php-xml
@@ -53,13 +53,17 @@ exit
 ```
 Open your browser and go to http://your_server_ip_address
 
+## Other installation methods
+Sponsored or community-contributed installation methods for various platforms:
 
+- **[One-click deployment](https://www.hostg.xyz/SHK2W)** provided by [Hostinger](https://hostinger.com). No technical setup or manual server configuration is required.
+- **[Deploy with Easypanel](https://easypanel.io/templates/filegator)**, a self-hosted Docker deployment platform.
+
+<small>Please note that this section may contain affiliate links. We may earn a commission at no extra cost to you, which helps support FileGator and its development.</small>
 
 ## Show your support
 
-- Please star this repository on [GitHub](https://github.com/filegator/filegator/stargazers) if this project helped you!
-- Become a backer or sponsor on [Patreon](https://www.patreon.com/alcalbg).
-
+- Please star this repository on [GitHub](https://github.com/filegator/filegator) if this project helped you!
 
 ## Upgrade instructions
 

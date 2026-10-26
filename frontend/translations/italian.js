@@ -3,6 +3,7 @@ const data = {
   'Uploading files': 'Caricamento {0}% di {1}',
   'File size error': '{0} File troppo grande. Dimensione massima consentita {1}',
   'Upload failed': '{0} Caricamento fallito',
+  'Upload summary': '{0} riusciti, {1} falliti, {2} totali',
   'Per page': '{0} per pagina',
   'Folder': 'Cartella',
   'Login failed, please try again': 'Username o password non corretti',
