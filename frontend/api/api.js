@@ -206,6 +206,7 @@ const api = {
     return new Promise((resolve, reject) => {
       axios.get('download&path='+encodeURIComponent(Base64.encode(params.path)),
         {
+          rawResponse: true,
           transformResponse: [data => data],
         })
         .then(res => resolve(res.data))

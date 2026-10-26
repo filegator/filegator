@@ -122,9 +122,9 @@ export default {
   mounted() {
     this.resumable = new Resumable({
       target: Vue.config.baseURL+'/upload',
-      headers: {
+      headers: () => ({
         'x-csrf-token': axios.defaults.headers.common['x-csrf-token']
-      },
+      }),
       withCredentials: true,
       simultaneousUploads: this.$store.state.config.upload_simultaneous,
       minFileSize: 0,
@@ -184,6 +184,7 @@ export default {
       file.file.uploadEntryId = entry.id
 
       if (!this.paused) {
+        this.syncCsrfToken()
         this.resumable.upload()
       }
     })
@@ -229,6 +230,13 @@ export default {
     })
   },
   methods: {
+    syncCsrfToken() {
+      if (this.resumable && this.resumable.opts) {
+        this.resumable.opts.headers = {
+          'x-csrf-token': axios.defaults.headers.common['x-csrf-token']
+        }
+      }
+    },
     createUploadEntry({fileName, relativePath, size, retryable, resumableFile, inProgress, isComplete, isError}) {
       const entry = {
         id: this.nextUploadEntryId++,
@@ -331,6 +339,7 @@ export default {
       entry.resumableFile.retry()
 
       if (!this.paused) {
+        this.syncCsrfToken()
         this.resumable.upload()
       }
 
@@ -374,6 +383,7 @@ export default {
             this.resetEntrySpeed(entry)
           }
         })
+        this.syncCsrfToken()
         this.resumable.upload()
         this.paused = false
       } else {
