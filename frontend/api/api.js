@@ -58,11 +58,22 @@ const api = {
         .catch(error => reject(error))
     })
   },
+  checkConflicts(params) {
+    return new Promise((resolve, reject) => {
+      axios.post('checkconflicts', {
+        destination: params.destination,
+        items: params.items,
+      })
+        .then(res => resolve(res.data.data))
+        .catch(error => reject(error))
+    })
+  },
   copyItems(params) {
     return new Promise((resolve, reject) => {
       axios.post('copyitems', {
         destination: params.destination,
         items: params.items,
+        action: params.action || 'rename',
       })
         .then(res => resolve(res.data.data))
         .catch(error => reject(error))
@@ -73,6 +84,7 @@ const api = {
       axios.post('moveitems', {
         destination: params.destination,
         items: params.items,
+        action: params.action || 'rename',
       })
         .then(res => resolve(res.data.data))
         .catch(error => reject(error))

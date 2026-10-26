@@ -66,52 +66,54 @@ class Filesystem implements Service
     {
         $path = $this->applyPathPrefix($path);
 
+        try {
+            $metadata = $this->storage->getMetadata($path);
+            if (isset($metadata['type'])) {
+                return $metadata['type'] === 'dir';
+            }
+        } catch (\Exception $e) {
+            // fallback
+        }
+
         return $this->storage->getSize($path) === false;
     }
 
-    public function copyFile(string $source, string $destination)
+    public function copyFile(string $source, string $destination, bool $overwrite = false)
     {
         $source = $this->applyPathPrefix($source);
         $destination = $this->joinPaths($this->applyPathPrefix($destination), $this->getBaseName($source));
 
-        while ($this->storage->has($destination)) {
-            $destination = $this->upcountName($destination);
+        if ($this->storage->has($destination)) {
+            if ($overwrite) {
+                $this->storage->delete($destination);
+            } else {
+                while ($this->storage->has($destination)) {
+                    $destination = $this->upcountName($destination);
+                }
+            }
         }
 
         return $this->storage->copy($source, $destination);
     }
 
-    public function copyDir(string $source, string $destination)
+    public function copyDir(string $source, string $destination, bool $overwrite = false)
     {
         $source = $this->applyPathPrefix($this->addSeparators($source));
         $destination = $this->applyPathPrefix($this->addSeparators($destination));
         $source_dir = $this->getBaseName($source);
         $real_destination = $this->joinPaths($destination, $source_dir);
 
-        while (! empty($this->storage->listContents($real_destination, true))) {
-            $real_destination = $this->upcountName($real_destination);
-        }
-
-        $contents = $this->storage->listContents($source, true);
-
-        if (empty($contents)) {
-            $this->storage->createDir($real_destination);
-        }
-
-        foreach ($contents as $file) {
-            $source_path = $this->separator . ltrim($file['path'], $this->separator);
-            $path = substr($source_path, strlen($source), strlen($source_path));
-
-            if ($file['type'] == 'dir') {
-                $this->storage->createDir($this->joinPaths($real_destination, $path));
-
-                continue;
+        if ($this->storage->has($real_destination)) {
+            if ($overwrite) {
+                return $this->mergeDir($source, $real_destination, true, false);
             }
 
-            if ($file['type'] == 'file') {
-                $this->storage->copy($file['path'], $this->joinPaths($real_destination, $path));
+            while ($this->storage->has($real_destination)) {
+                $real_destination = $this->upcountName($real_destination);
             }
         }
+
+        return $this->mergeDir($source, $real_destination, false, false);
     }
 
     public function deleteDir(string $path)
@@ -139,16 +141,119 @@ class Filesystem implements Service
         ];
     }
 
-    public function move(string $from, string $to): bool
+    public function move(string $from, string $to, bool $overwrite = false): bool
     {
         $from = $this->applyPathPrefix($from);
         $to = $this->applyPathPrefix($to);
 
-        while ($this->storage->has($to)) {
-            $to = $this->upcountName($to);
+        if (rtrim($from, $this->separator) === rtrim($to, $this->separator)) {
+            return true;
+        }
+
+        // Prevent moving a directory into itself or its subdirectories
+        $fromNormalized = $this->addSeparators($from);
+        $toNormalized = $this->addSeparators($to);
+        if ($this->isDir($this->stripPathPrefix($from)) && strpos($toNormalized, $fromNormalized) === 0) {
+            throw new \Exception('Cannot move directory into itself or its subdirectory');
+        }
+
+        if ($this->storage->has($to)) {
+            if ($overwrite) {
+                $fromIsDir = $this->isDir($this->stripPathPrefix($from));
+                $toIsDir = $this->isDir($this->stripPathPrefix($to));
+
+                if ($fromIsDir && $toIsDir) {
+                    return $this->mergeDir($from, $to, true, true);
+                }
+
+                if ($toIsDir) {
+                    $this->storage->deleteDir($to);
+                } else {
+                    $this->storage->delete($to);
+                }
+            } else {
+                while ($this->storage->has($to)) {
+                    $to = $this->upcountName($to);
+                }
+            }
         }
 
         return $this->storage->rename($from, $to);
+    }
+
+    /**
+     * Recursively merge a directory into a destination directory.
+     *
+     * @param string $source Source directory path (with prefix)
+     * @param string $destination Target directory path (with prefix)
+     * @param bool $overwrite Whether to overwrite existing files
+     * @param bool $deleteSource Whether to delete source directory and files (move mode)
+     * @return bool
+     */
+    protected function mergeDir(string $source, string $destination, bool $overwrite = true, bool $deleteSource = false): bool
+    {
+        $source = $this->addSeparators($source);
+        $destination = $this->addSeparators($destination);
+
+        if (!$this->storage->has($destination)) {
+            $this->storage->createDir($destination);
+        }
+
+        $contents = $this->storage->listContents($source, true);
+
+        if (empty($contents)) {
+            if ($deleteSource) {
+                $this->storage->deleteDir($source);
+            }
+            return true;
+        }
+
+        foreach ($contents as $file) {
+            $source_path = $this->separator . ltrim($file['path'], $this->separator);
+            $path = substr($source_path, strlen($source));
+            $target_path = $this->joinPaths($destination, $path);
+
+            if ($file['type'] == 'dir') {
+                if (!$this->storage->has($target_path)) {
+                    $this->storage->createDir($target_path);
+                }
+                continue;
+            }
+
+            if ($file['type'] == 'file') {
+                if ($this->storage->has($target_path)) {
+                    if ($overwrite) {
+                        $this->storage->delete($target_path);
+                        if ($deleteSource) {
+                            $this->storage->rename($file['path'], $target_path);
+                        } else {
+                            $this->storage->copy($file['path'], $target_path);
+                        }
+                    } else {
+                        while ($this->storage->has($target_path)) {
+                            $target_path = $this->upcountName($target_path);
+                        }
+                        if ($deleteSource) {
+                            $this->storage->rename($file['path'], $target_path);
+                        } else {
+                            $this->storage->copy($file['path'], $target_path);
+                        }
+                    }
+                } else {
+                    if ($deleteSource) {
+                        $this->storage->rename($file['path'], $target_path);
+                    } else {
+                        $this->storage->copy($file['path'], $target_path);
+                    }
+                }
+            }
+        }
+
+        if ($deleteSource) {
+            $this->storage->deleteDir($source);
+        }
+
+        return true;
     }
 
     public function rename(string $destination, string $from, string $to): bool
