@@ -84,6 +84,9 @@ class ZipArchiver implements Service, ArchiverInterface
 
         $remote_archive = $storage->readStream($source);
         $this->tmpfs->write($name, $remote_archive['stream']);
+        if (is_resource($remote_archive['stream'])) {
+            fclose($remote_archive['stream']);
+        }
 
         $archive = new Flysystem(
             new ZipAdapter($this->tmpfs->getFileLocation($name))
@@ -104,6 +107,8 @@ class ZipArchiver implements Service, ArchiverInterface
                 fclose($stream);
             }
         }
+
+        $archive->getAdapter()->getArchive()->close();
 
         $this->tmpfs->remove($name);
     }
