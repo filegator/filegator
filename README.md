@@ -10,6 +10,8 @@
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
   </p>
 
+## 📢 Version 8 Is Coming Soon
+Check out the [v8 branch](https://github.com/filegator/filegator/tree/v8) to follow the progress.
 
 ## FileGator - Powerful Multi-User File Manager
 
