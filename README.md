@@ -11,6 +11,12 @@ FileGator version 8 was rewritten from the ground up, replacing the PHP/Vue stac
 Documentation link while in beta: 
 [https://docs-v8.filegator.io/](https://docs-v8.filegator.io/)
 
+# Try it out with docker
+```
+docker run --rm -p 8080:8080 filegator/filegator:v8.0.0-beta.1
+```
+Login as admin/admin123
+
 # Version 8 highlights
 
 - **Why the rewrite:** keep the project simple and easy to maintain for the long term, after the PHP/Vue setup had grown harder to evolve and harder to deploy.
