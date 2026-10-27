@@ -1,0 +1,236 @@
+package pgtype
+
+import (
+	"database/sql/driver"
+	"fmt"
+	"math"
+	"strconv"
+	"strings"
+
+	"github.com/jackc/pgx/v5/internal/pgio"
+)
+
+type BoxScanner interface {
+	ScanBox(v Box) error
+}
+
+type BoxValuer interface {
+	BoxValue() (Box, error)
+}
+
+type Box struct {
+	P     [2]Vec2
+	Valid bool
+}
+
+// ScanBox implements the [BoxScanner] interface.
+func (b *Box) ScanBox(v Box) error {
+	*b = v
+	return nil
+}
+
+// BoxValue implements the [BoxValuer] interface.
+func (b Box) BoxValue() (Box, error) {
+	return b, nil
+}
+
+// Scan implements the [database/sql.Scanner] interface.
+func (dst *Box) Scan(src any) error {
+	if src == nil {
+		*dst = Box{}
+		return nil
+	}
+
+	if src, ok := src.(string); ok {
+		return scanPlanTextAnyToBoxScanner{}.Scan([]byte(src), dst)
+	}
+
+	return fmt.Errorf("cannot scan %T", src)
+}
+
+// Value implements the [database/sql/driver.Valuer] interface.
+func (src Box) Value() (driver.Value, error) {
+	if !src.Valid {
+		return nil, nil
+	}
+
+	buf, err := BoxCodec{}.PlanEncode(nil, 0, TextFormatCode, src).Encode(src, nil)
+	if err != nil {
+		return nil, err
+	}
+	return string(buf), err
+}
+
+type BoxCodec struct{}
+
+func (BoxCodec) FormatSupported(format int16) bool {
+	return format == TextFormatCode || format == BinaryFormatCode
+}
+
+func (BoxCodec) PreferredFormat() int16 {
+	return BinaryFormatCode
+}
+
+func (BoxCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodePlan {
+	if _, ok := value.(BoxValuer); !ok {
+		return nil
+	}
+
+	switch format {
+	case BinaryFormatCode:
+		return encodePlanBoxCodecBinary{}
+	case TextFormatCode:
+		return encodePlanBoxCodecText{}
+	}
+
+	return nil
+}
+
+type encodePlanBoxCodecBinary struct{}
+
+func (encodePlanBoxCodecBinary) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	box, err := value.(BoxValuer).BoxValue()
+	if err != nil {
+		return nil, err
+	}
+
+	if !box.Valid {
+		return nil, nil
+	}
+
+	buf = pgio.AppendUint64(buf, math.Float64bits(box.P[0].X))
+	buf = pgio.AppendUint64(buf, math.Float64bits(box.P[0].Y))
+	buf = pgio.AppendUint64(buf, math.Float64bits(box.P[1].X))
+	buf = pgio.AppendUint64(buf, math.Float64bits(box.P[1].Y))
+	return buf, nil
+}
+
+type encodePlanBoxCodecText struct{}
+
+func (encodePlanBoxCodecText) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	box, err := value.(BoxValuer).BoxValue()
+	if err != nil {
+		return nil, err
+	}
+
+	if !box.Valid {
+		return nil, nil
+	}
+
+	buf = append(buf, fmt.Sprintf(`(%s,%s),(%s,%s)`,
+		strconv.FormatFloat(box.P[0].X, 'f', -1, 64),
+		strconv.FormatFloat(box.P[0].Y, 'f', -1, 64),
+		strconv.FormatFloat(box.P[1].X, 'f', -1, 64),
+		strconv.FormatFloat(box.P[1].Y, 'f', -1, 64),
+	)...)
+	return buf, nil
+}
+
+func (BoxCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan {
+	switch format {
+	case BinaryFormatCode:
+		if _, ok := target.(BoxScanner); ok {
+			return scanPlanBinaryBoxToBoxScanner{}
+		}
+	case TextFormatCode:
+		if _, ok := target.(BoxScanner); ok {
+			return scanPlanTextAnyToBoxScanner{}
+		}
+	}
+
+	return nil
+}
+
+type scanPlanBinaryBoxToBoxScanner struct{}
+
+func (scanPlanBinaryBoxToBoxScanner) Scan(src []byte, dst any) error {
+	scanner := dst.(BoxScanner)
+
+	if src == nil {
+		return scanner.ScanBox(Box{})
+	}
+
+	r := pgio.NewReader(src)
+
+	x1 := r.Uint64()
+	y1 := r.Uint64()
+	x2 := r.Uint64()
+	y2 := r.Uint64()
+
+	if err := r.Finish(); err != nil {
+		return fmt.Errorf("Box: %w", err)
+	}
+
+	return scanner.ScanBox(Box{
+		P: [2]Vec2{
+			{math.Float64frombits(x1), math.Float64frombits(y1)},
+			{math.Float64frombits(x2), math.Float64frombits(y2)},
+		},
+		Valid: true,
+	})
+}
+
+type scanPlanTextAnyToBoxScanner struct{}
+
+func (scanPlanTextAnyToBoxScanner) Scan(src []byte, dst any) error {
+	scanner := dst.(BoxScanner)
+
+	if src == nil {
+		return scanner.ScanBox(Box{})
+	}
+
+	if len(src) < 11 {
+		return fmt.Errorf("invalid length for Box: %v", len(src))
+	}
+
+	// Expected format: (x1,y1),(x2,y2)
+	sp1, sp2, found := strings.Cut(string(src[1:len(src)-1]), "),(")
+	if !found {
+		return fmt.Errorf("invalid format for Box")
+	}
+
+	sx1, sy1, found := strings.Cut(sp1, ",")
+	if !found {
+		return fmt.Errorf("invalid format for Box")
+	}
+	sx2, sy2, found := strings.Cut(sp2, ",")
+	if !found {
+		return fmt.Errorf("invalid format for Box")
+	}
+
+	x1, err := strconv.ParseFloat(sx1, 64)
+	if err != nil {
+		return err
+	}
+	y1, err := strconv.ParseFloat(sy1, 64)
+	if err != nil {
+		return err
+	}
+	x2, err := strconv.ParseFloat(sx2, 64)
+	if err != nil {
+		return err
+	}
+	y2, err := strconv.ParseFloat(sy2, 64)
+	if err != nil {
+		return err
+	}
+
+	return scanner.ScanBox(Box{P: [2]Vec2{{x1, y1}, {x2, y2}}, Valid: true})
+}
+
+func (c BoxCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
+	return codecDecodeToTextFormat(c, m, oid, format, src)
+}
+
+func (c BoxCodec) DecodeValue(m *Map, oid uint32, format int16, src []byte) (any, error) {
+	if src == nil {
+		return nil, nil
+	}
+
+	var box Box
+	err := codecScan(c, m, oid, format, src, &box)
+	if err != nil {
+		return nil, err
+	}
+	return box, nil
+}

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>FileGator</title>
+    <!--
+      The stored theme is applied before the first paint. If it were left to
+      app.js the page would paint light and then turn dark, which is a visible
+      flash on every navigation. This is the only inline script in the
+      application, and it is inline for exactly that reason: a separate file
+      would still be a network round trip after the stylesheets.
+
+      No attribute means "follow the system", which the stylesheet handles with
+      a media query. The key matches STORAGE_KEY in js/modules/theme.js.
+    -->
+    <script>
+      try {
+        var savedTheme = localStorage.getItem("filegator.theme");
+        if (savedTheme === "light" || savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", savedTheme);
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Starting the logo download in the head, so the first paint already has
+      // it. The light/dark swap is CSS (see .logo-light/.logo-dark in
+      // browser.css): the browser fetches whichever variant the theme selects,
+      // so exactly one of these two is ever used. They are written as JS
+      // string literals because an <img> in the markup would force the light
+      // file on every dark page. The paths are the built-in artwork; a
+      // configured logo replaces the src as soon as /api/config answers.
+      (function () {
+        var documentElement = document.documentElement;
+        var variant = "light";
+        if (documentElement.getAttribute("data-theme") === "dark") {
+          variant = "dark";
+        } else if (!documentElement.getAttribute("data-theme") &&
+                   window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          variant = "dark";
+        }
+        var file = variant === "dark" ? "/img/filegator-logo-dark.svg" : "/img/filegator-logo.svg";
+        var link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "image";
+        link.href = "{{BASE_PATH}}" + file;
+        document.head.appendChild(link);
+
+        // The tab icon is the logo itself, as on the docs site: one SVG, no
+        // raster favicon to keep in step. Relative, so it follows <base> and
+        // works under a mount prefix; applyFavicon replaces it once /api/config
+        // answers, in case the administrator configured their own logo.
+        var icon = document.createElement("link");
+        icon.rel = "icon";
+        icon.type = "image/svg+xml";
+        icon.href = file.slice(1);
+        document.head.appendChild(icon);
+      })();
+    </script>
+    <!--
+      {{BASE_PATH}} is replaced by the server with the configured URL prefix
+      (empty at the site root). <base> makes relative URLs resolve under the
+      mount point, so no asset or API path has to be hardcoded with it.
+    -->
+    <base href="{{BASE_PATH}}/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/browser.css" />
+    <link rel="stylesheet" href="css/dialog.css" />
+    <link rel="stylesheet" href="css/admin.css" />
+    <link rel="stylesheet" href="css/notices.css" />
+    <link rel="stylesheet" href="css/editor.css" />
+    <script type="module" src="js/app.js"></script>
+  </head>
+  <body>
+    <!--
+      Instance-wide warnings, shown above everything else so administrators
+      cannot miss them. Populated after login because the endpoint is
+      administrator-only.
+    -->
+    <div id="global-notices" class="global-notices hidden" role="status"></div>
+
+    <!-- Shown until the app knows whether a session exists. -->
+    <div id="boot" class="boot">
+      <div class="boot-spinner" aria-hidden="true"></div>
+      <p class="boot-text">Loading…</p>
+    </div>
+
+    <!-- Login screen -->
+    <div id="login-view" class="login-view hidden">
+      <form id="login-form" class="login-card" novalidate>
+        <img id="login-logo-light" class="login-logo logo-light hidden" alt="" />
+        <img id="login-logo-dark" class="login-logo logo-dark hidden" alt="" />
+
+        <label class="field" for="login-username">
+          <span class="field-label" id="label-username">Username</span>
+          <input
+            id="login-username"
+            class="input"
+            type="text"
+            name="username"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            required
+          />
+        </label>
+
+        <label class="field" for="login-password">
+          <span class="field-label" id="label-password">Password</span>
+          <input
+            id="login-password"
+            class="input"
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required
+          />
+        </label>
+
+        <p id="login-error" class="form-error hidden" role="alert"></p>
+
+        <button id="login-submit" class="button button-primary" type="submit">
+          Log in
+        </button>
+
+        <!-- A link, not a dropdown: a full-width select under the button made
+             the card twice as tall for a setting a visitor changes once. -->
+        <button id="login-language" class="login-language hidden" type="button">
+          <span aria-hidden="true">🌐</span>
+          <span id="login-language-label">Language</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- File browser -->
+    <div id="browser-view" class="browser-view hidden">
+      <!-- One card holds the header, the pathbar and the folder column. -->
+      <div class="browser-card">
+        <header class="app-header">
+        <div class="app-brand">
+          <!--
+            The logo image carries the branding. The title is set on the tab
+            (document.title) and is not repeated next to the logo.
+          -->
+          <!-- The logo returns to the user's home folder, like a home button. -->
+          <a id="app-home" class="app-home" href="#/" title="Home">
+            <img id="app-logo-light" class="app-logo logo-light hidden" alt="" />
+            <img id="app-logo-dark" class="app-logo logo-dark hidden" alt="" />
+          </a>
+        </div>
+        <!-- Search leads the header and is always visible. On a phone it is an
+             icon that expands to the full width; the logo is dropped there so
+             the field starts where the eye does. -->
+        <div id="header-search" class="header-search">
+          <button id="btn-search-expand" class="button button-ghost button-icon header-search-toggle" type="button" title="Search">
+            <svg class="icon-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <circle cx="6.8" cy="6.8" r="4.4" />
+              <path d="M10.2 10.2 14 14" />
+            </svg>
+            <span class="sr-only">Search</span>
+          </button>
+          <div class="header-search-box">
+            <svg class="icon-svg header-search-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <circle cx="6.8" cy="6.8" r="4.4" />
+              <path d="M10.2 10.2 14 14" />
+            </svg>
+            <input
+              id="header-search-input"
+              class="header-search-input"
+              type="search"
+              placeholder="Search"
+              autocomplete="off"
+              spellcheck="false"
+              autocapitalize="none"
+              aria-label="Search"
+              aria-expanded="false"
+              aria-controls="header-search-results"
+            />
+            <button id="header-search-clear" class="header-search-clear hidden" type="button" title="Clear">
+              <span aria-hidden="true">×</span>
+              <span class="sr-only">Clear</span>
+            </button>
+          </div>
+          <ul id="header-search-results" class="search-results header-search-results hidden"></ul>
+        </div>
+
+
+        <nav class="app-actions">
+          <!-- Administration is a place to go, so it stays a button of its own
+               and is hidden for everyone else. -->
+          <button id="btn-admin" class="button button-ghost hidden" type="button">
+            Setup
+          </button>
+          <!-- The account menu: everything about you as a person — the theme,
+               your password, signing out. The name comes first and a caret
+               follows it: the caret says "there is a menu here", which a lone
+               name does not. It turns over while the menu is open. -->
+          <button
+            id="btn-user-menu"
+            class="button button-ghost user-menu-button"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="user-menu"
+          >
+            <span id="current-user" class="current-user"></span>
+            <svg class="icon-svg user-menu-caret" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 6l4 4 4-4" />
+            </svg>
+          </button>
+        </nav>
+      </header>
+
+    <!-- The account menu. Its items are rendered by js/modules/user_menu.js,
+         because which ones exist depends on the session: a guest has no
+         password to change. Placed here, outside the header, so the card's
+         overflow cannot clip it. -->
+    <div id="user-menu" class="user-menu hidden" role="menu" aria-labelledby="btn-user-menu"></div>
+
+      <div class="pathbar">
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
+        <div class="pathbar-actions">
+          <!-- Browsing actions, in order: Upload, New, Tree, Refresh.
+               Hidden while something is selected, because the selection
+               actions take their place in the same spot. -->
+          <button id="btn-upload" class="button button-ghost hidden" type="button">
+            <!-- An arrow into a tray: the same drawn style as the other
+                 toolbar icons, so it does not depend on the platform's emoji
+                 font the way the "+" on New does. -->
+            <svg class="icon-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M8 10.5V1.8" />
+              <path d="M4.6 5.2 8 1.8l3.4 3.4" />
+              <path d="M2 10.6v2.4a1.2 1.2 0 0 0 1.2 1.2h9.6a1.2 1.2 0 0 0 1.2-1.2v-2.4" />
+            </svg>
+            <span id="btn-upload-label">Upload</span>
+          </button>
+          <button id="btn-new" class="button button-ghost hidden" type="button">
+            <span aria-hidden="true">⊕</span>
+            <span id="btn-new-label">New</span>
+          </button>
+          <button id="btn-tree" class="button button-ghost button-icon" type="button" title="Folder tree">
+            <!-- Hierarchy diagram, as v7's sitemap icon: one node above two. -->
+            <svg class="icon-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <rect x="5.5" y="1" width="5" height="4" rx="1" />
+              <rect x="0.5" y="11" width="5" height="4" rx="1" />
+              <rect x="10.5" y="11" width="5" height="4" rx="1" />
+              <path d="M8 5v3M3 11V9h10v2" />
+            </svg>
+            <span class="sr-only">Folder tree</span>
+          </button>
+          <!-- Light/dark used to sit here, between the tree and refresh. It is
+               now an item of the account menu: it is a preference about you,
+               not about this listing, and the menu is where your preferences
+               live. -->
+          <button id="btn-refresh" class="button button-ghost button-icon" type="button" title="Refresh">
+            <svg class="icon-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M13.4 8a5.4 5.4 0 1 1-1.6-3.8" />
+              <path d="M13.8 1.6v3.2h-3.2" />
+            </svg>
+            <span class="sr-only">Refresh</span>
+          </button>
+
+          <!-- Selection actions replace the browsing ones in place, so
+               selecting never inserts a row and never moves the listing. -->
+          <span id="selection-actions" class="selection-actions hidden">
+            <span id="selection-count" class="selection-count"></span>
+            <button id="btn-batch-download" class="button hidden" type="button">Download</button>
+            <button id="btn-batch-copy" class="button hidden" type="button">Copy</button>
+            <button id="btn-batch-move" class="button hidden" type="button">Move</button>
+            <button id="btn-zip" class="button hidden" type="button">Zip</button>
+            <button id="btn-unzip" class="button hidden" type="button">Unzip</button>
+            <button id="btn-batch-delete" class="button button-danger hidden" type="button">Delete</button>
+            <button id="btn-selection-clear" class="button button-ghost button-icon" type="button" title="Cancel">
+              <span aria-hidden="true">×</span>
+              <span class="sr-only">Cancel</span>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <!-- Offered only when filter_entries hide something. -->
+      <div id="hidden-toggle" class="hidden-toggle hidden">
+        <input id="hidden-toggle-check" class="checkbox" type="checkbox" />
+        <label id="hidden-toggle-label" for="hidden-toggle-check">Show hidden</label>
+      </div>
+
+      <div class="browser-body">
+        <!-- Left tree panel: beside the listing above 720px, a drawer below. -->
+        <nav id="tree-panel" class="tree-panel hidden" aria-label="Folders">
+          <div class="tree-panel-head">
+            <span class="tree-panel-title">Folders</span>
+            <button id="btn-tree-close" class="button button-ghost button-icon tree-panel-close" type="button" title="Close">
+              <span aria-hidden="true">×</span>
+              <span class="sr-only">Close</span>
+            </button>
+          </div>
+          <div id="tree-panel-body" class="tree-panel-body"></div>
+        </nav>
+        <div id="tree-backdrop" class="tree-backdrop hidden"></div>
+
+        <main id="file-area" class="file-area">
+          <div id="file-toast" class="toast hidden" role="status"></div>
+
+
+          <table class="file-table">
+            <thead>
+              <tr>
+                <th class="col-select">
+                  <input id="select-all" class="checkbox row-check" type="checkbox" aria-label="Select all" />
+                </th>
+                <th class="col-name">
+                  <button id="sort-name" class="sort-button" type="button">
+                    Name <span class="sort-arrow" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th class="col-size">
+                  <button id="sort-size" class="sort-button" type="button">
+                    Size <span class="sort-arrow" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th class="col-time">
+                  <button id="sort-time" class="sort-button" type="button">
+                    Modified <span class="sort-arrow" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <!-- There is no mode column: the octal mode is shown in the
+                     row's ⋯ menu as "Mode (644)", where it sits next to
+                     the action that changes it. -->
+                <th class="col-actions"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="file-list"></tbody>
+          </table>
+
+          <p id="empty-message" class="empty-message hidden">
+            This folder is empty.
+          </p>
+
+          <!-- Below the table, as v7 had it: the count is reference
+               information, and putting it above would compete with the
+               toolbar. -->
+          <p id="listing-count" class="listing-count"></p>
+        </main>
+        </div>
+
+        <!-- Upload panel: overall line plus one row per file, like v7.
+             Inside the card and pinned to its bottom, so it belongs to the
+             file manager rather than hanging off the window. -->
+        <section id="upload-panel" class="upload-panel hidden" role="status" aria-live="polite">
+          <header class="upload-panel-head">
+            <button id="upload-toggle" class="upload-toggle" type="button" aria-expanded="true">
+              <span id="upload-caret" aria-hidden="true">▾</span>
+              <span id="upload-summary" class="upload-summary"></span>
+            </button>
+            <div class="upload-head-actions">
+              <button id="upload-pause" class="upload-icon" type="button">
+                <span id="upload-pause-icon" aria-hidden="true">⏸</span>
+                <span id="upload-pause-label" class="sr-only">Pause</span>
+              </button>
+              <button id="upload-close" class="upload-icon" type="button">
+                <span aria-hidden="true">✕</span>
+                <span id="upload-close-label" class="sr-only">Cancel</span>
+              </button>
+            </div>
+          </header>
+          <div class="upload-panel-bar"><span id="upload-overall-fill"></span></div>
+          <ul id="upload-list" class="upload-list"></ul>
+        </section>
+      </div>
+    </div>
+
+    <!-- Administration. The header is the file browser's line: logo and what is
+         running. The sections are a strip of their own below it, like the
+         browser's pathbar. -->
+    <div id="admin-view" class="admin-view hidden">
+      <div class="browser-card admin-card">
+        <header class="app-header">
+          <div class="app-brand">
+            <!-- The logo is a light/dark pair like every other: the theme picks
+                 one with CSS, so the dark header never shows the light file. -->
+            <a id="admin-home" class="app-home" href="#/" title="Home">
+              <img id="admin-logo-light" class="app-logo admin-logo logo-light hidden" alt="" />
+              <img id="admin-logo-dark" class="app-logo admin-logo logo-dark hidden" alt="" />
+            </a>
+          </div>
+
+          <!-- What is running, on the logo's line, right-aligned.
+               Written by admin.js. -->
+          <div class="admin-header-end">
+            <div id="admin-version" class="admin-version hidden" role="status"></div>
+          </div>
+        </header>
+
+        <!-- Sections, filled by admin.js, starting with "← Back". A strip in
+             the pathbar's place so the header stays one line of branding. -->
+        <nav id="admin-tabs" class="admin-nav" role="tablist" aria-label="Administration"></nav>
+
+        <main class="admin-area">
+          <div id="admin-toast" class="toast hidden" role="status"></div>
+          <div id="admin-panel" class="admin-panel"></div>
+        </main>
+      </div>
+    </div>
+
+    <noscript>
+      <p class="noscript">FileGator needs JavaScript to run.</p>
+    </noscript>
+  </body>
+</html>

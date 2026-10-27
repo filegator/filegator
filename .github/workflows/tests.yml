@@ -1,0 +1,101 @@
+# Tests, formatting and vetting.
+#
+# Two jobs, deliberately different in speed and in what they gate:
+#
+#   test     — the whole suite, the formatting check and `go vet`. Fast (well
+#              under a minute), so it runs on every push and pull request and is
+#              the one to make a required status check.
+#   race     — the race detector. Correct but slow: `internal/api` alone takes
+#              about three minutes, because its tests spin up real servers on
+#              real sockets. Made non-blocking with `continue-on-error`, so a
+#              race still shows red on the run without holding up every merge.
+#
+# Everything runs against the vendored modules (`-mod=vendor` is the Makefile's
+# GOFLAGS) with GOPROXY=off, so a run proves the repository builds from what is
+# committed and never reaches the network for a dependency — the same property
+# the Makefile gives a developer.
+#
+# No third-party actions beyond the two official ones. The suite needs no
+# services: the SFTP tests start an in-process server, and nothing else talks to
+# the outside world.
+
+name: Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  # Let a maintainer re-run by hand after a flaky failure.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to the same branch cancels the run it supersedes. Pull requests and
+# branches are keyed separately so a branch push and its pull request do not
+# cancel each other.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    env:
+      GOPROXY: "off"
+      GOFLAGS: "-mod=vendor"
+    steps:
+      - uses: actions/checkout@v4
+
+      # `go-version-file` reads the toolchain from go.mod, so the workflow does
+      # not have to be edited when the version is bumped — and cannot drift from
+      # what a developer runs.
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          # A dependency cache would be the one thing that made this job reach
+          # past the vendor directory; there is nothing to cache.
+          cache: false
+
+      - name: Formatting
+        run: make lint
+
+      - name: Tests
+        # -count=1 defeats the test cache: a green run must mean the tests ran
+        # now, not that an identical run passed earlier.
+        run: go test ./... -count=1
+
+      - name: Documentation
+        # Two checks: the endpoint tables in docs/content/api.md are generated
+        # from the router, and the docs site is built and every internal link
+        # and anchor verified. A route or a link left behind fails here rather
+        # than being noticed by a reader.
+        run: make docs-check
+
+      - name: Build
+        # The binary is what users deploy; a test suite can pass while `go build`
+        # of the entrypoint fails, because the tests do not import main.
+        run: make build
+
+  race:
+    name: Race detector
+    runs-on: ubuntu-latest
+    # Reported, not enforced: see the header. Turn this into a blocking job once
+    # the suite is known clean under -race.
+    continue-on-error: true
+    env:
+      GOPROXY: "off"
+      GOFLAGS: "-mod=vendor"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Data races
+        # A race is a real bug, so this is fixed later rather than reported
+        # forever: when it fails, open an issue rather than ignoring the red.
+        run: go test -race ./... -count=1

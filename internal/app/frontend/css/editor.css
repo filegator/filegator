@@ -1,0 +1,81 @@
+/* Full-screen text editor */
+.editor-view {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: calc(0.55rem + env(safe-area-inset-top)) 1rem 0.55rem;
+  padding-left: calc(1rem + env(safe-area-inset-left));
+  padding-right: calc(1rem + env(safe-area-inset-right));
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-title {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.editor-status {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.editor-status.is-warning {
+  color: var(--warning-text);
+}
+
+.editor-status.is-ok {
+  color: var(--primary-dark);
+}
+
+.editor-status.is-error {
+  color: var(--danger);
+}
+
+.editor-textarea {
+  flex: 1;
+  width: 100%;
+  padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
+  font-family: ui-monospace, SFMono-Regular, Menlo, "SF Mono", monospace;
+  /* 16px keeps iOS from zooming on focus. */
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--surface);
+  border: none;
+  outline: none;
+  resize: none;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+
+@media (max-width: 560px) {
+  .editor-actions .button {
+    min-height: 44px;
+  }
+
+  .editor-title {
+    width: 100%;
+    font-size: 0.82rem;
+  }
+}

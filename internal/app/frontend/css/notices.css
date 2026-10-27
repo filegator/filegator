@@ -1,0 +1,103 @@
+/* Instance-wide notices, shown above the application header */
+.global-notices {
+  position: relative;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+}
+
+.global-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  /* Sits under a notch, like the header itself. */
+  padding: calc(0.55rem + env(safe-area-inset-top)) 1.25rem 0.55rem;
+  padding-left: calc(1.25rem + env(safe-area-inset-left));
+  padding-right: calc(1.25rem + env(safe-area-inset-right));
+  font-size: 0.88rem;
+  line-height: 1.4;
+  border-bottom: 1px solid transparent;
+}
+
+.global-notice + .global-notice {
+  padding-top: 0.55rem;
+}
+
+.global-notice.is-warning {
+  color: var(--warning-text);
+  background: var(--warning-bg);
+  border-bottom-color: var(--warning-border);
+}
+
+.global-notice.is-error {
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border-bottom-color: var(--danger-border);
+}
+
+/* Something the server created for you on this start: neutral, not a problem. */
+.global-notice.is-info {
+  color: var(--text-light);
+  background: var(--tint);
+  border-bottom-color: var(--border);
+}
+
+.global-notice-text {
+  flex: 1;
+  min-width: 12rem;
+  overflow-wrap: anywhere;
+}
+
+.global-notice-action {
+  flex: none;
+  padding: 0.3rem 0.75rem;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.85;
+  min-height: 32px;
+}
+
+.global-notice-action:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 560px) {
+  .global-notice {
+    padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
+    font-size: 0.82rem;
+  }
+
+  .global-notice + .global-notice {
+    padding-top: 0.5rem;
+  }
+
+  .global-notice-action {
+    /* Full-width and thumb sized on phones. */
+    width: 100%;
+    min-height: 40px;
+  }
+}
+
+/*
+ * The layouts use 100dvh assuming they start at the top of the viewport. When
+ * the notice bar is present, it already takes some height, so subtract it.
+ */
+body.has-notices .browser-view,
+body.has-notices .admin-view {
+  height: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+body.has-notices {
+  display: flex;
+  flex-direction: column;
+}

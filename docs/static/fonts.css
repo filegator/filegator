@@ -1,0 +1,69 @@
+/*
+ * Liberation Sans, bundled with the docs so every reader sees the same font.
+ *
+ * The files in fonts/ are unmodified releases under the SIL Open Font License
+ * 1.1 (see fonts/OFL.txt). Hugo copies docs/static/ into the site root, so
+ * these URLs are /fonts/... whether the site is served from a domain root or
+ * from a folder.
+ *
+ * Each face is declared with font-display: swap, so a reader on a slow
+ * connection reads the text immediately in a system font and the page settles
+ * into Liberation Sans when it arrives. A blocking webfont would have made the
+ * documentation feel slower than the product it documents.
+ */
+
+@font-face {
+  font-family: "Liberation Sans";
+  src: url("/fonts/LiberationSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Liberation Sans";
+  src: url("/fonts/LiberationSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Liberation Sans";
+  src: url("/fonts/LiberationSans-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Liberation Sans";
+  src: url("/fonts/LiberationSans-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/*
+ * The stack names Liberation Sans first and keeps the system faces behind it,
+ * so a reader who blocks the font files still gets a usable page rather than a
+ * serif fallback. Code spans stay monospace.
+ */
+
+:root {
+  --font-body: "Liberation Sans", Arial, Helvetica, "Segoe UI", Roboto,
+    sans-serif;
+  --font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-code);
+}

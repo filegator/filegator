@@ -1,0 +1,22 @@
+# Build output
+/bin/
+
+# Go tool state when the environment leaks into the tree: HOME or GOPATH
+# pointing at the checkout. The Makefile pins these to /tmp, so this is only a
+# safety net for a stray `go` invocation outside make.
+/.cache/
+/.config/
+/go/
+
+# Everything under private/ is runtime state. Only the users template is
+# tracked, so a fresh checkout can create users.json on first start.
+/private/*
+!/private/users.json.sample
+
+# Uploaded files must not be committed. Only the placeholder is tracked.
+/repository/*
+!/repository/.gitkeep
+
+# The rendered documentation site is generated output (make docs, make
+# docs-serve, make docs-check), not a source file.
+/docs-site/

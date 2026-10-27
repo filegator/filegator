@@ -1,0 +1,1654 @@
+package ldap
+
+import (
+	"encoding/binary"
+	"fmt"
+	"strconv"
+
+	ber "github.com/go-asn1-ber/asn1-ber"
+	"github.com/google/uuid"
+)
+
+const (
+	// ControlTypePaging - https://www.ietf.org/rfc/rfc2696.txt
+	ControlTypePaging = "1.2.840.113556.1.4.319"
+	// ControlTypeBeheraPasswordPolicy - https://tools.ietf.org/html/draft-behera-ldap-password-policy-10
+	ControlTypeBeheraPasswordPolicy = "1.3.6.1.4.1.42.2.27.8.5.1"
+	// ControlTypeVChuPasswordMustChange - https://tools.ietf.org/html/draft-vchu-ldap-pwd-policy-00
+	ControlTypeVChuPasswordMustChange = "2.16.840.1.113730.3.4.4"
+	// ControlTypeVChuPasswordWarning - https://tools.ietf.org/html/draft-vchu-ldap-pwd-policy-00
+	ControlTypeVChuPasswordWarning = "2.16.840.1.113730.3.4.5"
+	// ControlTypeManageDsaIT - https://tools.ietf.org/html/rfc3296
+	ControlTypeManageDsaIT = "2.16.840.1.113730.3.4.2"
+	// ControlTypeWhoAmI - https://tools.ietf.org/html/rfc4532
+	ControlTypeWhoAmI = "1.3.6.1.4.1.4203.1.11.3"
+	// ControlTypeSubtreeDelete - https://datatracker.ietf.org/doc/html/draft-armijo-ldap-treedelete-02
+	ControlTypeSubtreeDelete = "1.2.840.113556.1.4.805"
+
+	// ControlTypeServerSideSorting - https://www.ietf.org/rfc/rfc2891.txt
+	ControlTypeServerSideSorting = "1.2.840.113556.1.4.473"
+	// ControlTypeServerSideSorting - https://www.ietf.org/rfc/rfc2891.txt
+	ControlTypeServerSideSortingResult = "1.2.840.113556.1.4.474"
+
+	// ControlTypeMicrosoftPagedResults - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftPagedResults = "1.2.840.113556.1.4.319"
+	// ControlTypeMicrosoftCrossDomainMoveTarget - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftCrossDomainMoveTarget = "1.2.840.113556.1.4.521"
+	// ControlTypeDirSync - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeDirSync = "1.2.840.113556.1.4.841"
+	// ControlTypeMicrosoftDomainScope - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftDomainScope = "1.2.840.113556.1.4.1339"
+	// ControlTypeMicrosoftExtendedDN - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftExtendedDN = "1.2.840.113556.1.4.529"
+	// ControlTypeMicrosoftGetStats - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftGetStats = "1.2.840.113556.1.4.970"
+	// ControlTypeMicrosoftLazyCommit - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftLazyCommit = "1.2.840.113556.1.4.619"
+	// ControlTypeMicrosoftPermissiveModify - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftPermissiveModify = "1.2.840.113556.1.4.1413"
+	// ControlTypeMicrosoftNotification - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftNotification = "1.2.840.113556.1.4.528"
+	// ControlTypeMicrosoftRespSort - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftRespSort = "1.2.840.113556.1.4.474"
+	// ControlTypeMicrosoftSDFlags - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftSDFlags = "1.2.840.113556.1.4.801"
+	// ControlTypeMicrosoftSearchOptions - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftSearchOptions = "1.2.840.113556.1.4.1340"
+	// ControlTypeMicrosoftSort - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftSort = "1.2.840.113556.1.4.473"
+	// ControlTypeMicrosoftShowDeleted - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftShowDeleted = "1.2.840.113556.1.4.417"
+	// ControlTypeMicrosoftTreeDelete - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftTreeDelete = "1.2.840.113556.1.4.805"
+	// ControlTypeMicrosoftVerifyName - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftVerifyName = "1.2.840.113556.1.4.1338"
+	// ControlTypeVLVRequest - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeVLVRequest = "2.16.840.1.113730.3.4.9"
+	// ControlTypeVLVResponse - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeVLVResponse = "2.16.840.1.113730.3.4.10"
+	// ControlTypeMicrosoftASQ - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftASQ = "1.2.840.113556.1.4.1504"
+	// ControlTypeMicrosoftQuotaControl - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftQuotaControl = "1.2.840.113556.1.4.1852"
+	// ControlTypeMicrosoftRangeOption - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftRangeOption = "1.2.840.113556.1.4.802"
+	// ControlTypeMicrosoftShutdownNotify - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftShutdownNotify = "1.2.840.113556.1.4.1907"
+	// ControlTypeMicrosoftForceUpdate - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftForceUpdate = "1.2.840.113556.1.4.1974"
+	// ControlTypeMicrosoftRangeRetrievalNoErr - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftRangeRetrievalNoErr = "1.2.840.113556.1.4.1948"
+	// ControlTypeMicrosoftRODCDCPromo - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftRODCDCPromo = "1.2.840.113556.1.4.1341"
+	// ControlTypeMicrosoftDNInput - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftDNInput = "1.2.840.113556.1.4.2026"
+	// ControlTypeMicrosoftShowDeactivatedLink - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftShowDeactivatedLink = "1.2.840.113556.1.4.2065"
+	// ControlTypeMicrosoftShowRecycled - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftShowRecycled = "1.2.840.113556.1.4.2064"
+	// ControlTypeMicrosoftPolicyHintsDeprecated - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftPolicyHintsDeprecated = "1.2.840.113556.1.4.2066"
+	// ControlTypeMicrosoftDirSyncEX - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftDirSyncEX = "1.2.840.113556.1.4.2090"
+	// ControlTypeMicrosoftUpdateStats - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftUpdateStats = "1.2.840.113556.1.4.2205"
+	// ControlTypeMicrosoftTreeDeleteEX - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftTreeDeleteEX = "1.2.840.113556.1.4.2204"
+	// ControlTypeMicrosoftSearchHints - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftSearchHints = "1.2.840.113556.1.4.2206"
+	// ControlTypeMicrosoftExpectedEntryCount - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftExpectedEntryCount = "1.2.840.113556.1.4.2211"
+	// ControlTypeMicrosoftPolicyHints - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftPolicyHints = "1.2.840.113556.1.4.2239"
+	// ControlTypeMicrosoftSetOwner - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftSetOwner = "1.2.840.113556.1.4.2255"
+	// ControlTypeMicrosoftBypassQuota - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftBypassQuota = "1.2.840.113556.1.4.2256"
+	// ControlTypeMicrosoftServerLinkTTL - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftServerLinkTTL = "1.2.840.113556.1.4.2309"
+	// ControlTypeMicrosoftSetCorrelationID - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftSetCorrelationID = "1.2.840.113556.1.4.2330"
+	// ControlTypeMicrosoftThreadTraceOverride - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3c5e87db-4728-4f29-b164-01dd7d7391ea
+	ControlTypeMicrosoftThreadTraceOverride = "1.2.840.113556.1.4.2354"
+
+	// ControlTypeSyncRequest - https://www.ietf.org/rfc/rfc4533.txt
+	ControlTypeSyncRequest = "1.3.6.1.4.1.4203.1.9.1.1"
+	// ControlTypeSyncState - https://www.ietf.org/rfc/rfc4533.txt
+	ControlTypeSyncState = "1.3.6.1.4.1.4203.1.9.1.2"
+	// ControlTypeSyncDone - https://www.ietf.org/rfc/rfc4533.txt
+	ControlTypeSyncDone = "1.3.6.1.4.1.4203.1.9.1.3"
+	// ControlTypeSyncInfo - https://www.ietf.org/rfc/rfc4533.txt
+	ControlTypeSyncInfo = "1.3.6.1.4.1.4203.1.9.1.4"
+)
+
+// Flags for DirSync control
+// Source: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/2213a7f2-0a36-483c-b2a4-8574d53aa1e3
+const (
+	// Windows Server 2003 and later: If this flag is not present, all of the values,
+	// up to a server-specified limit, in a multivalued attribute are returned when
+	// any value changes. If this flag is present, only the changed values are
+	// returned, provided the attribute is a forward link value.
+	// Windows 2000: Not supported.
+	DirSyncIncrementalValues int64 = 0x80000000
+
+	// Do not return private data in the search results.
+	// Windows Server 2003 and later: This flag can optionally be passed to the DC,
+	// but it has no effect.
+	// Windows 2000: Not supported.
+	DirSyncPublicDataOnly int64 = 0x00002000
+
+	// Return parent objects before child objects, otherwise parent
+	// objects would appear later in the replication stream.
+	DirSyncAncestorsFirstOrder int64 = 0x00000800
+
+	// Windows Server 2003 operating system and later: If this flag is present,
+	// the client can only view objects and attributes that are otherwise accessible
+	// to the client. If this flag is not present, the server checks if the client
+	// has access rights to read the changes in the NC.
+	// Windows 2000 operating system: Not supported.
+	DirSyncObjectSecurity int64 = 0x00000001
+)
+
+// ControlTypeMap maps controls to text descriptions
+var ControlTypeMap = map[string]string{
+	ControlTypePaging:                 "Paging",
+	ControlTypeBeheraPasswordPolicy:   "Password Policy - Behera Draft",
+	ControlTypeVChuPasswordMustChange: "Password Must Change - VChu Draft",
+	ControlTypeVChuPasswordWarning:    "Password Warning - VChu Draft",
+	ControlTypeManageDsaIT:            "Manage DSA IT",
+	ControlTypeWhoAmI:                 "Who Am I",
+	ControlTypeSubtreeDelete:          "Subtree Delete Control",
+
+	ControlTypeServerSideSorting:       "Server Side Sorting",
+	ControlTypeServerSideSortingResult: "Server Side Sorting Result",
+
+	ControlTypeMicrosoftCrossDomainMoveTarget: "Cross Domain Move Target - Microsoft",
+	ControlTypeDirSync:                        "DirSync",
+	ControlTypeMicrosoftDomainScope:           "Domain Scope - Microsoft",
+	ControlTypeMicrosoftExtendedDN:            "Extended DN - Microsoft",
+	ControlTypeMicrosoftGetStats:              "Get Stats - Microsoft",
+	ControlTypeMicrosoftLazyCommit:            "Lazy Commit - Microsoft",
+	ControlTypeMicrosoftPermissiveModify:      "Permissive Modify - Microsoft",
+	ControlTypeMicrosoftNotification:          "Change Notification - Microsoft",
+	ControlTypeMicrosoftSDFlags:               "SD Flags - Microsoft",
+	ControlTypeMicrosoftSearchOptions:         "Search Options - Microsoft",
+	ControlTypeMicrosoftShowDeleted:           "Show Deleted Objects - Microsoft",
+	ControlTypeMicrosoftVerifyName:            "Verify Name - Microsoft",
+	ControlTypeMicrosoftASQ:                   "ASQ - Microsoft",
+	ControlTypeMicrosoftQuotaControl:          "Quota Control - Microsoft",
+	ControlTypeMicrosoftRangeOption:           "Range Option - Microsoft",
+	ControlTypeMicrosoftShutdownNotify:        "Shutdown Notify - Microsoft",
+	ControlTypeMicrosoftForceUpdate:           "Force Update - Microsoft",
+	ControlTypeMicrosoftRangeRetrievalNoErr:   "Range Retrieval No Error - Microsoft",
+	ControlTypeMicrosoftRODCDCPromo:           "RODC DC Promo - Microsoft",
+	ControlTypeMicrosoftDNInput:               "DN Input - Microsoft",
+	ControlTypeMicrosoftShowDeactivatedLink:   "Show Deactivated Link - Microsoft",
+	ControlTypeMicrosoftShowRecycled:          "Show Recycled - Microsoft",
+	ControlTypeMicrosoftPolicyHintsDeprecated: "Policy Hints Deprecated - Microsoft",
+	ControlTypeMicrosoftDirSyncEX:             "DirSync EX - Microsoft",
+	ControlTypeMicrosoftUpdateStats:           "Update Stats - Microsoft",
+	ControlTypeMicrosoftTreeDeleteEX:          "Tree Delete EX - Microsoft",
+	ControlTypeMicrosoftSearchHints:           "Search Hints - Microsoft",
+	ControlTypeMicrosoftExpectedEntryCount:    "Expected Entry Count - Microsoft",
+	ControlTypeMicrosoftPolicyHints:           "Policy Hints - Microsoft",
+	ControlTypeMicrosoftSetOwner:              "Set Owner - Microsoft",
+	ControlTypeMicrosoftBypassQuota:           "Bypass Quota - Microsoft",
+	ControlTypeMicrosoftServerLinkTTL:         "Return TTL-DNs for link values with associated expiry times - Microsoft",
+	ControlTypeMicrosoftSetCorrelationID:      "Set Correlation ID - Microsoft",
+	ControlTypeMicrosoftThreadTraceOverride:   "Thread Trace Override - Microsoft",
+
+	ControlTypeSyncRequest: "Sync Request",
+	ControlTypeSyncState:   "Sync State",
+	ControlTypeSyncDone:    "Sync Done",
+	ControlTypeSyncInfo:    "Sync Info",
+}
+
+// Control defines an interface controls provide to encode and describe themselves
+type Control interface {
+	// GetControlType returns the OID
+	GetControlType() string
+	// Encode returns the ber packet representation
+	Encode() *ber.Packet
+	// String returns a human-readable description
+	String() string
+}
+
+// ControlString implements the Control interface for simple controls
+type ControlString struct {
+	ControlType  string
+	Criticality  bool
+	ControlValue string
+}
+
+// GetControlType returns the OID
+func (c *ControlString) GetControlType() string {
+	return c.ControlType
+}
+
+// Encode returns the ber packet representation
+func (c *ControlString) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, c.ControlType, "Control Type ("+ControlTypeMap[c.ControlType]+")"))
+	if c.Criticality {
+		packet.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, c.Criticality, "Criticality"))
+	}
+	if c.ControlValue != "" {
+		packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, string(c.ControlValue), "Control Value"))
+	}
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlString) String() string {
+	return fmt.Sprintf("Control Type: %s (%q)  Criticality: %t  Control Value: %s", ControlTypeMap[c.ControlType], c.ControlType, c.Criticality, c.ControlValue)
+}
+
+// ControlPaging implements the paging control described in https://www.ietf.org/rfc/rfc2696.txt
+type ControlPaging struct {
+	// PagingSize indicates the page size
+	PagingSize uint32
+	// Cookie is an opaque value returned by the server to track a paging cursor
+	Cookie []byte
+}
+
+// GetControlType returns the OID
+func (c *ControlPaging) GetControlType() string {
+	return ControlTypePaging
+}
+
+// Encode returns the ber packet representation
+func (c *ControlPaging) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypePaging, "Control Type ("+ControlTypeMap[ControlTypePaging]+")"))
+
+	p2 := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, "Control Value (Paging)")
+	seq := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Search Control Value")
+	seq.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, int64(c.PagingSize), "Paging Size"))
+	cookie := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, "Cookie")
+	cookie.Value = c.Cookie
+	cookie.Data.Write(c.Cookie)
+	seq.AppendChild(cookie)
+	p2.AppendChild(seq)
+
+	packet.AppendChild(p2)
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlPaging) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t  PagingSize: %d  Cookie: %q",
+		ControlTypeMap[ControlTypePaging],
+		ControlTypePaging,
+		false,
+		c.PagingSize,
+		c.Cookie)
+}
+
+// SetCookie stores the given cookie in the paging control
+func (c *ControlPaging) SetCookie(cookie []byte) {
+	c.Cookie = cookie
+}
+
+// ControlBeheraPasswordPolicy implements the control described in https://tools.ietf.org/html/draft-behera-ldap-password-policy-10
+type ControlBeheraPasswordPolicy struct {
+	// Expire contains the number of seconds before a password will expire
+	Expire int64
+	// Grace indicates the remaining number of times a user will be allowed to authenticate with an expired password
+	Grace int64
+	// Error indicates the error code
+	Error int8
+	// ErrorString is a human readable error
+	ErrorString string
+}
+
+// GetControlType returns the OID
+func (c *ControlBeheraPasswordPolicy) GetControlType() string {
+	return ControlTypeBeheraPasswordPolicy
+}
+
+// Encode returns the ber packet representation
+func (c *ControlBeheraPasswordPolicy) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeBeheraPasswordPolicy, "Control Type ("+ControlTypeMap[ControlTypeBeheraPasswordPolicy]+")"))
+
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlBeheraPasswordPolicy) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t  Expire: %d  Grace: %d  Error: %d, ErrorString: %s",
+		ControlTypeMap[ControlTypeBeheraPasswordPolicy],
+		ControlTypeBeheraPasswordPolicy,
+		false,
+		c.Expire,
+		c.Grace,
+		c.Error,
+		c.ErrorString)
+}
+
+// ControlVChuPasswordMustChange implements the control described in https://tools.ietf.org/html/draft-vchu-ldap-pwd-policy-00
+type ControlVChuPasswordMustChange struct {
+	// MustChange indicates if the password is required to be changed
+	MustChange bool
+}
+
+// GetControlType returns the OID
+func (c *ControlVChuPasswordMustChange) GetControlType() string {
+	return ControlTypeVChuPasswordMustChange
+}
+
+// Encode returns the ber packet representation
+func (c *ControlVChuPasswordMustChange) Encode() *ber.Packet {
+	return nil
+}
+
+// String returns a human-readable description
+func (c *ControlVChuPasswordMustChange) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t  MustChange: %v",
+		ControlTypeMap[ControlTypeVChuPasswordMustChange],
+		ControlTypeVChuPasswordMustChange,
+		false,
+		c.MustChange)
+}
+
+// ControlVChuPasswordWarning implements the control described in https://tools.ietf.org/html/draft-vchu-ldap-pwd-policy-00
+type ControlVChuPasswordWarning struct {
+	// Expire indicates the time in seconds until the password expires
+	Expire int64
+}
+
+// GetControlType returns the OID
+func (c *ControlVChuPasswordWarning) GetControlType() string {
+	return ControlTypeVChuPasswordWarning
+}
+
+// Encode returns the ber packet representation
+func (c *ControlVChuPasswordWarning) Encode() *ber.Packet {
+	return nil
+}
+
+// String returns a human-readable description
+func (c *ControlVChuPasswordWarning) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t  Expire: %b",
+		ControlTypeMap[ControlTypeVChuPasswordWarning],
+		ControlTypeVChuPasswordWarning,
+		false,
+		c.Expire)
+}
+
+// ControlManageDsaIT implements the control described in https://tools.ietf.org/html/rfc3296
+type ControlManageDsaIT struct {
+	// Criticality indicates if this control is required
+	Criticality bool
+}
+
+// GetControlType returns the OID
+func (c *ControlManageDsaIT) GetControlType() string {
+	return ControlTypeManageDsaIT
+}
+
+// Encode returns the ber packet representation
+func (c *ControlManageDsaIT) Encode() *ber.Packet {
+	// FIXME
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeManageDsaIT, "Control Type ("+ControlTypeMap[ControlTypeManageDsaIT]+")"))
+	if c.Criticality {
+		packet.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, c.Criticality, "Criticality"))
+	}
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlManageDsaIT) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t",
+		ControlTypeMap[ControlTypeManageDsaIT],
+		ControlTypeManageDsaIT,
+		c.Criticality)
+}
+
+// NewControlManageDsaIT returns a ControlManageDsaIT control
+func NewControlManageDsaIT(Criticality bool) *ControlManageDsaIT {
+	return &ControlManageDsaIT{Criticality: Criticality}
+}
+
+// ControlMicrosoftNotification implements the control described in https://msdn.microsoft.com/en-us/library/aa366983(v=vs.85).aspx
+type ControlMicrosoftNotification struct{}
+
+// GetControlType returns the OID
+func (c *ControlMicrosoftNotification) GetControlType() string {
+	return ControlTypeMicrosoftNotification
+}
+
+// Encode returns the ber packet representation
+func (c *ControlMicrosoftNotification) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeMicrosoftNotification, "Control Type ("+ControlTypeMap[ControlTypeMicrosoftNotification]+")"))
+
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlMicrosoftNotification) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)",
+		ControlTypeMap[ControlTypeMicrosoftNotification],
+		ControlTypeMicrosoftNotification)
+}
+
+// NewControlMicrosoftNotification returns a ControlMicrosoftNotification control
+func NewControlMicrosoftNotification() *ControlMicrosoftNotification {
+	return &ControlMicrosoftNotification{}
+}
+
+type ControlMicrosoftSDFlags struct {
+	Criticality  bool
+	ControlValue int32
+}
+
+func (c *ControlMicrosoftSDFlags) GetControlType() string {
+	// Source: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3888c2b7-35b9-45b7-afeb-b772aa932dd0
+	return ControlTypeMicrosoftSDFlags
+}
+
+func (c *ControlMicrosoftSDFlags) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeMicrosoftSDFlags, "Control Type ("+ControlTypeMap[ControlTypeMicrosoftSDFlags]+")"))
+	if c.Criticality {
+		packet.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, c.Criticality, "Criticality"))
+	}
+	p2 := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, "Control Value(SDFlags)")
+	seq := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "SDFlags")
+	seq.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, c.ControlValue, "Flags"))
+	p2.AppendChild(seq)
+	packet.AppendChild(p2)
+	return packet
+}
+
+func (c *ControlMicrosoftSDFlags) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)",
+		ControlTypeMap[ControlTypeMicrosoftSDFlags],
+		ControlTypeMicrosoftSDFlags)
+}
+
+// NewControlMicrosoftSDFlags returns a ControlMicrosoftSDFlags control
+func NewControlMicrosoftSDFlags() *ControlMicrosoftSDFlags {
+	return &ControlMicrosoftSDFlags{}
+}
+
+// ControlMicrosoftShowDeleted implements the control described in https://msdn.microsoft.com/en-us/library/aa366989(v=vs.85).aspx
+type ControlMicrosoftShowDeleted struct{}
+
+// GetControlType returns the OID
+func (c *ControlMicrosoftShowDeleted) GetControlType() string {
+	return ControlTypeMicrosoftShowDeleted
+}
+
+// Encode returns the ber packet representation
+func (c *ControlMicrosoftShowDeleted) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeMicrosoftShowDeleted, "Control Type ("+ControlTypeMap[ControlTypeMicrosoftShowDeleted]+")"))
+
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlMicrosoftShowDeleted) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)",
+		ControlTypeMap[ControlTypeMicrosoftShowDeleted],
+		ControlTypeMicrosoftShowDeleted)
+}
+
+// NewControlMicrosoftShowDeleted returns a ControlMicrosoftShowDeleted control
+func NewControlMicrosoftShowDeleted() *ControlMicrosoftShowDeleted {
+	return &ControlMicrosoftShowDeleted{}
+}
+
+// ControlMicrosoftServerLinkTTL implements the control described in https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/f4f523a8-abc0-4b3a-a471-6b2fef135481?redirectedfrom=MSDN
+type ControlMicrosoftServerLinkTTL struct{}
+
+// GetControlType returns the OID
+func (c *ControlMicrosoftServerLinkTTL) GetControlType() string {
+	return ControlTypeMicrosoftServerLinkTTL
+}
+
+// Encode returns the ber packet representation
+func (c *ControlMicrosoftServerLinkTTL) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeMicrosoftServerLinkTTL, "Control Type ("+ControlTypeMap[ControlTypeMicrosoftServerLinkTTL]+")"))
+
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlMicrosoftServerLinkTTL) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)",
+		ControlTypeMap[ControlTypeMicrosoftServerLinkTTL],
+		ControlTypeMicrosoftServerLinkTTL)
+}
+
+// NewControlMicrosoftServerLinkTTL returns a ControlMicrosoftServerLinkTTL control
+func NewControlMicrosoftServerLinkTTL() *ControlMicrosoftServerLinkTTL {
+	return &ControlMicrosoftServerLinkTTL{}
+}
+
+// FindControl returns the first control of the given type in the list, or nil
+func FindControl(controls []Control, controlType string) Control {
+	for _, c := range controls {
+		if c.GetControlType() == controlType {
+			return c
+		}
+	}
+	return nil
+}
+
+// DecodeControl returns a control read from the given packet, or nil if no recognized control can be made
+func DecodeControl(packet *ber.Packet) (Control, error) {
+	var (
+		ControlType = ""
+		Criticality = false
+		value       *ber.Packet
+	)
+
+	children, err := packetChildCount(packet, 1, 3, "control")
+	if err != nil {
+		return nil, err
+	}
+
+	typeChild, err := packetChild(packet, 0)
+	if err != nil {
+		return nil, err
+	}
+	typeChild.Description = "Control Type (" + ControlTypeMap[ControlType] + ")"
+	if typeChild.Value != nil {
+		ct, err := packetString(typeChild)
+		if err != nil {
+			return nil, fmt.Errorf("control type is not a string: %T: %w", typeChild.Value, err)
+		}
+		ControlType = ct
+	} else if typeChild.Data != nil {
+		ControlType = typeChild.Data.String()
+	} else {
+		return nil, malformedf("not found where to get the control type")
+	}
+
+	switch len(children) {
+	case 3:
+		// criticality and value present
+		criticality, err := packetChild(packet, 1)
+		if err != nil {
+			return nil, err
+		}
+		criticality.Description = "Criticality"
+		crit, err := packetBool(criticality)
+		if err != nil {
+			return nil, fmt.Errorf("criticality is not a bool: %T: %w", criticality.Value, err)
+		}
+		Criticality = crit
+
+		valueChild, err := packetChild(packet, 2)
+		if err != nil {
+			return nil, err
+		}
+		valueChild.Description = "Control Value"
+		value = valueChild
+	case 2:
+		// Children[1] is criticality or value. RFC 4511 declares
+		// Control ::= SEQUENCE { controlType LDAPOID, criticality BOOLEAN
+		// DEFAULT FALSE, controlValue OCTET STRING OPTIONAL }, so identify
+		// it by its ASN.1 tag rather than by the Go type of Value.
+		second, err := packetChild(packet, 1)
+		if err != nil {
+			return nil, err
+		}
+		if second.ClassType == ber.ClassUniversal && second.Tag == ber.TagBoolean {
+			second.Description = "Criticality"
+			crit, err := packetBool(second)
+			if err != nil {
+				return nil, fmt.Errorf("criticality is not a bool: %T: %w", second.Value, err)
+			}
+			Criticality = crit
+		} else {
+			second.Description = "Control Value"
+			value = second
+		}
+	}
+
+	switch ControlType {
+	case ControlTypeManageDsaIT:
+		return NewControlManageDsaIT(Criticality), nil
+	case ControlTypePaging:
+		if value == nil {
+			return nil, malformedf("paging control value is missing")
+		}
+		value.Description += " (Paging)"
+		c := new(ControlPaging)
+		if value.Value != nil {
+			data, err := packetData(value)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+			}
+			valueChildren, err := ber.DecodePacketErr(data)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+			}
+			value.Data.Truncate(0)
+			value.Value = nil
+			value.AppendChild(valueChildren)
+		}
+		first, err := packetChild(value, 0)
+		if err != nil {
+			return nil, err
+		}
+		value = first
+		value.Description = "Search Control Value"
+		sizeChild, err := packetChild(value, 0)
+		if err != nil {
+			return nil, err
+		}
+		cookieChild, err := packetChild(value, 1)
+		if err != nil {
+			return nil, err
+		}
+		sizeChild.Description = "Paging Size"
+		cookieChild.Description = "Cookie"
+		pagingSize, err := packetInt64(sizeChild)
+		if err != nil {
+			return nil, fmt.Errorf("paging size is not an integer: %T: %w", sizeChild.Value, err)
+		}
+		c.PagingSize = uint32(pagingSize)
+		cookie, err := packetData(cookieChild)
+		if err != nil {
+			return nil, err
+		}
+		c.Cookie = cookie
+		cookieChild.Value = c.Cookie
+		return c, nil
+	case ControlTypeBeheraPasswordPolicy:
+		if value == nil {
+			return nil, fmt.Errorf("invalid value for Control Type ControlTypeBeheraPasswordPolicy: %v", value)
+		}
+		value.Description += " (Password Policy - Behera)"
+		c := NewControlBeheraPasswordPolicy()
+		if value.Value != nil {
+			data, err := packetData(value)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+			}
+			valueChildren, err := ber.DecodePacketErr(data)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+			}
+			value.Data.Truncate(0)
+			value.Value = nil
+			value.AppendChild(valueChildren)
+		}
+
+		sequence, err := packetChild(value, 0)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, child := range sequence.Children {
+			if child == nil {
+				continue
+			}
+			switch child.Tag {
+			case 0:
+				// Warning
+				warningPacket, err := packetChild(child, 0)
+				if err != nil {
+					return nil, err
+				}
+				data, err := packetData(warningPacket)
+				if err != nil {
+					return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+				}
+				val, err := ber.ParseInt64(data)
+				if err != nil {
+					return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+				}
+				switch warningPacket.Tag {
+				case 0:
+					// timeBeforeExpiration
+					c.Expire = val
+					warningPacket.Value = c.Expire
+				case 1:
+					// graceAuthNsRemaining
+					c.Grace = val
+					warningPacket.Value = c.Grace
+				}
+			case 1:
+				// Error
+				bs, err := packetData(child)
+				if err != nil {
+					return nil, err
+				}
+				if len(bs) != 1 || bs[0] > 8 {
+					return nil, malformedf("invalid PasswordPolicyResponse enum value")
+				}
+				val := int8(bs[0])
+				c.Error = val
+				child.Value = c.Error
+				c.ErrorString = BeheraPasswordPolicyErrorMap[c.Error]
+			}
+		}
+		return c, nil
+	case ControlTypeVChuPasswordMustChange:
+		c := &ControlVChuPasswordMustChange{MustChange: true}
+		return c, nil
+	case ControlTypeVChuPasswordWarning:
+		if value == nil || value.Data == nil {
+			return nil, fmt.Errorf("invalid value for Control Type ControlTypeVChuPasswordWarning: %v", value)
+		}
+		c := &ControlVChuPasswordWarning{Expire: -1}
+		expireStr := ber.DecodeString(value.Data.Bytes())
+
+		expire, err := strconv.ParseInt(expireStr, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse value as int: %w", err)
+		}
+		c.Expire = expire
+		value.Value = c.Expire
+
+		return c, nil
+	case ControlTypeMicrosoftNotification:
+		return NewControlMicrosoftNotification(), nil
+	case ControlTypeMicrosoftShowDeleted:
+		return NewControlMicrosoftShowDeleted(), nil
+	case ControlTypeMicrosoftServerLinkTTL:
+		return NewControlMicrosoftServerLinkTTL(), nil
+	case ControlTypeSubtreeDelete:
+		return NewControlSubtreeDelete(), nil
+	case ControlTypeServerSideSorting:
+		if value == nil {
+			return nil, malformedf("server side sorting control value is missing")
+		}
+		return NewControlServerSideSorting(value)
+	case ControlTypeServerSideSortingResult:
+		return NewControlServerSideSortingResult(value)
+	case ControlTypeDirSync:
+		if value == nil {
+			return nil, malformedf("dirSync control value is missing")
+		}
+		value.Description += " (DirSync)"
+		return NewResponseControlDirSync(value)
+	case ControlTypeSyncState:
+		if value == nil {
+			return nil, malformedf("sync state control value is missing")
+		}
+		value.Description += " (Sync State)"
+		data, err := packetData(value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		valueChildren, err := ber.DecodePacketErr(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		return NewControlSyncState(valueChildren)
+	case ControlTypeSyncDone:
+		if value == nil {
+			return nil, malformedf("sync done control value is missing")
+		}
+		value.Description += " (Sync Done)"
+		data, err := packetData(value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		valueChildren, err := ber.DecodePacketErr(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		return NewControlSyncDone(valueChildren)
+	case ControlTypeSyncInfo:
+		if value == nil {
+			return nil, malformedf("sync info control value is missing")
+		}
+		value.Description += " (Sync Info)"
+		data, err := packetData(value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		valueChildren, err := ber.DecodePacketErr(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		return NewControlSyncInfo(valueChildren)
+	default:
+		c := new(ControlString)
+		c.ControlType = ControlType
+		c.Criticality = Criticality
+		if value != nil {
+			// A non-conforming or malicious server can send a non-string
+			// (or nil) value here; the previous unchecked cast panicked
+			// the calling goroutine, see #561. Fall back to the raw bytes
+			// when the value isn't a string so we surface an error
+			// instead of crashing.
+			if s, err := packetString(value); err == nil {
+				c.ControlValue = s
+			} else if data, err := packetData(value); err == nil {
+				c.ControlValue = string(data)
+			}
+		}
+		return c, nil
+	}
+}
+
+// NewControlString returns a generic control
+func NewControlString(controlType string, criticality bool, controlValue string) *ControlString {
+	return &ControlString{
+		ControlType:  controlType,
+		Criticality:  criticality,
+		ControlValue: controlValue,
+	}
+}
+
+// NewControlPaging returns a paging control
+func NewControlPaging(pagingSize uint32) *ControlPaging {
+	return &ControlPaging{PagingSize: pagingSize}
+}
+
+// NewControlBeheraPasswordPolicy returns a ControlBeheraPasswordPolicy
+func NewControlBeheraPasswordPolicy() *ControlBeheraPasswordPolicy {
+	return &ControlBeheraPasswordPolicy{
+		Expire: -1,
+		Grace:  -1,
+		Error:  -1,
+	}
+}
+
+// ControlSubtreeDelete implements the subtree delete control described in
+// https://datatracker.ietf.org/doc/html/draft-armijo-ldap-treedelete-02
+type ControlSubtreeDelete struct{}
+
+// GetControlType returns the OID
+func (c *ControlSubtreeDelete) GetControlType() string {
+	return ControlTypeSubtreeDelete
+}
+
+// NewControlSubtreeDelete returns a ControlSubtreeDelete control.
+func NewControlSubtreeDelete() *ControlSubtreeDelete {
+	return &ControlSubtreeDelete{}
+}
+
+// Encode returns the ber packet representation
+func (c *ControlSubtreeDelete) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeSubtreeDelete, "Control Type ("+ControlTypeMap[ControlTypeSubtreeDelete]+")"))
+
+	return packet
+}
+
+func (c *ControlSubtreeDelete) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)",
+		ControlTypeMap[ControlTypeSubtreeDelete],
+		ControlTypeSubtreeDelete)
+}
+
+func encodeControls(controls []Control) *ber.Packet {
+	packet := ber.Encode(ber.ClassContext, ber.TypeConstructed, 0, nil, "Controls")
+	for _, control := range controls {
+		packet.AppendChild(control.Encode())
+	}
+	return packet
+}
+
+// ControlDirSync implements the control described in https://msdn.microsoft.com/en-us/library/aa366978(v=vs.85).aspx
+type ControlDirSync struct {
+	Criticality  bool
+	Flags        int64
+	MaxAttrCount int64
+	Cookie       []byte
+}
+
+// Deprecated:  Use NewRequestControlDirSync instead
+func NewControlDirSync(flags int64, maxAttrCount int64, cookie []byte) *ControlDirSync {
+	return NewRequestControlDirSync(flags, maxAttrCount, cookie)
+}
+
+// NewRequestControlDirSync returns a dir sync control
+func NewRequestControlDirSync(
+	flags int64, maxAttrCount int64, cookie []byte,
+) *ControlDirSync {
+	return &ControlDirSync{
+		Criticality:  true,
+		Flags:        flags,
+		MaxAttrCount: maxAttrCount,
+		Cookie:       cookie,
+	}
+}
+
+// NewResponseControlDirSync returns a dir sync control
+func NewResponseControlDirSync(value *ber.Packet) (*ControlDirSync, error) {
+	if value == nil {
+		return nil, malformedf("dirSync control value is missing")
+	}
+	if value.Value != nil {
+		data, err := packetData(value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		valueChildren, err := ber.DecodePacketErr(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data bytes: %w", err)
+		}
+		value.Data.Truncate(0)
+		value.Value = nil
+		value.AppendChild(valueChildren)
+	}
+	child, err := packetChild(value, 0)
+	if err != nil {
+		return nil, fmt.Errorf("invalid number of children in dirSync control: %w", err)
+	}
+	// also on initial creation, Cookie is an empty string
+	if _, err := packetChildCount(child, 3, 3, "dirSync control value"); err != nil {
+		return nil, fmt.Errorf("invalid number of children in dirSync control: %w", err)
+	}
+	flagsChild, err := packetChild(child, 0)
+	if err != nil {
+		return nil, fmt.Errorf("invalid number of children in dirSync control: %w", err)
+	}
+	maxAttrChild, err := packetChild(child, 1)
+	if err != nil {
+		return nil, fmt.Errorf("invalid number of children in dirSync control: %w", err)
+	}
+	cookieChild, err := packetChild(child, 2)
+	if err != nil {
+		return nil, fmt.Errorf("invalid number of children in dirSync control: %w", err)
+	}
+	child.Description = "DirSync Control Value"
+	flagsChild.Description = "Flags"
+	maxAttrChild.Description = "MaxAttrCount"
+	cookieChild.Description = "Cookie"
+
+	cookie, err := packetData(cookieChild)
+	if err != nil {
+		return nil, err
+	}
+	cookieChild.Value = cookie
+	flags, err := packetInt64(flagsChild)
+	if err != nil {
+		return nil, err
+	}
+	maxAttrCount, err := packetInt64(maxAttrChild)
+	if err != nil {
+		return nil, err
+	}
+	return &ControlDirSync{
+		Criticality:  true,
+		Flags:        flags,
+		MaxAttrCount: maxAttrCount,
+		Cookie:       cookie,
+	}, nil
+}
+
+// GetControlType returns the OID
+func (c *ControlDirSync) GetControlType() string {
+	return ControlTypeDirSync
+}
+
+// String returns a human-readable description
+func (c *ControlDirSync) String() string {
+	return fmt.Sprintf(
+		"ControlType: %s (%q) Criticality: %t ControlValue: Flags: %d MaxAttrCount: %d",
+		ControlTypeMap[ControlTypeDirSync],
+		ControlTypeDirSync,
+		c.Criticality,
+		c.Flags,
+		c.MaxAttrCount,
+	)
+}
+
+// Encode returns the ber packet representation
+func (c *ControlDirSync) Encode() *ber.Packet {
+	cookie := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, "", "Cookie")
+	if len(c.Cookie) != 0 {
+		cookie.Value = c.Cookie
+		cookie.Data.Write(c.Cookie)
+	}
+
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeDirSync, "Control Type ("+ControlTypeMap[ControlTypeDirSync]+")"))
+	packet.AppendChild(ber.NewLDAPBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, c.Criticality, "Criticality")) // must be true always
+
+	val := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, "Control Value (DirSync)")
+	seq := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "DirSync Control Value")
+
+	// Note: Active Directory expects a 4-byte unsigned integer for flags, but ASN.1 uses signed integers by default.
+	// As a result, the BER encoder may encode flags as a 5-byte signed integer; we force 4-byte encoding here.
+	flagsPacket := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, nil, "Flags")
+	flagsPacket.Value = int64(c.Flags)
+	flagsBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(flagsBytes, uint32(c.Flags))
+	flagsPacket.Data.Write(flagsBytes)
+	seq.AppendChild(flagsPacket)
+
+	seq.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, int64(c.MaxAttrCount), "MaxAttrCount"))
+	seq.AppendChild(cookie)
+	val.AppendChild(seq)
+
+	packet.AppendChild(val)
+	return packet
+}
+
+// SetCookie stores the given cookie in the dirSync control
+func (c *ControlDirSync) SetCookie(cookie []byte) {
+	c.Cookie = cookie
+}
+
+// ControlServerSideSorting
+
+type SortKey struct {
+	Reverse       bool
+	AttributeType string
+	MatchingRule  string
+}
+
+type ControlServerSideSorting struct {
+	SortKeys []*SortKey
+}
+
+func (c *ControlServerSideSorting) GetControlType() string {
+	return ControlTypeServerSideSorting
+}
+
+func NewControlServerSideSorting(value *ber.Packet) (*ControlServerSideSorting, error) {
+	if value == nil {
+		return nil, malformedf("server side sorting control value is missing")
+	}
+	data, err := packetData(value)
+	if err != nil {
+		return nil, fmt.Errorf("decode packet err: %w", err)
+	}
+	val, err := ber.DecodePacketErr(data)
+	if err != nil {
+		return nil, fmt.Errorf("decode packet err: %w", err)
+	}
+
+	if _, err := packetChildCount(val, 1, -1, "sort key list"); err != nil {
+		return nil, fmt.Errorf("no sequence value in packet: %w", err)
+	}
+
+	var sortKeys []*SortKey
+
+	for i, sequence := range val.Children {
+		if sequence == nil {
+			return nil, fmt.Errorf("attributeType is missing from sequence %d", i)
+		}
+		if _, err := packetChildCount(sequence, 1, 3, "sort key sequence"); err != nil {
+			return nil, fmt.Errorf("attributeType is missing from sequence %d: %w", i, err)
+		}
+
+		sortKey := new(SortKey)
+
+		for _, child := range sequence.Children {
+			if child == nil {
+				continue
+			}
+			switch {
+			case child.ClassType == ber.ClassUniversal && child.Tag == ber.TagOctetString:
+				// A constructed-form OCTET STRING matches this case but leaves
+				// Value nil; guard the assertion so a malformed attributeType is
+				// rejected below rather than panicking.
+				if attrType, err := packetString(child); err == nil {
+					sortKey.AttributeType = attrType
+				}
+
+			case child.ClassType == ber.ClassContext && child.Tag == 0:
+				b, err := packetData(child)
+				if err != nil {
+					return nil, err
+				}
+				sortKey.MatchingRule = string(b)
+
+			case child.ClassType == ber.ClassContext && child.Tag == 1:
+				b, err := packetData(child)
+				if err != nil {
+					return nil, err
+				}
+				sortKey.Reverse = len(b) > 0 && b[0] != 0
+			}
+		}
+		if sortKey.AttributeType == "" {
+			return nil, fmt.Errorf("attributeType is missing from sequence %d", i)
+		}
+
+		sortKeys = append(sortKeys, sortKey)
+	}
+
+	return &ControlServerSideSorting{SortKeys: sortKeys}, nil
+}
+
+func NewControlServerSideSortingWithSortKeys(sortKeys []*SortKey) *ControlServerSideSorting {
+	return &ControlServerSideSorting{SortKeys: sortKeys}
+}
+
+func (c *ControlServerSideSorting) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	control := ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, c.GetControlType(), "Control Type")
+
+	seqs := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "SortKeyList")
+
+	for _, f := range c.SortKeys {
+		seq := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "")
+
+		seq.AppendChild(
+			ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, f.AttributeType, "attributeType"),
+		)
+		if f.MatchingRule != "" {
+			seq.AppendChild(
+				ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, f.MatchingRule, "orderingRule"),
+			)
+		}
+		if f.Reverse {
+			seq.AppendChild(
+				ber.NewBoolean(ber.ClassContext, ber.TypePrimitive, 1, f.Reverse, "reverseOrder"),
+			)
+		}
+
+		seqs.AppendChild(seq)
+	}
+
+	value := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, string(seqs.Bytes()), "Control Value")
+
+	packet.AppendChild(control)
+	packet.AppendChild(value)
+
+	return packet
+}
+
+func (c *ControlServerSideSorting) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality:%t %+v",
+		"Server Side Sorting",
+		c.GetControlType(),
+		false,
+		c.SortKeys,
+	)
+}
+
+// ControlServerSideSortingResponse
+
+const (
+	ControlServerSideSortingCodeSuccess                  ControlServerSideSortingCode = 0
+	ControlServerSideSortingCodeOperationsError          ControlServerSideSortingCode = 1
+	ControlServerSideSortingCodeTimeLimitExceeded        ControlServerSideSortingCode = 2
+	ControlServerSideSortingCodeStrongAuthRequired       ControlServerSideSortingCode = 8
+	ControlServerSideSortingCodeAdminLimitExceeded       ControlServerSideSortingCode = 11
+	ControlServerSideSortingCodeNoSuchAttribute          ControlServerSideSortingCode = 16
+	ControlServerSideSortingCodeInappropriateMatching    ControlServerSideSortingCode = 18
+	ControlServerSideSortingCodeInsufficientAccessRights ControlServerSideSortingCode = 50
+	ControlServerSideSortingCodeBusy                     ControlServerSideSortingCode = 51
+	ControlServerSideSortingCodeUnwillingToPerform       ControlServerSideSortingCode = 53
+	ControlServerSideSortingCodeOther                    ControlServerSideSortingCode = 80
+)
+
+var ControlServerSideSortingCodes = []ControlServerSideSortingCode{
+	ControlServerSideSortingCodeSuccess,
+	ControlServerSideSortingCodeOperationsError,
+	ControlServerSideSortingCodeTimeLimitExceeded,
+	ControlServerSideSortingCodeStrongAuthRequired,
+	ControlServerSideSortingCodeAdminLimitExceeded,
+	ControlServerSideSortingCodeNoSuchAttribute,
+	ControlServerSideSortingCodeInappropriateMatching,
+	ControlServerSideSortingCodeInsufficientAccessRights,
+	ControlServerSideSortingCodeBusy,
+	ControlServerSideSortingCodeUnwillingToPerform,
+	ControlServerSideSortingCodeOther,
+}
+
+type ControlServerSideSortingCode int64
+
+// Valid test the code contained in the control against the ControlServerSideSortingCodes slice and return an error if the code is unknown.
+func (c ControlServerSideSortingCode) Valid() error {
+	for _, validRet := range ControlServerSideSortingCodes {
+		if c == validRet {
+			return nil
+		}
+	}
+	return fmt.Errorf("unknown return code : %d", c)
+}
+
+func NewControlServerSideSortingResult(pkt *ber.Packet) (*ControlServerSideSortingResult, error) {
+	control := new(ControlServerSideSortingResult)
+
+	if _, err := packetChildCount(pkt, 1, -1, "server side sorting result"); err != nil {
+		// This is currently not compliant with the ServerSideSorting RFC (see https://datatracker.ietf.org/doc/html/rfc2891#section-1.2).
+		// but it's necessary because there seems to be a bug in the implementation of the popular OpenLDAP server.
+		//
+		// See: https://github.com/go-ldap/ldap/pull/546
+		return control, nil
+	}
+
+	data, err := packetDataAt(pkt, 0)
+	if err != nil {
+		return nil, err
+	}
+	codeInt, err := ber.ParseInt64(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ControlServerSideSortingCode(codeInt).Valid(); err != nil {
+		return nil, err
+	}
+
+	control.Result = ControlServerSideSortingCode(codeInt)
+
+	return control, nil
+}
+
+type ControlServerSideSortingResult struct {
+	Criticality bool
+
+	Result ControlServerSideSortingCode
+
+	// Not populated for now. I can't get openldap to send me this value, so I think this is specific to other directory server
+	// AttributeType string
+}
+
+func (c *ControlServerSideSortingResult) GetControlType() string {
+	return ControlTypeServerSideSortingResult
+}
+
+func (c *ControlServerSideSortingResult) Encode() *ber.Packet {
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "SortResult sequence")
+	sortResult := ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagEnumerated, int64(c.Result), "SortResult")
+	packet.AppendChild(sortResult)
+
+	return packet
+}
+
+func (c *ControlServerSideSortingResult) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q) Criticality:%t ResultCode:%+v",
+		"Server Side Sorting Result",
+		c.GetControlType(),
+		c.Criticality,
+		c.Result,
+	)
+}
+
+// ControlSyncRequestMode is the mode for ControlTypeSyncRequest
+type ControlSyncRequestMode int64
+
+const (
+	SyncRequestModeRefreshOnly       ControlSyncRequestMode = 1
+	SyncRequestModeRefreshAndPersist ControlSyncRequestMode = 3
+)
+
+// ControlSyncRequest implements the Sync Request Control described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncRequest struct {
+	Criticality bool
+	Mode        ControlSyncRequestMode
+	Cookie      []byte
+	ReloadHint  bool
+}
+
+func NewControlSyncRequest(
+	mode ControlSyncRequestMode, cookie []byte, reloadHint bool,
+) *ControlSyncRequest {
+	return &ControlSyncRequest{
+		Criticality: true,
+		Mode:        mode,
+		Cookie:      cookie,
+		ReloadHint:  reloadHint,
+	}
+}
+
+// GetControlType returns the OID
+func (c *ControlSyncRequest) GetControlType() string {
+	return ControlTypeSyncRequest
+}
+
+// Encode encodes the control
+func (c *ControlSyncRequest) Encode() *ber.Packet {
+	_mode := int64(c.Mode)
+	mode := ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagEnumerated, _mode, "Mode")
+	var cookie *ber.Packet
+	if len(c.Cookie) > 0 {
+		cookie = ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, "Cookie")
+		cookie.Value = c.Cookie
+		cookie.Data.Write(c.Cookie)
+	}
+	reloadHint := ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, c.ReloadHint, "Reload Hint")
+
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Control")
+	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, ControlTypeSyncRequest, "Control Type ("+ControlTypeMap[ControlTypeSyncRequest]+")"))
+	packet.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, c.Criticality, "Criticality"))
+
+	val := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, "Control Value (Sync Request)")
+	seq := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Sync Request Value")
+	seq.AppendChild(mode)
+	if cookie != nil {
+		seq.AppendChild(cookie)
+	}
+	seq.AppendChild(reloadHint)
+	val.AppendChild(seq)
+
+	packet.AppendChild(val)
+	return packet
+}
+
+// String returns a human-readable description
+func (c *ControlSyncRequest) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t Mode: %d Cookie: %s ReloadHint: %t",
+		ControlTypeMap[ControlTypeSyncRequest],
+		ControlTypeSyncRequest,
+		c.Criticality,
+		c.Mode,
+		string(c.Cookie),
+		c.ReloadHint,
+	)
+}
+
+// ControlSyncStateState is the state for ControlSyncState
+type ControlSyncStateState int64
+
+const (
+	SyncStatePresent ControlSyncStateState = 0
+	SyncStateAdd     ControlSyncStateState = 1
+	SyncStateModify  ControlSyncStateState = 2
+	SyncStateDelete  ControlSyncStateState = 3
+)
+
+// ControlSyncState implements the Sync State Control described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncState struct {
+	Criticality bool
+	State       ControlSyncStateState
+	EntryUUID   uuid.UUID
+	Cookie      []byte
+}
+
+func NewControlSyncState(pkt *ber.Packet) (*ControlSyncState, error) {
+	var (
+		state     ControlSyncStateState
+		entryUUID uuid.UUID
+		cookie    []byte
+	)
+	code, err := packetInt64At(pkt, 0)
+	if err != nil {
+		return nil, err
+	}
+	state = ControlSyncStateState(code)
+	uuidChild, err := packetChild(pkt, 1)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode uuid: %w", err)
+	}
+	entryUUID, err = uuid.FromBytes(uuidChild.ByteValue)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode uuid: %w", err)
+	}
+	cookieChild, ok, err := packetChildIfPresent(pkt, 2)
+	if err != nil {
+		return nil, err
+	}
+	if ok {
+		cookie = cookieChild.ByteValue
+	}
+	return &ControlSyncState{
+		Criticality: false,
+		State:       state,
+		EntryUUID:   entryUUID,
+		Cookie:      cookie,
+	}, nil
+}
+
+// GetControlType returns the OID
+func (c *ControlSyncState) GetControlType() string {
+	return ControlTypeSyncState
+}
+
+// Encode encodes the control
+func (c *ControlSyncState) Encode() *ber.Packet {
+	return nil
+}
+
+// String returns a human-readable description
+func (c *ControlSyncState) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t State: %d EntryUUID: %s Cookie: %s",
+		ControlTypeMap[ControlTypeSyncState],
+		ControlTypeSyncState,
+		c.Criticality,
+		c.State,
+		c.EntryUUID.String(),
+		string(c.Cookie),
+	)
+}
+
+// ControlSyncDone implements the Sync Done Control described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncDone struct {
+	Criticality    bool
+	Cookie         []byte
+	RefreshDeletes bool
+}
+
+// parseSyncMembers identifies the members of an RFC 4533 sync sequence by tag.
+// cookie is OPTIONAL and the flags carry a DEFAULT, so a member's position is not
+// fixed and the count of present members does not identify them.
+func parseSyncMembers(children []*ber.Packet) (cookie []byte, flag *bool, uuidSet *ber.Packet) {
+	for _, child := range children {
+		switch child.Tag {
+		case ber.TagOctetString:
+			cookie = child.ByteValue
+		case ber.TagBoolean:
+			if b, err := packetBool(child); err == nil {
+				flag = &b
+			}
+		case ber.TagSet:
+			uuidSet = child
+		}
+	}
+	return cookie, flag, uuidSet
+}
+
+func NewControlSyncDone(pkt *ber.Packet) (*ControlSyncDone, error) {
+	var refreshDeletes bool
+	cookie, flag, _ := parseSyncMembers(pkt.Children)
+	if flag != nil {
+		refreshDeletes = *flag
+	}
+	return &ControlSyncDone{
+		Criticality:    false,
+		Cookie:         cookie,
+		RefreshDeletes: refreshDeletes,
+	}, nil
+}
+
+// GetControlType returns the OID
+func (c *ControlSyncDone) GetControlType() string {
+	return ControlTypeSyncDone
+}
+
+// Encode encodes the control
+func (c *ControlSyncDone) Encode() *ber.Packet {
+	return nil
+}
+
+// String returns a human-readable description
+func (c *ControlSyncDone) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t Cookie: %s RefreshDeletes: %t",
+		ControlTypeMap[ControlTypeSyncDone],
+		ControlTypeSyncDone,
+		c.Criticality,
+		string(c.Cookie),
+		c.RefreshDeletes,
+	)
+}
+
+// ControlSyncInfoValue is the tag for ControlSyncInfo
+type ControlSyncInfoValue uint64
+
+const (
+	SyncInfoNewcookie      ControlSyncInfoValue = 0
+	SyncInfoRefreshDelete  ControlSyncInfoValue = 1
+	SyncInfoRefreshPresent ControlSyncInfoValue = 2
+	SyncInfoSyncIdSet      ControlSyncInfoValue = 3
+)
+
+// ControlSyncInfoNewCookie implements a part of syncInfoValue described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncInfoNewCookie struct {
+	Cookie []byte
+}
+
+// String returns a human-readable description
+func (c *ControlSyncInfoNewCookie) String() string {
+	return fmt.Sprintf(
+		"NewCookie[Cookie: %s]",
+		string(c.Cookie),
+	)
+}
+
+// ControlSyncInfoRefreshDelete implements a part of syncInfoValue described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncInfoRefreshDelete struct {
+	Cookie      []byte
+	RefreshDone bool
+}
+
+// String returns a human-readable description
+func (c *ControlSyncInfoRefreshDelete) String() string {
+	return fmt.Sprintf(
+		"RefreshDelete[Cookie: %s RefreshDone: %t]",
+		string(c.Cookie),
+		c.RefreshDone,
+	)
+}
+
+// ControlSyncInfoRefreshPresent implements a part of syncInfoValue described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncInfoRefreshPresent struct {
+	Cookie      []byte
+	RefreshDone bool
+}
+
+// String returns a human-readable description
+func (c *ControlSyncInfoRefreshPresent) String() string {
+	return fmt.Sprintf(
+		"RefreshPresent[Cookie: %s RefreshDone: %t]",
+		string(c.Cookie),
+		c.RefreshDone,
+	)
+}
+
+// ControlSyncInfoSyncIdSet implements a part of syncInfoValue described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncInfoSyncIdSet struct {
+	Cookie         []byte
+	RefreshDeletes bool
+	SyncUUIDs      []uuid.UUID
+}
+
+// String returns a human-readable description
+func (c *ControlSyncInfoSyncIdSet) String() string {
+	return fmt.Sprintf(
+		"SyncIdSet[Cookie: %s RefreshDeletes: %t SyncUUIDs: %v]",
+		string(c.Cookie),
+		c.RefreshDeletes,
+		c.SyncUUIDs,
+	)
+}
+
+// ControlSyncInfo implements the Sync Info Control described in https://www.ietf.org/rfc/rfc4533.txt
+type ControlSyncInfo struct {
+	Criticality    bool
+	Value          ControlSyncInfoValue
+	NewCookie      *ControlSyncInfoNewCookie
+	RefreshDelete  *ControlSyncInfoRefreshDelete
+	RefreshPresent *ControlSyncInfoRefreshPresent
+	SyncIdSet      *ControlSyncInfoSyncIdSet
+}
+
+func NewControlSyncInfo(pkt *ber.Packet) (*ControlSyncInfo, error) {
+	var (
+		refreshDone    = true
+		refreshDeletes bool
+		syncUUIDs      []uuid.UUID
+	)
+	c := &ControlSyncInfo{Criticality: false}
+	switch ControlSyncInfoValue(pkt.Tag) {
+	case SyncInfoNewcookie:
+		c.Value = SyncInfoNewcookie
+		c.NewCookie = &ControlSyncInfoNewCookie{
+			Cookie: pkt.ByteValue,
+		}
+	case SyncInfoRefreshDelete:
+		c.Value = SyncInfoRefreshDelete
+		cookie, flag, _ := parseSyncMembers(pkt.Children)
+		if flag != nil {
+			refreshDone = *flag
+		}
+		c.RefreshDelete = &ControlSyncInfoRefreshDelete{
+			Cookie:      cookie,
+			RefreshDone: refreshDone,
+		}
+	case SyncInfoRefreshPresent:
+		c.Value = SyncInfoRefreshPresent
+		cookie, flag, _ := parseSyncMembers(pkt.Children)
+		if flag != nil {
+			refreshDone = *flag
+		}
+		c.RefreshPresent = &ControlSyncInfoRefreshPresent{
+			Cookie:      cookie,
+			RefreshDone: refreshDone,
+		}
+	case SyncInfoSyncIdSet:
+		c.Value = SyncInfoSyncIdSet
+		cookie, flag, uuidSet := parseSyncMembers(pkt.Children)
+		if flag != nil {
+			refreshDeletes = *flag
+		}
+		if uuidSet != nil {
+			syncUUIDs = make([]uuid.UUID, 0, len(uuidSet.Children))
+			for _, child := range uuidSet.Children {
+				u, err := uuid.FromBytes(child.ByteValue)
+				if err != nil {
+					return nil, fmt.Errorf("failed to decode uuid: %w", err)
+				}
+				syncUUIDs = append(syncUUIDs, u)
+			}
+		}
+		c.SyncIdSet = &ControlSyncInfoSyncIdSet{
+			Cookie:         cookie,
+			RefreshDeletes: refreshDeletes,
+			SyncUUIDs:      syncUUIDs,
+		}
+	default:
+		return nil, fmt.Errorf("unknown sync info value: %d", pkt.Tag)
+	}
+	return c, nil
+}
+
+// GetControlType returns the OID
+func (c *ControlSyncInfo) GetControlType() string {
+	return ControlTypeSyncInfo
+}
+
+// Encode encodes the control
+func (c *ControlSyncInfo) Encode() *ber.Packet {
+	return nil
+}
+
+// String returns a human-readable description
+func (c *ControlSyncInfo) String() string {
+	return fmt.Sprintf(
+		"Control Type: %s (%q)  Criticality: %t Value: %d %s %s %s %s",
+		ControlTypeMap[ControlTypeSyncInfo],
+		ControlTypeSyncInfo,
+		c.Criticality,
+		c.Value,
+		c.NewCookie,
+		c.RefreshDelete,
+		c.RefreshPresent,
+		c.SyncIdSet,
+	)
+}

@@ -1,0 +1,783 @@
+/* Administration */
+/* Same shell as the file browser: one surface, edge to edge, no outer frame,
+   and the same header — logo, section navigation, account actions. */
+.admin-view {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.admin-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Same cap as the file browser, so switching between the two screens does
+     not change the width of the content. */
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+}
+
+.admin-view > :not(.hidden) {
+  background: var(--surface);
+}
+
+/* The section navigation sits in a strip below the header, where the file
+   browser puts its pathbar: the header keeps its one line of branding, and the
+   sections get a row of their own instead of squeezing into the middle.
+   "← Back" leads the row, then the sections — left-aligned, because a centred
+   row that overflows on a phone would put its start off the left edge, where
+   it cannot be scrolled back to. */
+.admin-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  /* Never shrinks. The card is a flex column and the panel below scrolls, so
+     without this the strip was a flex *item* of the card: as soon as a long
+     page made the panel overflow, the strip was squeezed to its border and the
+     buttons were squashed vertically. Its height is the row of buttons. */
+  flex: 0 0 auto;
+  padding: 0.25rem 1.25rem;
+  padding-left: calc(1.25rem + env(safe-area-inset-left));
+  padding-right: calc(1.25rem + env(safe-area-inset-right));
+  background: transparent;
+  /* Scrolls sideways on a narrow screen instead of wrapping onto extra rows. */
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* The hairline that separates the sections from the panel below, the way the
+     pathbar separates the path from the listing. */
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-nav .tab {
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-light);
+  min-height: 40px;
+  /* Does not shrink either: the tabs are in a sideways-scrolling row, and a
+     shrinking button would lose its height rather than its width. */
+  flex: 0 0 auto;
+  padding: 0.4rem 0.7rem;
+  white-space: nowrap;
+}
+
+.admin-nav .tab:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+/* "← Back" leads the row but is not a section: it never takes the active
+   style, and a hairline sets it apart from the tabs that can. It is ordinary
+   English text, so it is translated like the rest. */
+.admin-nav .tab-back {
+  color: var(--text-light);
+  border-right: 1px solid var(--border);
+  border-radius: var(--radius) 0 0 var(--radius);
+  margin-right: 0.35rem;
+  padding-right: 0.85rem;
+}
+
+.admin-nav .tab-back:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.admin-nav .tab.active {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+  font-weight: 600;
+}
+
+/* The sections lead the strip on the left, in the order they are read, with the
+   same left edge as the page heading and the table below. */
+.admin-nav {
+  justify-content: flex-start;
+}
+/* The last part of the card: it supplies the bottom edge and corners. */
+.admin-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 1.25rem;
+  padding-left: calc(1.25rem + env(safe-area-inset-left));
+  padding-right: calc(1.25rem + env(safe-area-inset-right));
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Every tab's content is one centred column.
+
+   Left-aligned forms in a wide area sat against the left edge with a lake of
+   empty space beside them, which read as unfinished. The column is centred and
+   capped so lines stay readable; the Users table fills it, so the screen does
+   not look empty either. */
+.admin-panel {
+  max-width: 60rem;
+  margin-inline: auto;
+  width: 100%;
+}
+
+/* The form is the column, not a narrower box inside it: two max-widths would
+   centre the form inside the centred column and leave the headings off to the
+   left of it. */
+.settings-form {
+  max-width: 100%;
+}
+
+.admin-heading {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.admin-hint {
+  margin: 0 0 1rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+/* A hint that is a warning rather than a note: it appears only when a setting
+   has a security consequence, so it has to stand out from the grey hints above
+   and below it without looking like a failed save. */
+.admin-hint.is-warning {
+  padding: 0.5rem 0.7rem;
+  color: var(--warning-text);
+  background: var(--warning-bg);
+  border-left: 3px solid var(--warning-border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.admin-current {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* The Users heading and its "New user" button: two columns, the button in the
+   right one and pushed to its far edge. A wrapping flex row let the button fall
+   under the heading as soon as the two did not fit, which read as a toolbar
+   above the table rather than an action on the heading's line. The grid keeps
+   them on one line, and the button sits at the right edge of the page column,
+   which is past the table's max-width, so it is the outermost edge on the page.
+   Narrow screens still stack: at 560px the table is stacked too and there is no
+   room for two columns. */
+.admin-row-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.admin-row-spread > :last-child {
+  justify-self: end;
+}
+
+/* The user table has no frame and no cell borders: the row on the surface is
+   the table. Only a hairline under each row keeps two accounts from reading as
+   one block, the way the file listing separates its rows. A border around the
+   table, a filled header and vertical rules made it look like a separate
+   widget inside the card the page already is.
+
+   It fills the page column: the listing is this page's content, and a table
+   that stopped short of its own heading looked unfinished. */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+  margin-top: 0.75rem;
+}
+
+/* Every cell is padded. Zeroing the first cell's left padding put the username
+   hard against the left edge — glued to it with no air — so all cells share
+   this padding and the column lines up with itself. */
+.admin-table th,
+.admin-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+/* The username leads the column from there, with the same padding every other
+   cell has on its own left side, so the space to the page edge is real and not
+   a table inset. */
+
+/* The gap that keeps the last column apart. */
+.admin-table th:last-child,
+.admin-table td:last-child {
+  padding-right: 0.75rem;
+}
+
+/* No fill behind the heading: a grey strip is a block of colour on a page that
+   is otherwise one surface. The small caps and the weight do the separating. */
+.admin-table th {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  background: transparent;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* The Actions heading is right-aligned, over the buttons it labels.
+
+   The buttons themselves are floated right inside their cell, which is how v7
+   did the same thing (`.is-pulled-right` in its table rows). This is the one
+   arrangement that avoids every trap the alternatives hit: the cell keeps its
+   normal table sizing (nothing overflows the home column), the buttons hang
+   left from the cell's right edge (they never drift away from the heading),
+   and no column width has to be guessed. */
+.admin-table th.col-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The row is as tall as the buttons, so a right row does not slip under the
+   next one when the cell's own text is short. */
+.admin-table td.col-actions {
+  position: relative;
+  white-space: nowrap;
+}
+
+.admin-row-actions {
+  float: right;
+  display: flex;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.admin-row-actions .button-ghost {
+  color: var(--text-light);
+}
+
+.admin-row-actions .button-danger {
+  color: var(--danger);
+  background: transparent;
+  border-color: transparent;
+}
+
+.admin-row-actions .button-danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+/* Folder picker */
+.picker-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 70dvh;
+}
+
+.picker-path {
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+
+.picker-list {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 8rem;
+}
+
+.picker-item {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.picker-list li:last-child .picker-item {
+  border-bottom: none;
+}
+
+.picker-item:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.picker-empty {
+  padding: 1rem;
+  color: var(--text-light);
+  text-align: center;
+}
+
+/* User form */
+.user-dialog {
+  max-width: 520px;
+}
+
+.input-with-button {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.input-with-button .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Permissions: checkbox first, name to its right, one aligned column.
+
+   The boxes used to follow their labels, so every row read "Download ☐" and
+   the checkboxes landed wherever the text ended. Two columns of rows instead
+   of a flowing grid keeps the boxes lined up whatever the name's length. */
+.perm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.25rem 1rem;
+  margin-top: 0.35rem;
+}
+
+.perm-option {
+  display: grid;
+  /* The checkbox column is fixed, so every box sits on the same vertical line
+     and every name starts at the same offset. */
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.55rem;
+  /* Comfortable hit area without a nested flex chain. */
+  min-height: 36px;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.perm-option:hover {
+  background: var(--primary-light);
+}
+
+.perm-option .checkbox {
+  /* Both columns centre on the same axis regardless of label wrapping. */
+  margin: 0;
+}
+
+.perm-option-label {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  /* A phone fits one column, and the rows get real touch targets. */
+  .perm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .perm-option {
+    min-height: 44px;
+  }
+}
+
+.field-check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
+.field-check .field-label {
+  margin: 0;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+
+/* Settings form */
+.settings-form {
+  margin-top: 0.75rem;
+}
+
+.settings-form .field {
+  margin-bottom: 0.9rem;
+}
+
+.settings-form .select,
+.settings-form .textarea {
+  width: 100%;
+}
+
+.settings-form .textarea {
+  min-height: 6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+/* The date-format preview sits directly under its field, so the space the
+   field itself leaves below it would read as a break in the group. */
+.settings-form .date-preview {
+  margin-top: -0.55rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The logo preview: the light and dark pictures side by side, each on the
+   surface it is meant for, so a dark logo is judged against a dark card rather
+   than against the white admin page. Both halves are always painted — a light
+   half on a light page would otherwise be invisible and the pair would look
+   like one image. */
+.logo-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: -0.55rem 0 1rem;
+}
+
+.logo-preview-half {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 5rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.logo-preview-label {
+  color: var(--text-light);
+  font-size: 0.8rem;
+}
+
+/* The two halves are the two themes, fixed by what they show rather than by
+   the page: .is-light is the light surface whatever theme the admin is using. */
+.logo-preview-half.is-light {
+  background: var(--surface);
+}
+
+.logo-preview-half.is-dark {
+  background: var(--bg);
+}
+
+.logo-preview-image {
+  max-width: 100%;
+  max-height: 40px;
+}
+
+/* A URL that does not load is greyed out rather than shown as a broken-image
+   icon: the field is still editable and the hint below says what an empty one
+   means. */
+.logo-preview-image.is-missing {
+  visibility: hidden;
+}
+
+.logo-preview-half:has(.is-missing)::after {
+  content: "?";
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.settings-form .dialog-actions {
+  margin-top: 1.25rem;
+}
+
+.settings-form .dialog-actions .button {
+  min-height: 44px;
+}
+
+/* Response header editor */
+.header-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.header-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.header-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.header-row .input {
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+}
+
+.header-row .button-icon {
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--text-light);
+}
+
+.header-row .button-icon:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.header-editor > .button {
+  align-self: flex-start;
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 560px) {
+  /* Stack name over value so both stay readable on a narrow screen. */
+  .header-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name remove"
+      "value value";
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-row input:first-child {
+    grid-area: name;
+  }
+
+  .header-row input:nth-child(2) {
+    grid-area: value;
+  }
+
+  .header-row .button-icon {
+    grid-area: remove;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-area {
+    padding: 0.75rem;
+    padding-left: calc(0.75rem + env(safe-area-inset-left));
+    padding-right: calc(0.75rem + env(safe-area-inset-right));
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  /* The user table becomes stacked rows on phones: no card per account, a
+     hairline between them, exactly as the listing behaves on a phone. */
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table td {
+    display: block;
+    width: auto;
+  }
+
+  .admin-table {
+    border: none;
+    background: transparent;
+    margin-top: 0.25rem;
+  }
+
+  /* One column: heading, then the action under it, the way a stacked page
+     reads. */
+  .admin-row-spread {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-row-spread > :last-child {
+    justify-self: start;
+  }
+
+  .admin-table tr {
+    padding: 0.7rem 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .admin-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  /* Stacked, the cells are lines of a block rather than columns, so the
+     desktop side padding would indent every line away from the heading. */
+  .admin-table td,
+  .admin-table td:first-child,
+  .admin-table td:last-child {
+    padding: 0.15rem 0;
+    border: none;
+  }
+
+  .admin-table td:first-child {
+    font-weight: 600;
+  }
+
+  /* Stacked, the buttons are a line of the row again: a float would stay out
+     of the stacked flow and land on top of the next account. */
+  .admin-row-actions {
+    float: none;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 0.4rem;
+  }
+
+  .admin-table td.col-actions {
+    position: static;
+  }
+
+  .admin-row-actions .button-ghost {
+    min-height: 40px;
+  }
+
+  .picker-dialog {
+    max-height: 85dvh;
+  }
+}
+
+/* Guest account row: set apart from ordinary users because giving it the read
+   permission publishes the repository. A neutral tint, not the brand colour:
+   with no table frame a green band across the row reads as a selection. */
+.admin-table tr.is-guest {
+  background: var(--tint);
+}
+
+/* On a phone the tint would run edge to edge under the hairline, so the row is
+   marked the same way it is on desktop - by its badge. */
+@media (max-width: 560px) {
+  .admin-table tr.is-guest {
+    background: transparent;
+  }
+}
+
+.admin-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text-light);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.admin-badge.is-public {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* What is running, on the same line as the logo, at the top right.
+
+   It used to be a strip under the sections, which spent a whole line of the
+   screen on reference information. */
+.admin-header-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.admin-version {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* Badges wrap onto a second line rather than pushing the sections aside. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  background: transparent;
+}
+
+.admin-version-text {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.admin-badge.is-stale {
+  background: var(--danger);
+  color: #fff;
+  text-transform: none;
+  font-weight: 600;
+}
+
+
+/* The administration header: logo left, what is running right.
+
+   The sections are no longer the middle section of this line: they are the
+   strip below it (.admin-nav), because five destinations squeezed between the
+   logo and the version took the room the logo's line had. */
+.admin-view .app-brand,
+.admin-view .admin-header-end {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* On a phone the strip loses its side padding down to the safe-area insets, so
+   the first tab lines up closer to the edge and more sections fit before the
+   row has to scroll. */
+@media (max-width: 720px) {
+  .admin-nav {
+    padding: 0.25rem;
+    padding-left: calc(0.25rem + env(safe-area-inset-left));
+    padding-right: calc(0.25rem + env(safe-area-inset-right));
+  }
+
+  .admin-view .app-header {
+    gap: 0.5rem;
+  }
+}
+
+/* On a narrow screen the logo is dropped, as in the file browser, so the
+   version has the line to itself. It stays: it is the one place the running
+   release is stated. */
+@media (max-width: 560px) {
+  .admin-view .app-brand {
+    display: none;
+  }
+
+  .admin-view .admin-header-end {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+  }
+}

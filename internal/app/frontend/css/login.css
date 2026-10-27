@@ -1,0 +1,210 @@
+/* Login screen */
+.boot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+  color: var(--text-light);
+}
+
+.boot-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.login-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 1.5rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+/* The logo is two images, one per theme (.logo-light/.logo-dark in app.css);
+   the size and margins apply to both so the card does not resize when the
+   theme changes. The pair sits in normal flow like a single image did. */
+.login-logo {
+  max-width: 180px;
+  max-height: 64px;
+  margin: 0 auto 1rem;
+}
+
+.field {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* The language entry on the login card: a quiet link under the button, not a
+   second form control. It opens the same dialog the account menu does. */
+.login-language {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  /* 44px tall for thumbs, without the padding a full control would add. */
+  min-height: 44px;
+  margin: 0.5rem auto 0;
+  padding: 0 0.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.login-language:hover {
+  color: var(--primary-dark);
+}
+
+.login-language:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.input,
+.select {
+  width: 100%;
+  /* At least 16px keeps iOS from zooming when the field is focused. */
+  font-size: max(16px, 1rem);
+  padding: 0.55rem 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  min-height: 44px;
+}
+
+.input:focus,
+.select:focus {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 1px;
+  border-color: var(--primary);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.button-primary {
+  width: 100%;
+  color: var(--text-invert);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.button-primary:hover {
+  color: var(--text-invert);
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.button-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-light);
+}
+
+.button-ghost:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border-color: transparent;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.form-error {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border-radius: var(--radius);
+}
+
+.noscript {
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Login is vertically centred but stays usable when the on-screen keyboard
+   shrinks the viewport. */
+.login-view {
+  padding: 1.5rem;
+  padding-top: calc(1.5rem + env(safe-area-inset-top));
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 560px) {
+  .login-view {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .login-card {
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--radius);
+  }
+
+  /* Full-width, thumb-sized primary action. */
+  .button-primary {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+}

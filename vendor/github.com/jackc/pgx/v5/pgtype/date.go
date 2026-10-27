@@ -1,0 +1,311 @@
+package pgtype
+
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/jackc/pgx/v5/internal/pgdatetime"
+	"github.com/jackc/pgx/v5/internal/pgio"
+)
+
+type DateScanner interface {
+	ScanDate(v Date) error
+}
+
+type DateValuer interface {
+	DateValue() (Date, error)
+}
+
+type Date struct {
+	Time             time.Time
+	InfinityModifier InfinityModifier
+	Valid            bool
+}
+
+// ScanDate implements the [DateScanner] interface.
+func (d *Date) ScanDate(v Date) error {
+	*d = v
+	return nil
+}
+
+// DateValue implements the [DateValuer] interface.
+func (d Date) DateValue() (Date, error) {
+	return d, nil
+}
+
+const (
+	negativeInfinityDayOffset = -2147483648
+	infinityDayOffset         = 2147483647
+)
+
+// Scan implements the [database/sql.Scanner] interface.
+func (dst *Date) Scan(src any) error {
+	if src == nil {
+		*dst = Date{}
+		return nil
+	}
+
+	switch src := src.(type) {
+	case string:
+		return scanPlanTextAnyToDateScanner{}.Scan([]byte(src), dst)
+	case time.Time:
+		*dst = Date{Time: src, Valid: true}
+		return nil
+	}
+
+	return fmt.Errorf("cannot scan %T", src)
+}
+
+// Value implements the [database/sql/driver.Valuer] interface.
+func (src Date) Value() (driver.Value, error) {
+	if !src.Valid {
+		return nil, nil
+	}
+
+	if src.InfinityModifier != Finite {
+		return src.InfinityModifier.String(), nil
+	}
+	return src.Time, nil
+}
+
+// MarshalJSON implements the [encoding/json.Marshaler] interface.
+func (src Date) MarshalJSON() ([]byte, error) {
+	if !src.Valid {
+		return []byte("null"), nil
+	}
+
+	var s string
+
+	switch src.InfinityModifier {
+	case Finite:
+		s = src.Time.Format("2006-01-02")
+	case Infinity:
+		s = "infinity"
+	case NegativeInfinity:
+		s = "-infinity"
+	}
+
+	return json.Marshal(s)
+}
+
+// UnmarshalJSON implements the [encoding/json.Unmarshaler] interface.
+func (dst *Date) UnmarshalJSON(b []byte) error {
+	var s *string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+
+	if s == nil {
+		*dst = Date{}
+		return nil
+	}
+
+	switch *s {
+	case "infinity":
+		*dst = Date{Valid: true, InfinityModifier: Infinity}
+	case "-infinity":
+		*dst = Date{Valid: true, InfinityModifier: -Infinity}
+	default:
+		t, err := time.ParseInLocation("2006-01-02", *s, time.UTC)
+		if err != nil {
+			return err
+		}
+
+		*dst = Date{Time: t, Valid: true}
+	}
+
+	return nil
+}
+
+type DateCodec struct{}
+
+func (DateCodec) FormatSupported(format int16) bool {
+	return format == TextFormatCode || format == BinaryFormatCode
+}
+
+func (DateCodec) PreferredFormat() int16 {
+	return BinaryFormatCode
+}
+
+func (DateCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodePlan {
+	if _, ok := value.(DateValuer); !ok {
+		return nil
+	}
+
+	switch format {
+	case BinaryFormatCode:
+		return encodePlanDateCodecBinary{}
+	case TextFormatCode:
+		return encodePlanDateCodecText{}
+	}
+
+	return nil
+}
+
+type encodePlanDateCodecBinary struct{}
+
+func (encodePlanDateCodecBinary) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	date, err := value.(DateValuer).DateValue()
+	if err != nil {
+		return nil, err
+	}
+
+	if !date.Valid {
+		return nil, nil
+	}
+
+	var daysSinceDateEpoch int32
+	switch date.InfinityModifier {
+	case Finite:
+		tUnix := time.Date(date.Time.Year(), date.Time.Month(), date.Time.Day(), 0, 0, 0, 0, time.UTC).Unix()
+		dateEpoch := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+
+		secSinceDateEpoch := tUnix - dateEpoch
+		daysSinceDateEpoch = int32(secSinceDateEpoch / 86400)
+	case Infinity:
+		daysSinceDateEpoch = infinityDayOffset
+	case NegativeInfinity:
+		daysSinceDateEpoch = negativeInfinityDayOffset
+	}
+
+	return pgio.AppendInt32(buf, daysSinceDateEpoch), nil
+}
+
+type encodePlanDateCodecText struct{}
+
+func (encodePlanDateCodecText) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	date, err := value.(DateValuer).DateValue()
+	if err != nil {
+		return nil, err
+	}
+
+	if !date.Valid {
+		return nil, nil
+	}
+
+	switch date.InfinityModifier {
+	case Finite:
+		buf = pgdatetime.AppendDate(buf, date.Time)
+	case Infinity:
+		buf = append(buf, "infinity"...)
+	case NegativeInfinity:
+		buf = append(buf, "-infinity"...)
+	}
+
+	return buf, nil
+}
+
+func (DateCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan {
+	switch format {
+	case BinaryFormatCode:
+		if _, ok := target.(DateScanner); ok {
+			return scanPlanBinaryDateToDateScanner{}
+		}
+	case TextFormatCode:
+		if _, ok := target.(DateScanner); ok {
+			return scanPlanTextAnyToDateScanner{}
+		}
+	}
+
+	return nil
+}
+
+type scanPlanBinaryDateToDateScanner struct{}
+
+func (scanPlanBinaryDateToDateScanner) Scan(src []byte, dst any) error {
+	scanner := dst.(DateScanner)
+
+	if src == nil {
+		return scanner.ScanDate(Date{})
+	}
+
+	raw, err := pgio.Uint32Exact(src)
+	if err != nil {
+		return fmt.Errorf("date: %w", err)
+	}
+
+	dayOffset := int32(raw)
+
+	switch dayOffset {
+	case infinityDayOffset:
+		return scanner.ScanDate(Date{InfinityModifier: Infinity, Valid: true})
+	case negativeInfinityDayOffset:
+		return scanner.ScanDate(Date{InfinityModifier: -Infinity, Valid: true})
+	default:
+		t := time.Date(2000, 1, int(1+dayOffset), 0, 0, 0, 0, time.UTC)
+		if t.Before(minDateTime) || !t.Before(endDate) {
+			return fmt.Errorf("date %d days from 2000-01-01 is out of range", dayOffset)
+		}
+
+		return scanner.ScanDate(Date{Time: t, Valid: true})
+	}
+}
+
+type scanPlanTextAnyToDateScanner struct{}
+
+func (scanPlanTextAnyToDateScanner) Scan(src []byte, dst any) error {
+	scanner := dst.(DateScanner)
+
+	if src == nil {
+		return scanner.ScanDate(Date{})
+	}
+
+	dt, err := parseTextDateTime(src)
+	if err != nil {
+		return err
+	}
+
+	if dt.infinity != Finite {
+		return scanner.ScanDate(Date{InfinityModifier: dt.infinity, Valid: true})
+	}
+
+	if dt.hasTime {
+		return badDateTime(src)
+	}
+
+	t, err := dt.toTime(src, "date", endDate)
+	if err != nil {
+		return err
+	}
+
+	return scanner.ScanDate(Date{Time: t, Valid: true})
+}
+
+func (c DateCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
+	if src == nil {
+		return nil, nil
+	}
+
+	var date Date
+	err := codecScan(c, m, oid, format, src, &date)
+	if err != nil {
+		return nil, err
+	}
+
+	if date.InfinityModifier != Finite {
+		return date.InfinityModifier.String(), nil
+	}
+
+	return date.Time, nil
+}
+
+func (c DateCodec) DecodeValue(m *Map, oid uint32, format int16, src []byte) (any, error) {
+	if src == nil {
+		return nil, nil
+	}
+
+	var date Date
+	err := codecScan(c, m, oid, format, src, &date)
+	if err != nil {
+		return nil, err
+	}
+
+	if date.InfinityModifier != Finite {
+		return date.InfinityModifier, nil
+	}
+
+	return date.Time, nil
+}

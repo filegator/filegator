@@ -1,0 +1,588 @@
+/* Modal dialogs */
+/*
+ * Stacking, in one place so the numbers are comparable:
+ *
+ *   tree drawer / backdrop   90 / 89
+ *   toasts, text editor      80
+ *   account menu, row menu   76 / 75
+ *   search results           70
+ *   MODAL DIALOGS            100  <- this file
+ *   upload panel, notices    60
+ *
+ * A dialog was 50, below the search results (70), both menus (75, 76) and the
+ * toasts: a folder picker opened from a search result on a phone appeared
+ * *behind* the dropdown that launched it. A modal covers everything transient
+ * by definition, so it takes a band above all of them; the editor (80) and the
+ * tree drawer (90) stay above it on purpose — the editor is a full-screen
+ * surface and the drawer is an edge panel, and neither opens a dialog over
+ * itself except the picker, which is a dialog and so also 100 with a deeper
+ * backdrop.
+ */
+.dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(10, 10, 10, 0.45);
+  /* Momentum scrolling on iOS. */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The folder picker is stacked over an already-open dialog (for example the
+   user form), so it must sit above it. Both are `.dialog-root` and one at a
+   time is shown, so the only thing this buys is the darker backdrop that says
+   "this is on top of something"; the order is the DOM, which is why it never
+   needed a higher number. Kept above the plain dialog for that reason. */
+.dialog-root.picker-root {
+  z-index: 101;
+  background: rgba(10, 10, 10, 0.6);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.dialog-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+/* Header with a title and a close button, used by every dialog. */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.dialog-header .dialog-title {
+  margin: 0;
+}
+
+.dialog-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Comfortable touch target. */
+  min-width: 36px;
+  min-height: 36px;
+  margin: -0.35rem -0.35rem 0 0;
+  padding: 0;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--text-light);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dialog-close:hover,
+.dialog-close:focus-visible {
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+}
+
+@media (max-width: 560px) {
+  .dialog-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+.dialog-message {
+  margin: 0 0 1rem;
+  color: var(--text-light);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.button-primary-solid {
+  color: var(--text-invert);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.button-primary-solid:hover {
+  color: var(--text-invert);
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.button-danger {
+  color: var(--text-invert);
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.button-danger:hover {
+  color: var(--text-invert);
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+/* On small screens the dialog becomes a bottom sheet, which is easier to
+   reach with a thumb and keeps the input above the keyboard. */
+@media (max-width: 560px) {
+  .dialog-root {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dialog {
+    max-width: none;
+    max-height: 90dvh;
+    padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-actions .button {
+    width: 100%;
+    /* Comfortable touch target. */
+    min-height: 44px;
+  }
+}
+
+/* Result rows, shared by the header dropdown. The list itself is styled in
+   browser.css, where the dropdown lives; a max-height here would fight it. */
+.search-result-button {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* Comfortable touch target on phones. */
+  min-height: 44px;
+}
+
+/* The pointer and the keyboard are different things and look different.
+
+   Hover is the same neutral grey a listing row uses — a green tint read as
+   "selected" rather than "under the pointer". `.is-active` is the arrow-key
+   position in the dropdown, which *is* a selection, so it keeps the brand
+   colour. */
+.search-result-button:hover {
+  background: var(--tint);
+}
+
+.search-result-button.is-active {
+  background: var(--primary-light);
+}
+
+/* A row under the keyboard cursor that is also hovered shows the selection:
+   the stronger of the two states wins. */
+.search-result-button.is-active:hover {
+  background: var(--primary-light);
+}
+
+.search-result-icon {
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+}
+
+.search-result-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-result-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+
+.search-result-meta {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Image gallery */
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 56rem;
+  max-height: 92dvh;
+  gap: 0.5rem;
+}
+
+.gallery-count {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-light);
+  flex: 1 1 auto;
+}
+
+.gallery-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  flex: 1 1 auto;
+  background: var(--tint);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gallery-image {
+  max-width: 100%;
+  max-height: 70dvh;
+  object-fit: contain;
+  /* A photo viewer is not a drag surface. */
+  user-select: none;
+  -webkit-user-drag: none;
+  cursor: pointer;
+}
+
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 64px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gallery-nav:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.gallery-prev {
+  left: 0.35rem;
+}
+
+.gallery-next {
+  right: 0.35rem;
+}
+
+.gallery-strip {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.15rem 0;
+  scrollbar-width: thin;
+}
+
+.gallery-thumb {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.gallery-thumb:hover {
+  opacity: 1;
+}
+
+.gallery-thumb.is-current {
+  border-color: var(--primary);
+  opacity: 1;
+}
+
+.gallery-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.gallery-status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-download {
+  flex: none;
+}
+
+/* On a phone the picture needs the room, so the thumbnail strip is smaller
+   and the viewer fills the bottom sheet. */
+@media (max-width: 560px) {
+  .gallery-image {
+    max-height: 55dvh;
+  }
+
+  .gallery-thumb {
+    width: 52px;
+    height: 52px;
+  }
+
+  .gallery-nav {
+    width: 38px;
+    height: 56px;
+  }
+}
+
+/* Collision prompt */
+
+.collision-actions {
+  flex-wrap: wrap;
+}
+
+.field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 560px) {
+  /* Four choices do not fit side by side on a phone; the full-width stack
+     from the base dialog rules already applies. */
+  .collision-actions .button {
+    min-height: 44px;
+  }
+}
+
+/* Folder tree picker */
+
+.tree-dialog {
+  max-width: 32rem;
+}
+
+.tree-body {
+  max-height: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tree-list,
+.tree-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 36px;
+}
+
+.tree-toggle {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.tree-toggle:hover {
+  background: var(--primary-light);
+}
+
+.tree-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 0.4rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tree-name:hover,
+.tree-name.is-current {
+  background: var(--primary-light);
+}
+
+.tree-name.is-current {
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.tree-name span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-icon {
+  flex: none;
+}
+
+.tree-loading {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.tree-status {
+  min-height: 1.1em;
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+
+@media (max-width: 560px) {
+  /* Bigger targets on a phone; the toggle is the fiddliest control here. */
+  .tree-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tree-row,
+  .tree-name {
+    min-height: 44px;
+  }
+}
+
+/* Permission dialog: owner/group/other x read/write/execute. */
+.permissions-dialog {
+  max-width: 26rem;
+}
+
+.perm-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.perm-head,
+.perm-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 4.2rem);
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.perm-head span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.perm-scope {
+  text-transform: capitalize;
+  font-size: 0.88rem;
+}
+
+.perm-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Comfortable touch target around a small checkbox. */
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.perm-number-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.permission-number {
+  width: 6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.1em;
+}
+
+.perm-preview {
+  margin: 0 0 0.35rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+/* The language picker -------------------------------------------------------
+   One native <select> inside a small dialog (user decision 2026-10-27: a
+   select, not a list of radios). The control is styled by the shared .select
+   rule in login.css, the same one the login form and the admin pages use, so
+   it looks like every other dropdown in the interface. */
+
+.language-dialog {
+  max-width: 340px;
+}
+
+/* The field wrapper's own bottom margin would leave the buttons floating;
+   .dialog-actions already spaces itself from the field above it. */
+.language-dialog .field {
+  margin-bottom: 0;
+}
+
+
+@media (max-width: 560px) {
+  .perm-head,
+  .perm-row {
+    grid-template-columns: 1fr repeat(3, 3rem);
+  }
+
+  .perm-cell {
+    min-height: 44px;
+  }
+}

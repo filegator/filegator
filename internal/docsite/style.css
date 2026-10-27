@@ -1,0 +1,617 @@
+/*
+ * The documentation site's stylesheet.
+ *
+ * Palette and spacing follow the application (--primary: #34b891) so the docs
+ * look like the product they document. The body font comes from fonts.css,
+ * which docs/static/fonts.css provides along with the bundled Liberation Sans.
+ *
+ * Layout: a sticky sidebar of pages on the left, the article in a centred
+ * column, and a sticky header with search. On a phone the sidebar collapses
+ * behind a Menu button and the article runs edge to edge.
+ */
+
+:root {
+  --primary: #34b891;
+  --primary-dark: #23876a;
+  --primary-light: #e9f7f2;
+  --fg: #1d1d1f;
+  --muted: #6b6b70;
+  --line: #e3e3e6;
+  --bg: #f5f5f5;
+  --surface: #fff;
+  --code-bg: #f7f7f8;
+  --max-width: 72rem; /* the shell and the header share this */
+  --article: 60rem;
+  --sidebar: 17rem;
+  --radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--fg);
+  font: 16px/1.65 var(--font-body, sans-serif);
+  -webkit-text-size-adjust: 100%;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  padding: 0.6rem 1rem;
+  background: var(--primary);
+  color: #fff;
+  z-index: 30;
+}
+
+.skip:focus {
+  left: 0;
+}
+
+/* Header ------------------------------------------------------------------ */
+
+/* The bar spans the window; its contents sit on the same width and the same
+   left edge as the shell, so the logo lines up with the sidebar and the search
+   field with the article. A header that ran edge to edge while the page below
+   was capped read as two unrelated surfaces. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0.6rem 1.25rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  color: var(--fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* The wordmark is the whole logo: the icon and the word "filegator" are one
+   drawing, so there is no separate text beside it. Its own aspect ratio is
+   380.9 x 78.5, which a height of 30px keeps (146 x 30). */
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 30px;
+}
+
+.tagline {
+  color: var(--muted);
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.search {
+  margin-left: auto;
+  flex: 1 1 18rem;
+  min-width: 8rem;
+  max-width: 24rem;
+}
+
+.search input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: 16px; /* iOS zooms an input below 16px */
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+
+.search input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.nav-toggle {
+  display: none;
+  padding: 0.5rem 0.8rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-height: 44px;
+}
+
+/* Search results ---------------------------------------------------------- */
+
+.search-results {
+  position: fixed;
+  top: 3.6rem;
+  right: max(1.25rem, calc((100vw - var(--max-width)) / 2 + 1.25rem));
+  z-index: 40;
+  width: min(32rem, calc(100vw - 2.5rem));
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.search-results.hidden {
+  display: none;
+}
+
+.search-results ul {
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+}
+
+.search-results a {
+  display: block;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.search-results a:hover,
+.search-results a.active {
+  background: var(--primary-light);
+}
+
+.search-results .page {
+  display: block;
+  font-weight: 600;
+}
+
+.search-results .hint {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.search-results .empty {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  color: var(--muted);
+}
+
+/* Shell ------------------------------------------------------------------- */
+
+.shell {
+  display: flex;
+  align-items: flex-start;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+#sidebar {
+  position: sticky;
+  top: 3.6rem;
+  flex: 0 0 var(--sidebar);
+  width: var(--sidebar);
+  max-height: calc(100vh - 3.6rem);
+  overflow-y: auto;
+  padding: 1.5rem 1rem 3rem;
+  border-right: 1px solid var(--line);
+}
+
+#sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#sidebar a {
+  display: block;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+#sidebar a:hover {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+#sidebar a.active {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
+main {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--article);
+  padding: 2rem 2.5rem 4rem;
+}
+
+/* Typography -------------------------------------------------------------- */
+
+h1 {
+  margin: 0 0 1.2rem;
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+h2 {
+  margin: 2.4rem 0 0.8rem;
+  padding-bottom: 0.3rem;
+  font-size: 1.35rem;
+  border-bottom: 1px solid var(--line);
+}
+
+h3 {
+  margin: 1.8rem 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+h4 {
+  margin: 1.4rem 0 0.4rem;
+  font-size: 1rem;
+}
+
+p,
+ul,
+ol {
+  margin: 0 0 1rem;
+}
+
+li > ul,
+li > ol {
+  margin: 0.2rem 0 0.4rem;
+}
+
+a {
+  color: var(--primary-dark);
+}
+
+a:hover {
+  color: var(--primary);
+}
+
+strong {
+  font-weight: 700;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2.2rem 0;
+}
+
+blockquote {
+  margin: 1.2rem 0;
+  padding: 0.2rem 1rem;
+  border-left: 3px solid var(--primary);
+  background: var(--code-bg);
+}
+
+blockquote > p:last-child {
+  margin-bottom: 0;
+}
+
+/* Code -------------------------------------------------------------------- */
+
+code {
+  padding: 0.1em 0.35em;
+  background: var(--code-bg);
+  border-radius: 4px;
+  font-family: var(--font-code, monospace);
+  font-size: 0.9em;
+}
+
+pre {
+  margin: 1rem 0;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+
+/* Tables ------------------------------------------------------------------ */
+
+.table-wrap {
+  margin: 1rem 0 1.2rem;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+}
+
+th,
+td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  font-weight: 600;
+  border-bottom-width: 2px;
+}
+
+tbody tr:hover {
+  background: var(--bg);
+}
+
+/* On this page ------------------------------------------------------------ */
+
+.toc {
+  margin: 3rem 0 0;
+  padding: 1rem 1.2rem;
+  background: var(--code-bg);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+}
+
+.toc-title {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+
+.toc ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.toc a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.toc a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Pager ------------------------------------------------------------------- */
+
+.pager {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+}
+
+.pager a {
+  flex: 1 1 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.pager a:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.pager .next {
+  text-align: right;
+}
+
+.pager span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Phones ------------------------------------------------------------------ */
+
+@media (max-width: 860px) {
+  .tagline {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  .shell {
+    display: block;
+  }
+
+  #sidebar {
+    position: static;
+    display: none;
+    width: auto;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 0.75rem 1rem;
+  }
+
+  body.nav-open #sidebar {
+    display: block;
+  }
+
+  main {
+    max-width: none;
+    padding: 1.5rem 1.1rem 3rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  .search {
+    max-width: none;
+  }
+
+  .search-results {
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+
+  .header-inner {
+    gap: 0.6rem;
+    padding: 0.5rem 0.9rem;
+  }
+
+  /* On a phone the wordmark would crowd the search field, so it shrinks
+     rather than losing its word. */
+  .brand-logo {
+    height: 22px;
+  }
+
+  .pager {
+    flex-direction: column;
+  }
+}
+
+/* Theme -------------------------------------------------------------------- */
+
+/* Dark is the application's palette inverted: the brand green lightened so it
+   stays legible on a dark background. It is selected either by the system
+   (prefers-color-scheme) or by the reader's own choice, which sets
+   data-theme="dark" on <html>. The choice wins: [data-theme="light"] turns a
+   dark system light as well, which is why both directions are written out. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary: #4fd1a9;
+    --primary-dark: #34b891;
+    --primary-light: #14332b;
+    --fg: #e6e6e8;
+    --muted: #9a9aa0;
+    --line: #2c2c30;
+    --bg: #1a1a1c;
+    --surface: #131315;
+    --code-bg: #1d1d20;
+  }
+
+  :root:not([data-theme="light"]) .search-results {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --primary: #4fd1a9;
+  --primary-dark: #34b891;
+  --primary-light: #14332b;
+  --fg: #e6e6e8;
+  --muted: #9a9aa0;
+  --line: #2c2c30;
+  --bg: #1a1a1c;
+  --surface: #131315;
+  --code-bg: #1d1d20;
+}
+
+:root[data-theme="dark"] .search-results {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+/* Theme toggle ------------------------------------------------------------- */
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  color: var(--fg);
+  border-color: var(--primary);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The button shows the theme it switches to: a moon while the page is light,
+   a sun while it is dark. */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  display: none;
+}
+
+:root:not([data-theme="dark"]) .theme-toggle .icon-moon {
+  display: block;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-sun {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-moon {
+    display: none;
+  }
+
+  :root:not([data-theme="light"]) .theme-toggle .icon-sun {
+    display: block;
+  }
+}

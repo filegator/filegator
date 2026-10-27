@@ -1,0 +1,1593 @@
+/* File browser
+
+   One surface, no frame. The browser fills the viewport edge to edge: header,
+   pathbar and the folder column share one background, and the listing is flush
+   behind a hairline. There is deliberately no outer card — no page margin, no
+   border, no radius, no shadow — because a frame around everything reads as a
+   window inside the window. Earlier the header and pathbar were white while
+   the listing sat on grey, the tree was a bare white column with a rule, and
+   the table floated as a card of its own, so every boundary read as a seam
+   between separate widgets. */
+.browser-view {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* Every direct child is transparent, so there is one surface rather than four
+   that have to be matched by hand. */
+.browser-view > :not(.hidden) {
+  background: var(--surface);
+}
+
+/* The positioning context for the upload panel, and the column that holds the
+   header, the pathbar and the body. No border or radius: this element used to
+   be the outer card. */
+.browser-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Centred and capped, so a wide monitor does not stretch a row from the
+     name to the actions across the whole screen. */
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* The upload panel overlays the bottom of the card, so the listing reserves
+   room for it: without this the last rows hide underneath the progress box.
+   Scoped to the card, which is where the panel is pinned. */
+.browser-card:has(.upload-panel:not(.hidden)) .file-area {
+  padding-bottom: 8rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  /* Three sections: logo, search, account actions. The logo and the actions
+     take equal share, so the search is centred in the header itself rather
+     than in whatever space the logo happened to leave. */
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  padding: 0.6rem 1.25rem;
+  padding-left: calc(1.25rem + env(safe-area-inset-left));
+  padding-right: calc(1.25rem + env(safe-area-inset-right));
+  /* No border: the header and the pathbar below it are one surface. The
+     pathbar keeps its own hairline, so the listing still has a divider above
+     it. */
+  background: transparent;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  /* Equal share with .app-actions: this is what keeps the search centred.
+     Shrink factor 0 and a shrink factor high on the search: the sides hold
+     their place and the field narrows, because a squeezed button is unusable
+     and a narrow field is not. */
+  flex: 1 0 0;
+  justify-content: flex-start;
+}
+
+.app-home {
+  display: inline-flex;
+  align-items: center;
+  /* A 44px touch target even though the logo is 32px tall. */
+  min-height: 44px;
+  padding: 0 0.25rem;
+  text-decoration: none;
+}
+
+/* No hover effect on the logo. It is a home button, but a tinted plate behind
+   the branding reads as a button with a background; the pointer cursor and the
+   keyboard focus ring already say it can be used. */
+
+/* Without a configured logo the link has nothing to show, so it disappears
+   with it rather than forming an invisible tap target in the corner.
+   :has() cannot see through the theme pair, so it tests the artwork itself: a
+   logo that resolved (src set) means the link stays, whatever the theme. */
+.app-home:not(:has(img[src])) {
+  display: none;
+}
+
+.app-logo {
+  max-height: 32px;
+  max-width: 140px;
+}
+
+/* Both theme variants are 32px tall, and only one is ever displayed; the
+   height is fixed so a header does not jump between themes when the two
+   artworks have different proportions. */
+.app-brand .logo-light,
+.app-brand .logo-dark {
+  height: 32px;
+  width: auto;
+}
+
+.app-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  /* Equal share with .app-brand, and pinned right: Log out is the outermost
+     control, as it should be. Shrink factor 0 for the same reason as the logo:
+     the search absorbs the shortfall. */
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.current-user {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* The name yields before the search does: a long username is truncated, and
+     the full name is in the button's title. */
+  max-width: 14rem;
+  min-width: 0;
+}
+
+.pathbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  padding-left: calc(1.25rem + env(safe-area-inset-left));
+  padding-right: calc(1.25rem + env(safe-area-inset-right));
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+}
+
+.pathbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: none;
+}
+
+.button-icon {
+  padding: 0.55rem 0.7rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 0.95rem;
+}
+
+.breadcrumb a {
+  padding: 0.25rem 0.45rem;
+  color: var(--text-light);
+  text-decoration: none;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.breadcrumb a:hover {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
+.breadcrumb a[aria-current="page"] {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.breadcrumb .sep {
+  color: var(--border-strong);
+}
+
+/* The listing is flush inside the card: no page padding, no border, no radius
+   of its own. It is the body of one panel, not a card on top of another. */
+.file-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 0 calc(0.5rem + env(safe-area-inset-bottom));
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: transparent;
+}
+
+.file-table {
+  width: 100%;
+  /* separate, not collapse: a sticky <th> loses its border under
+     border-collapse, and the header does not stay put. The spacing is removed
+     again so the table looks identical. */
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+}
+
+/* The side padding matches the header and pathbar, so the first column lines
+   up with the breadcrumb and the toolbar instead of sitting 0.45rem off. */
+.file-table th,
+.file-table td {
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.file-table th:first-child,
+.file-table td:first-child {
+  padding-left: 1.25rem;
+}
+
+.file-table th:last-child,
+.file-table td:last-child {
+  padding-right: 1.25rem;
+}
+
+.file-table th {
+  /* The column titles stay visible while the listing scrolls, so a row far
+     down is still readable: "2024-01-01 10:00" is meaningless without the
+     heading above it. Sticky on the cells, because a <thead> alone does not
+     stick in every browser. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.file-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* v7's rows highlighted with a neutral grey. A green tint read as "selected"
+   rather than "under the pointer". */
+.file-table tbody tr:hover {
+  background: var(--tint);
+}
+
+/* The row whose menu is open keeps the highlight: moving the pointer into the
+   menu would otherwise drop it and the menu would look unattached. */
+.file-table tbody tr.has-menu-open {
+  background: var(--tint-strong);
+}
+
+/* Every row is the same height. A row's height was being set by its tallest
+   control, so the back row — which has no ⋯ button — came out shorter than
+   the rows around it. Scoped to the table layout: on a phone rows become
+   cards and take the height their content needs. */
+@media (min-width: 561px) {
+  .file-table tbody tr,
+  .file-table tbody td {
+    height: 52px;
+  }
+
+  .file-table tbody td {
+    vertical-align: middle;
+  }
+}
+
+/* Only the name cell opens the entry, so only it says so. The rest of the row
+   — the checkbox column, size, date, permissions, actions — is not a target:
+   a click near the checkbox must select, never open the file. */
+.file-table .col-name.is-clickable {
+  cursor: pointer;
+}
+
+/* Selection checkbox column */
+.col-select {
+  width: 1%;
+  white-space: nowrap;
+  padding-right: 0 !important;
+}
+
+.row-check {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* Selection actions live inside the toolbar and replace the browsing
+   controls there. Nothing is inserted above the table, so selecting a row
+   never shifts the listing. */
+.selection-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+.selection-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.selection-actions .button {
+  white-space: nowrap;
+}
+
+/* While something is selected a row's menu would act on that row alone, which
+   contradicts the selection bar; v7 disabled them for the same reason. */
+.browser-view.is-selecting .row-menu-button {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.col-name {
+  width: auto;
+}
+
+.col-size,
+.col-time {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Sizes end on the right edge: "1.5 MB" and "900 B" then line up on the unit
+   they share, which is how a column of numbers is read. The header follows,
+   so it stays above its values. */
+.file-table th.col-size,
+.file-table td.col-size {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-table td.col-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.col-actions {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Combined size/date/mode line, shown only on phones. */
+.col-meta {
+  display: none;
+}
+
+.file-name {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.file-name > span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.file-name.is-dir {
+  color: var(--primary-dark);
+  /* v7 used bold for folders; they read as a different kind of entry. */
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.file-name.is-dir:hover {
+  color: var(--primary);
+}
+
+.file-icon {
+  flex: none;
+  width: 1.1rem;
+  text-align: center;
+}
+
+/* The row's menu trigger. */
+.row-menu-button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0 0.4rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-light);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.row-menu-button:hover,
+.row-menu-button[aria-expanded="true"] {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
+.empty-message {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-light);
+}
+
+/* Floating, not in the flow: a message appearing must never shift the listing
+   the user is reading. It is pinned near the top of the window and overlays
+   the content instead of moving it. */
+.toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 4.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  max-width: min(32rem, calc(100vw - 2rem));
+  padding: 0.55rem 0.9rem;
+  font-size: 0.9rem;
+  border-radius: var(--radius);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  /* A tap passes through to what is underneath, so a message never blocks a
+     control the user is aiming at. */
+  pointer-events: none;
+}
+
+.toast.is-info {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+/* Upload progress */
+/* Upload panel: overall line, per-file rows with their own controls. */
+
+/* Pinned to the bottom of the window, like v7's progress box: uploads keep
+   reporting while the user browses elsewhere, and the listing above is never
+   pushed around by their progress. */
+/* Pinned to the bottom of the card, not to the bottom of the window: the
+   window-wide version hung outside the card and looked like a separate panel
+   that happened to appear underneath the file manager. */
+.upload-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  /* Clear the home indicator on a phone. */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.upload-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.upload-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.upload-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.upload-head-actions {
+  display: flex;
+  gap: 0.15rem;
+  flex: none;
+}
+
+.upload-icon {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-light);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.upload-icon:hover {
+  background: var(--primary-light);
+  color: var(--text);
+}
+
+.upload-panel-bar {
+  height: 6px;
+  background: var(--border);
+}
+
+.upload-panel-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--primary);
+  transition: width 0.15s ease-out;
+}
+
+.upload-panel-bar span.is-paused {
+  background: var(--text-light);
+}
+
+.upload-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0.5rem 0.5rem;
+  max-height: 40dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.upload-row {
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.upload-row:first-child {
+  border-top: 0;
+}
+
+.upload-row-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-row-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.upload-row-status {
+  flex: none;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-light);
+}
+
+.upload-row[data-state="done"] .upload-row-status {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.upload-row[data-state="failed"] .upload-row-status {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.upload-row-action {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-light);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.upload-row-action:hover {
+  background: var(--primary-light);
+  color: var(--text);
+}
+
+.upload-row[data-state="failed"] .upload-row-action {
+  color: var(--danger);
+}
+
+.upload-row-detail {
+  font-size: 0.76rem;
+  color: var(--text-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.upload-row-bar {
+  height: 4px;
+  margin-top: 0.25rem;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.upload-row-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--primary);
+  transition: width 0.15s ease-out;
+}
+
+.upload-row[data-state="done"] .upload-row-fill {
+  background: var(--primary-dark);
+}
+
+.upload-row[data-state="failed"] .upload-row-fill {
+  background: var(--danger);
+}
+
+.upload-row[data-state="paused"] .upload-row-fill {
+  background: var(--text-light);
+}
+
+/* Drop target overlay */
+body.is-dragging::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: 3px dashed var(--primary);
+  background: rgba(52, 184, 145, 0.08);
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  /* The account name stays on a phone. It used to be hidden in favour of the
+     old profile icon; the account menu's button is now the name and a caret,
+     so hiding the name would leave a bare arrow with nothing to identify it.
+     It is capped so a long username cannot push the search box off the
+     header. */
+  .user-menu-button {
+    max-width: 9rem;
+  }
+
+  .file-area {
+    padding: 0.75rem;
+  }
+}
+
+/* Phones: the table becomes a list of cards. Each row keeps its name, while
+   size, date, mode and actions move to a second line. */
+@media (max-width: 560px) {
+  /* The checkbox and actions share the first line on a phone. */
+  .col-select {
+    grid-area: select;
+    align-self: center;
+    padding-right: 0.5rem;
+  }
+
+  /* Comfortable touch targets for the upload controls. */
+  .upload-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .upload-row-action {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* The count is hidden here: on a phone the space is better spent on the
+     buttons, and "Selected: 2" repeated the "Selected: n of m" line under the
+     list. The actions still read as a selection because they only appear then. */
+  .selection-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .selection-count {
+    display: none;
+  }
+
+  /* Smaller than the usual 44px touch target, which stretched every action to
+     equal width across the line: seven buttons at full size wrapped onto two
+     rows. 38px still gives a comfortable target with the gap between them. */
+  .selection-actions .button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.85rem;
+  }
+
+  .app-header {
+    padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
+    padding-left: calc(0.75rem + env(safe-area-inset-left));
+    padding-right: calc(0.75rem + env(safe-area-inset-right));
+  }
+
+  .app-name {
+    font-size: 1rem;
+  }
+
+  .pathbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .breadcrumb {
+    order: 1;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .breadcrumb::-webkit-scrollbar {
+    display: none;
+  }
+
+  .breadcrumb a {
+    white-space: nowrap;
+  }
+
+  .pathbar-actions {
+    order: 2;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /* 38px, not 44: the toolbar is busy on a phone and five buttons at 44px
+     pushed the listing down a row. The gap between them keeps them distinct
+     and the icons are still comfortably tappable.
+     Only the height and the side padding of *labelled* buttons change: an
+     icon-only button must stay square, or it stops looking like an icon. */
+  .pathbar-actions .button {
+    min-height: 38px;
+  }
+
+  .pathbar-actions .button:not(.button-icon) {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
+
+  /* No side padding: the rows now run the full width and end at the card's
+     edge, separated by lines, rather than floating as inset cards. */
+  .file-area {
+    padding: 0;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* The first and last cell padding is for the table layout; the cards on a
+     phone size themselves. */
+  .file-table th:first-child,
+  .file-table td:first-child,
+  .file-table th:last-child,
+  .file-table td:last-child {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .listing-count {
+    padding: 0.4rem 0.15rem 0;
+  }
+
+  .file-table,
+  .file-table tbody,
+  .file-table tr,
+  .file-table td {
+    display: block;
+    width: auto;
+  }
+
+  .file-table {
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .file-table thead {
+    display: none;
+  }
+
+  /* One compact row per entry: checkbox, icon, name, ⋯.
+
+     The size and date used to sit on a second line under every card, which
+     made a phone listing mostly metadata — the least useful information in a
+     file manager, repeated forty times. They are still in the row's title and
+     one tap away in the ⋯ menu. */
+  /* Plain rows separated by a hairline, not boxed cards.
+     A border, radius and gap around every entry made a phone listing look like
+     a wall of boxes; a line between rows reads as a list, which is what it is. */
+  .file-table tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "select name actions";
+    align-items: center;
+    gap: 0 0.5rem;
+    margin: 0;
+    padding: 0 0.6rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+  }
+
+  /* The last row has no line under it: the card's own edge ends the list. */
+  .file-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  /* The second line is gone, so the cells that filled it go too. Same
+     specificity reason as the columns below. */
+  .file-table .col-meta {
+    display: none;
+  }
+
+  .file-table td {
+    padding: 0;
+    border: none;
+  }
+
+  .col-name {
+    grid-area: name;
+    min-width: 0;
+  }
+
+  .col-actions {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+  }
+
+  .row-menu-button {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Desktop columns are hidden on phones: the card shows the name only.
+     Written as `.file-table .col-x` on purpose — `.file-table td` above sets
+     `display: block` and, being a class plus an element, outranks a bare
+     `.col-x { display: none }` no matter what order the rules come in. That
+     is why the size and date columns stayed visible on a phone. */
+  .file-table .col-size,
+  .file-table .col-time {
+    display: none;
+  }
+
+  .file-name {
+    gap: 0.45rem;
+    min-height: 40px;
+    align-items: center;
+  }
+
+  /* A list row tints under the finger; a bordered card had nothing to tint. */
+  .file-table tbody tr:hover,
+  .file-table tbody tr:active {
+    background: var(--tint);
+  }
+}
+
+/* A file the user may see but not get: the name is not a link, so it must not
+   look clickable. */
+.file-name.is-locked {
+  cursor: default;
+  color: var(--text-light);
+}
+
+.file-name.is-locked:hover {
+  text-decoration: none;
+}
+
+/* "Show hidden": shown only when the administrator's filter hides entries. */
+.hidden-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 1.25rem;
+  padding-left: calc(1.25rem + env(safe-area-inset-left));
+  font-size: 0.82rem;
+  color: var(--text-light);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+
+.hidden-toggle label {
+  cursor: pointer;
+  /* Comfortable touch target on a phone. */
+  padding: 0.35rem 0;
+}
+
+/* Sortable column headers. The whole cell is the button so the click target
+   is the header, not just the label. */
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.col-size .sort-button,
+.col-time .sort-button {
+  justify-content: flex-end;
+}
+
+.sort-button:hover {
+  color: var(--primary-dark);
+}
+
+.sort-button.is-sorted {
+  color: var(--primary-dark);
+}
+
+.sort-arrow {
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+/* Per-row "⋯" menu, as v7 had: one button per row, actions named inside. */
+.row-menu-button {
+  font-size: 1.1rem;
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+.row-menu {
+  position: fixed;
+  /* Above the search dropdown (70), so a menu opened from a result is not
+     painted underneath it. */
+  z-index: 75;
+  min-width: 11rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+}
+
+.row-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row-menu-item:hover,
+.row-menu-item:focus-visible {
+  background: var(--primary-light);
+  /* An inset brand-coloured ring, not the browser's black outline. It is set
+     here and on .user-menu-item alike: a menu is navigated with the keyboard
+     every time it opens (focus lands on the first item), so the ring is the
+     normal state of a menu, not an edge case. */
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.row-menu-item.is-danger {
+  color: var(--danger);
+}
+
+.row-menu-item.is-danger:hover {
+  background: var(--danger-bg);
+}
+
+.row-menu-icon {
+  width: 1.1em;
+  text-align: center;
+  opacity: 0.75;
+}
+
+/* The account menu ------------------------------------------------------- */
+
+/*
+ * The same surface as a row's ⋯ menu: one kind of floating menu in the
+ * interface, so the two cannot drift in padding, radius or hover. It is fixed
+ * and lives outside the header card, because the card's overflow would clip a
+ * child, and it is anchored to the button on each open.
+ */
+.user-menu {
+  position: fixed;
+  z-index: 76;
+  min-width: 12rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-menu-item:hover,
+.user-menu-item:focus-visible {
+  background: var(--primary-light);
+  /* The browser's default focus ring is a black outline, which on a focused
+     menu item reads as a heavy border around the row — and the first item is
+     focused the moment the menu opens, so it was the first thing seen. This
+     matches the row menu's ring: the brand colour, inset. */
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.user-menu-icon {
+  width: 1.2em;
+  text-align: center;
+}
+
+/* A divider above the last item (signing out), so the session-ending choice is
+   not a neighbour of the theme. Border on the item before it = a rule that
+   never appears when that item was removed. */
+.user-menu-item[data-action="logout"] {
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 6px 6px;
+}
+
+/* The account button is the name followed by a caret, on every screen width:
+   the name says who you are signed in as, the caret says a menu is behind it.
+   Neither is dropped on a phone — the name is only capped. */
+.user-menu-button {
+  gap: 0.4rem;
+  /* The name is the only part allowed to shrink; the caret keeps its size, so
+     a long name truncates instead of squeezing the arrow to a sliver. */
+  max-width: 18rem;
+}
+
+.user-menu-button .current-user {
+  flex: 0 1 auto;
+}
+
+.user-menu-button .icon-svg {
+  width: 1.05em;
+  height: 1.05em;
+  flex: 0 0 auto;
+}
+
+/* The caret says a menu is behind the name, and turns over while it is open so
+   the button shows its own state. A drawn chevron, not a text glyph: the glyph
+   "▾" renders in the platform's font and sits on a different baseline in each
+   one. */
+.user-menu-caret {
+  transition: transform 0.15s ease;
+}
+
+.user-menu-button[aria-expanded="true"] {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.user-menu-button[aria-expanded="true"] .user-menu-caret {
+  transform: rotate(180deg);
+}
+
+/* Respect a reader who asked for less motion: the menu still opens, the caret
+   just does not spin. */
+@media (prefers-reduced-motion: reduce) {
+  .user-menu-caret {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .user-menu-item {
+    /* A menu is tapped, not clicked. */
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 560px) {
+  .row-menu-item {
+    /* A menu is tapped, not clicked. */
+    min-height: 44px;
+  }
+}
+
+
+/* "Selected: n of m" under the table, as v7 had it. Fixed height so the line
+   existing or not does not move anything. */
+/* Flush with the card, so it carries the same side padding the rows use. */
+/* Flush with the card, so it carries the same side padding the rows use, and
+   right-aligned: it is reference information, and the eye ends a page on the
+   right where the row actions are. */
+.listing-count {
+  margin: 0;
+  padding: 0.5rem 1.25rem 0;
+  min-height: 1.2em;
+  font-size: 0.82rem;
+  color: var(--text-light);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* The back row is a navigation control, not a file. */
+.file-table tr.is-back .file-name {
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.file-table tr.is-back .file-name:hover {
+  color: var(--primary-dark);
+}
+
+/* Toolbar icons drawn as SVG so they look the same on every platform: an
+   emoji glyph varies by font and matches nothing in v7. */
+.icon-svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Left tree panel
+   ------------------------------------------------------------------------ */
+
+.browser-body {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0;
+}
+
+/* The listing takes the remaining width and keeps its own scrolling. */
+.browser-body .file-area {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The tree is a column of the card, not a strip beside it: it shares the
+   surface and is separated by one hairline, like the listing below the
+   pathbar. */
+.tree-panel {
+  flex: 0 0 14rem;
+  width: 14rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-right: 1px solid var(--border);
+  padding: 0.6rem 0.5rem 1rem;
+  padding-left: calc(0.5rem + env(safe-area-inset-left));
+  background: transparent;
+}
+
+.tree-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.35rem 0.5rem;
+}
+
+.tree-panel-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+}
+
+/* The close button only matters in the drawer. */
+.tree-panel-close {
+  display: none;
+}
+
+.tree-panel-body {
+  min-height: 1rem;
+}
+
+.tree-backdrop {
+  display: none;
+}
+
+/* Phones: the logo is branding and the search field earns the space, so the
+   logo is dropped and search starts the header. The home link goes with it —
+   an invisible tap target in the corner would be worse than none.
+   Scoped to the browser: the admin header uses .app-brand for its Back button
+   and title, which a phone needs more than ever. */
+@media (max-width: 720px) {
+  .browser-view .app-header {
+    /* The brand is gone, so there is nothing for the header's gap to separate
+       it from — and the gap still counts either side of a zero-width item,
+       costing the search field 32px on a 390px screen. The field moves up to
+       the header's padding as a result, which is what the results panel's
+       offsets assume. */
+    gap: 0;
+  }
+
+  .browser-view .app-brand {
+    display: none;
+  }
+}
+
+/* Phones and narrow screens: the search box is an icon until it is tapped,
+   then it takes the whole header. A permanently visible input would cost a row
+   of a small screen for something that is used occasionally. */
+@media (max-width: 720px) {
+  /* With the logo gone there is nothing to balance, so the actions stop
+     claiming half the header. */
+  .browser-view .app-actions {
+    flex: 0 0 auto;
+  }
+
+  .header-search-toggle {
+    display: inline-flex;
+  }
+
+  .header-search-box {
+    display: none;
+  }
+
+  /* Expanded: the field covers the header and the logo/actions step aside.
+     The cover is the box, not the wrapper: the wrapper stays in place so it
+     keeps the results' anchor where the header's padding is. */
+  .header-search.is-expanded .header-search-box {
+    display: flex;
+    position: absolute;
+    inset: 0;
+    z-index: 76;
+    width: auto;
+    max-width: none;
+    height: 38px;
+    margin: 0.35rem 0.75rem;
+    margin-left: calc(0.75rem + env(safe-area-inset-left));
+    margin-right: calc(0.75rem + env(safe-area-inset-right));
+    background: var(--bg);
+  }
+
+  .header-search.is-expanded .header-search-toggle {
+    display: none;
+  }
+
+}
+
+/* Below the table the panel becomes a drawer, opened by the toolbar button. */
+@media (max-width: 720px) {
+  .tree-panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(18rem, 85vw);
+    max-height: none;
+    z-index: 90;
+    background: var(--surface);
+    transform: translateX(-100%);
+    transition: transform 0.18s ease-out;
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.18);
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  /* The .hidden class still wins: the drawer starts closed. */
+  .tree-panel:not(.hidden) {
+    transform: translateX(0);
+  }
+
+  .tree-panel-close {
+    display: inline-flex;
+  }
+
+  .tree-backdrop:not(.hidden) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 89;
+    background: rgba(0, 0, 0, 0.35);
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Header search
+   ------------------------------------------------------------------------ */
+
+/* The middle column of the header. It grows, so the field is centred between
+   the logo and the account actions whatever width either takes. */
+.header-search {
+  position: relative;
+  /* The centred section. A zero basis with grow means the header's spare width
+     is shared between logo, search and actions, so the field fills the middle
+     on a normal screen; a high shrink factor means it is the first thing to
+     narrow when there is not enough room. `max-width` keeps it from becoming
+     absurdly wide on a large monitor, and the 8rem floor keeps it usable. */
+  flex: 1 40 0;
+  max-width: 26rem;
+  display: flex;
+  justify-content: center;
+  min-width: 8rem;
+}
+
+.header-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  /* Shrinks with its container instead of forcing the header wider. */
+  min-width: 0;
+  height: 38px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg);
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.header-search-box:focus-within {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.header-search-icon {
+  position: absolute;
+  left: 0.7rem;
+  width: 15px;
+  height: 15px;
+  color: var(--text-light);
+  pointer-events: none;
+}
+
+.header-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0 2.1rem 0 2.1rem;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  font: inherit;
+  /* 16px stops iOS zooming the page when the field is focused. */
+  font-size: 16px;
+  color: var(--text);
+}
+
+.header-search-input:focus {
+  outline: none;
+}
+
+/* A search input's native clear button is tiny and looks different on every
+   platform; the explicit one below replaces it. */
+.header-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.header-search-clear {
+  position: absolute;
+  right: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-light);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.header-search-clear:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+/* The phone toggle is redundant above the breakpoint. */
+.header-search-toggle {
+  display: none;
+}
+
+/* Results hang under the field, over the listing. Absolute so opening them
+   never moves the header or the rows. */
+.header-search-results {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: min(60dvh, 26rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 70;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.search-note {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.88rem;
+  color: var(--text-light);
+}
+
+/* A result is the row's button plus its ⋯ menu beside it. The button keeps the
+   row width minus the menu, so hovering the name area and hovering the menu are
+   still one visual row. */
+.header-search-results .search-result {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.header-search-results .search-result-button {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border-radius: 4px;
+}
+
+/* The menu button is quiet until the row is hovered or the menu is open, so a
+   list of results is not a column of ⋯ glyphs competing with the paths. */
+.header-search-results .search-result-menu {
+  flex: 0 0 auto;
+  color: var(--text-light);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.header-search-results .search-result:hover .search-result-menu,
+.header-search-results .search-result-menu:focus-visible,
+.header-search-results .search-result-menu[aria-expanded="true"] {
+  opacity: 1;
+}
+
+/* On a touch screen there is no hover, so the menu is always visible. */
+@media (hover: none) {
+  .header-search-results .search-result-menu {
+    opacity: 1;
+  }
+}
+
+/* Theme -------------------------------------------------------------------
+   The theme is chosen in the account menu (js/modules/user_menu.js). The icon
+   and the label name the theme the click produces, and both are decided when
+   the menu opens, so there is nothing to style by theme here. */
+
+/* The phone search panel ---------------------------------------------------
+   These rules come AFTER the base .header-search-results rule above: a media
+   query adds no specificity, so an override written earlier in the file loses
+   to the desktop rule however specific it looks. That was half of the reported
+   bug — the panel kept `left: 50%; transform: translateX(-50%)` from the
+   desktop rule and sat half a screen to the left of the field.
+
+   The other half: the panel hangs off the search field, and the field is only
+   as wide as the header can spare for it (setup + account buttons take the
+   rest), so a full-width panel cannot be measured from the field. On a phone
+   the header is made the containing block instead: it is always the width of
+   the card, whatever the field is doing. */
+@media (max-width: 720px) {
+  .browser-view .app-header {
+    /* The containing block for the results panel below, and no gap: the brand
+       is display:none, but the header's gap still counts either side of a
+       zero-width flex item, costing the search field 32px on a 390px screen. */
+    position: relative;
+    gap: 0;
+  }
+
+  .header-search-results {
+    /* Card-wide, under the header, flush with its edges. The header is the
+       positioning parent, so 0/0 is the right anchor in both states: collapsed
+       (an icon) and expanded (the field fills the header). */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    /* No centring: the desktop rule centres on the field. */
+    transform: none;
+    width: auto;
+    /* The desktop cap is 26rem. */
+    max-width: none;
+    max-height: min(70dvh, 30rem);
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    /* Respect the notch and the home indicator, and keep the desktop panel's
+       inset so a highlighted result reaches the panel's edge instead of
+       stopping short of its ⋯ menu. */
+    padding: 0.25rem;
+    padding-left: calc(0.25rem + env(safe-area-inset-left));
+    padding-right: calc(0.25rem + env(safe-area-inset-right));
+  }
+
+  /* The field leads the header on a phone: the logo is hidden, and the account
+     actions keep their natural width. It is static so the results panel above
+     is measured from the header (always the card's width) rather than from a
+     field that is only as wide as the header can spare. Placed here, after the
+     base .header-search rule, for the same reason. */
+  .header-search {
+    position: static;
+    flex: 1 1 auto;
+    max-width: none;
+    margin: 0;
+    justify-content: flex-start;
+  }
+
+  /* Expanded, the field covers the header; the panel stays anchored to the
+     header, so it does not move with the box's margins. */
+  .header-search.is-expanded .header-search-results {
+    left: 0;
+    right: 0;
+  }
+}
