@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} çok büyük, lütfen {1} den küçük dosya yükleyin',
   'Upload failed': '{0} yüklenemedi',
   'Upload summary': '{0} başarılı, {1} başarısız, {2} toplam',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Kaydedilmemiş değişiklikleriniz var. Kaydetmeden kapatmak istediğinizden emin misiniz?',
   'Per page': 'Sayfa başına {0} tane',
   'Folder': 'Klasör',
   'Login failed, please try again': 'Giriş başarısız. Lütfen tekrar deneyin',

@@ -15,7 +15,7 @@
         <button v-if="can('write')" class="button" type="button" @click="saveFile()">
           {{ lang('Save') }}
         </button>
-        <button class="button" type="button" @click="$parent.close()">
+        <button class="button" type="button" @click="close()">
           {{ lang('Close') }}
         </button>
       </footer>
@@ -37,9 +37,16 @@ export default {
   data() {
     return {
       content: '',
+      originalContent: '',
       currentItem: '',
       lineNumbers: true,
+      confirming: false,
     }
+  },
+  computed: {
+    isDirty() {
+      return this.content !== this.originalContent
+    },
   },
   mounted() {
     this.currentItem = this.item
@@ -48,10 +55,52 @@ export default {
     })
       .then((res) => {
         this.content = res
+        this.originalContent = res
       })
       .catch(error => this.handleError(error))
+
+    document.addEventListener('keyup', this.onKeyUp)
+    this.backdrop = this.$parent.$el.querySelector('.modal-background')
+    if (this.backdrop) {
+      this.backdrop.addEventListener('click', this.close)
+    }
+  },
+  beforeDestroy() {
+    document.removeEventListener('keyup', this.onKeyUp)
+    if (this.backdrop) {
+      this.backdrop.removeEventListener('click', this.close)
+    }
   },
   methods: {
+    onKeyUp(event) {
+      if (event.key === 'Escape' || event.keyCode === 27) {
+        this.close()
+      }
+    },
+    close() {
+      if (!this.isDirty) {
+        this.$parent.close()
+        return
+      }
+      if (this.confirming) {
+        return
+      }
+      this.confirming = true
+      this.$dialog.confirm({
+        message: this.lang('You have unsaved changes. Are you sure you want to close without saving?'),
+        type: 'is-danger',
+        cancelText: this.lang('Cancel'),
+        confirmText: this.lang('Confirm'),
+        onConfirm: () => {
+          this.confirming = false
+          this.$parent.close()
+        },
+        onCancel: () => {
+          // defer so the escape keyup that closed the dialog does not reopen it
+          setTimeout(() => { this.confirming = false }, 0)
+        },
+      })
+    },
     saveFile() {
       api.saveContent({
         name: this.item.name,
@@ -62,6 +111,7 @@ export default {
             this.handleError(this.lang('Unable to save file'))
             return
           }
+          this.originalContent = this.content
           this.$toast.open({
             message: this.lang('Updated'),
             type: 'is-success',

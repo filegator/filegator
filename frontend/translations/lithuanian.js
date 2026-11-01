@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} yra per didelis, prašome įkelti mažesnius failus nei {1}',
   'Upload failed': '{0} nepavyko įkelti',
   'Upload summary': '{0} sėkmingai, {1} nepavyko, {2} iš viso',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Turite neišsaugotų pakeitimų. Ar tikrai norite užverti neišsaugojus?',
   'Per page': '{0} puslapyje',
   'Folder': 'Aplankas',
   'Login failed, please try again': 'Nepavyko prisijungti, bandykite dar kartą',

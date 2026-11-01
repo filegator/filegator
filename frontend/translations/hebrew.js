@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} הוא קובץ גדול מדי. אנא העלו עד לגודל של {1}',
   'Upload failed': '{0} לא הועלה כמו שצריך. אנא נסו שנית',
   'Upload summary': '{0} הצליחו, {1} נכשלו, {2} סה״כ',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'יש לכם שינויים שלא נשמרו. האם אתם בטוחים שתרצו לסגור בלי לשמור?',
   'Per page': '{0} לעמוד',
   'Folder': 'תיקייה',
   'Login failed, please try again': 'הכניסה נכשלה, אנא בידקו שם משתמש וסיסמה',

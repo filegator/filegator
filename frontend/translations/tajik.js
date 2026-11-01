@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} хеле калон аст, лутфан файли хурдтарро боргузорӣ кунед {1}',
   'Upload failed': '{0} боргузорӣ муяссар нашуд',
   'Upload summary': '{0} бомуваффақият, {1} номуваффақ, {2} ҳамагӣ',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Шумо тағйироти захиранашуда доред. Мутмаин ҳастед, ки бе захира кардан пӯшед?',
   'Per page': '{0} <Ба саҳифаи>',
   'Folder': 'Папка',
   'Login failed, please try again': 'Воридшавӣ муваффақ нашуд. Лутфан бори дигар кӯшиш кунед',

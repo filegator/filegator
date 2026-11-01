@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} este prea mare, încărcați fișiere mai mici decât {1}',
   'Upload failed': '{0} a eșuat să se încarce',
   'Upload summary': '{0} reușite, {1} eșuate, {2} în total',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Aveți modificări nesalvate. Sunteți sigur că doriți să închideți fără a salva?',
   'Per page': '{0} Per Pagină',
   'Folder': 'Dosar',
   'Login failed, please try again': 'Autentificare eșuată, încercați din nou',
