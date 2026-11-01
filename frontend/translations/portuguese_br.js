@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} é muito grande, por favor faça o upload de arquivos menores do que {1}',
   'Upload failed': '{0} falhou ao fazer o upload',
   'Upload summary': '{0} com sucesso, {1} falharam, {2} no total',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Você tem alterações não salvas. Tem certeza que deseja fechar sem salvar?',
   'Per page': '{0} Por Página',
   'Folder': 'Pasta',
   'Login failed, please try again': 'Login falhou, por favor, tente novamente.',

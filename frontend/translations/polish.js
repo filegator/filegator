@@ -4,6 +4,7 @@ const data = {
   'Błąd rozmiaru pliku': '{0} jest za duży, prześlij mniejszy plik {1}',
   'Upload failed': '{0} plików nie udało się przesłać',
   'Upload summary': '{0} udanych, {1} nieudanych, {2} łącznie',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Masz niezapisane zmiany. Czy na pewno chcesz zamknąć bez zapisywania?',
   'Per page': '{0} Na stronę',
   'Folder': 'Folder',
   'Login failed, please try again': 'Zły login lub hasło.',

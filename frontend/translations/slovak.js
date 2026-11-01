@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} je príliš veľký, nahrávajte súbory menšie ako {1}',
   'Upload failed': '{0} sa nepodarilo nahrať',
   'Upload summary': '{0} úspešných, {1} neúspešných, {2} celkom',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Máte neuložené zmeny. Naozaj chcete zavrieť bez uloženia?',
   'Per page': '{0} na stránku',
   'Folder': 'Adresár',
   'Login failed, please try again': 'Prihlásenie neúspešné, skúste to znova',

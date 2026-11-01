@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} fajl je preveliki, molim pošaljite fajl manji od {1}',
   'Upload failed': '{0} greška kod slanja',
   'Upload summary': '{0} uspešno, {1} neuspešno, {2} ukupno',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Imate nesačuvane izmene. Da li ste sigurni da želite da zatvorite bez čuvanja?',
   'Per page': '{0} Po strani',
   'Folder': 'Folder',
   'Login failed, please try again': 'Neuspešna prijava, probajte ponovo',
