@@ -6,6 +6,7 @@ import Buefy from 'buefy'
 import shared from './mixins/shared'
 import axios from 'axios'
 import api from './api/api'
+import { installSessionInterceptor } from './api/session'
 import VueLazyload from 'vue-lazyload'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/css/fontawesome.css'
@@ -21,6 +22,8 @@ axios.defaults.withCredentials = true
 axios.defaults.baseURL = Vue.config.baseURL
 
 axios.defaults.headers['Content-Type'] = 'application/json'
+
+installSessionInterceptor(axios, store)
 
 Vue.use(Buefy, {
   defaultIconPack: 'fas',
