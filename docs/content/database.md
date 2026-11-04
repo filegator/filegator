@@ -119,6 +119,7 @@ The same settings are available in **Admin → Auth**.
   because the provider is writable. This is different from LDAP, where accounts
   live in the directory.
 - The **DSN is never returned by the API**. Leave the field blank when saving to
-  keep the stored value.
+  keep the stored value, as long as the database type is unchanged. Switching
+  between MySQL and PostgreSQL requires the DSN for the new driver.
 - Passwords are bcrypt hashes. Plain-text passwords are rejected, and an
   existing FileGator database therefore keeps working unchanged.

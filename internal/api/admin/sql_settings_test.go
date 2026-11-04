@@ -62,6 +62,56 @@ func TestSetAuthConfigRejectsSQLWithoutDSN(t *testing.T) {
 	}
 }
 
+func TestSetAuthConfigKeepsDSNWhenBlank(t *testing.T) {
+	w := adminEnv(t)
+	if err := w.srv.Config.Update(func(c *config.Config) error {
+		c.Auth.Type = config.AuthTypeMySQL
+		c.Auth.SQL = config.SQL{DSN: "user:pw@tcp(127.0.0.1:1)/filegator"}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// The form cannot echo the DSN back, so it arrives blank. The stored value
+	// must be reused; the connection still fails here because nothing listens
+	// on port 1.
+	rec := w.submit("/api/admin/auth", w.authBody(func(c *AuthConfig) {
+		c.Type = config.AuthTypeMySQL
+		c.SQLDSN = ""
+		c.SQLHasDSN = true
+		c.SQLTimeout = 1
+	}))
+	if containsStr(rec.Body.String(), "dsn must not be empty") {
+		t.Errorf("stored DSN was not reused: %s", rec.Body)
+	}
+}
+
+func TestSetAuthConfigRequiresDSNWhenTypeChanges(t *testing.T) {
+	w := adminEnv(t)
+	if err := w.srv.Config.Update(func(c *config.Config) error {
+		c.Auth.Type = config.AuthTypeMySQL
+		c.Auth.SQL = config.SQL{DSN: "user:pw@tcp(127.0.0.1:1)/filegator"}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// A MySQL DSN cannot be reused by the PostgreSQL driver, so a type change
+	// must ask for the new connection string instead of failing later in pgx.
+	rec := w.submit("/api/admin/auth", w.authBody(func(c *AuthConfig) {
+		c.Type = config.AuthTypePostgres
+		c.SQLDSN = ""
+		c.SQLHasDSN = true
+		c.SQLTimeout = 1
+	}))
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status %d, want 400 (body %s)", rec.Code, rec.Body)
+	}
+	if !containsStr(rec.Body.String(), "dsn must not be empty") {
+		t.Errorf("expected a missing-DSN error, got %s", rec.Body)
+	}
+}
+
 func TestSetAuthConfigRejectsUnreachableDatabase(t *testing.T) {
 	w := adminEnv(t)
 	before := w.srv.Users.Capabilities()

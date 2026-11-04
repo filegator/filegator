@@ -373,6 +373,31 @@ func adminPayload(t *testing.T, source, name string) string {
 	return payload[:end]
 }
 
+// TestAdminAuthDSNHintMatchesDriver checks the connection-string placeholder
+// follows the selected database: a Postgres URL for postgres, the MySQL form
+// for mysql. Showing the MySQL form for postgres is what leads users to paste
+// a DSN that pgx cannot parse.
+func TestAdminAuthDSNHintMatchesDriver(t *testing.T) {
+	data, err := fs.ReadFile(frontendRoot(), "js/views/admin.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	auth := adminFunction(t, string(data), "renderAuth")
+
+	if !strings.Contains(auth, "postgres://user:pass@host:5432/filegator?sslmode=disable") {
+		t.Error("the postgres DSN hint is missing")
+	}
+	if !strings.Contains(auth, "user:pass@tcp(host:3306)/filegator") {
+		t.Error("the mysql DSN hint is missing")
+	}
+	if !strings.Contains(auth, `type.value === "postgres"`) {
+		t.Error("the DSN hint does not switch with the selected database")
+	}
+	if !strings.Contains(auth, "Leave blank to keep the current connection string") {
+		t.Error("the stored-DSN hint does not name the connection string")
+	}
+}
+
 // TestAdminPagesSaveOnlyTheirOwnFields guards the reason the server merges a
 // partial settings request: each page sends the fields it shows and nothing
 // else. A field a page does not show must not be in its payload, or saving it

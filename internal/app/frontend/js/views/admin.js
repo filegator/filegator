@@ -830,12 +830,6 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
     // SQL backend: a database table with the same columns as users.json.
     const sqlBlock = create("div", {}, []);
     const sqlDSN = field(sqlBlock, "Connection string (DSN)", "password", "");
-    if (current.sql_has_dsn) {
-      sqlDSN.placeholder = "Leave blank to keep the current password";
-    }
-    sqlDSN.placeholder = current.sql_has_dsn
-      ? "Leave blank to keep the current password"
-      : "user:pass@tcp(host:3306)/filegator";
     const sqlTable = field(sqlBlock, "Users table", "text", current.sql_table || "users");
     const sqlCache = field(sqlBlock, "User cache (seconds)", "number", current.sql_user_cache_ttl || 60);
     const sqlMaxOpen = field(sqlBlock, "Max open connections", "number", current.sql_max_open_conns || 10);
@@ -852,6 +846,18 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
       jsonBlock.classList.toggle("hidden", type.value !== "json");
       ldapBlock.classList.toggle("hidden", type.value !== "ldap");
       sqlBlock.classList.toggle("hidden", type.value !== "mysql" && type.value !== "postgres");
+      // The two drivers take different connection strings. Showing the MySQL
+      // form for postgres is how a `user:pass@tcp(host:3306)/db` DSN ended up
+      // in the postgres field and failed to parse. A stored DSN is kept only
+      // while the database type stays the same.
+      if (current.sql_has_dsn && type.value === current.type) {
+        sqlDSN.placeholder = "Leave blank to keep the current connection string";
+      } else {
+        sqlDSN.placeholder =
+          type.value === "postgres"
+            ? "postgres://user:pass@host:5432/filegator?sslmode=disable"
+            : "user:pass@tcp(host:3306)/filegator";
+      }
     }
     type.addEventListener("change", syncBlocks);
 

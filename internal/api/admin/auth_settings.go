@@ -103,6 +103,12 @@ func (h *Handler) SetAuth(w http.ResponseWriter, r *http.Request, _ router.Param
 	if req.LDAPBindPass == "" && req.LDAPHasBindPass && req.Type == config.AuthTypeLDAP {
 		req.LDAPBindPass = current.LDAP.BindPass
 	}
+	// The DSN is write-only, so the form sends it blank when it is unchanged.
+	// It is driver-specific and cannot carry over between MySQL and PostgreSQL,
+	// so it is reused only while the database type stays the same.
+	if req.SQLDSN == "" && req.SQLHasDSN && req.Type == current.Type {
+		req.SQLDSN = current.SQL.DSN
+	}
 
 	candidate := config.Auth{
 		Type:      req.Type,
