@@ -41,6 +41,11 @@ because that row publishes the repository.
 > Permissions use the pipe format (`read|download`). A comma-separated value is
 > not a valid record and the users file will refuse to load.
 
+With a **database auth provider**, the guest is a row in the users table
+instead. Nothing creates it for you, and anonymous access stays off until a row
+named `guest` with the `guest` role can `read`; see
+[Database users]({{< ref "database.md" >}}#guest-account).
+
 ## What guests can do
 
 **Reads only.** This is enforced in code, not just by the stored permissions, so

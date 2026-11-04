@@ -46,6 +46,24 @@ The hash above is the default `admin123` password. **Change it after the first
 login.** `FILEGATOR_ADMIN_PASSWORD` does not apply here: it seeds the users
 file, and a SQL-backed installation never has one.
 
+### Guest account
+
+A SQL-backed installation has no guest account unless the table has one: unlike
+`users.json`, nothing is seeded for you. Guest access stays **off** until a row
+with the username `guest` and the role `guest` exists **and** can `read`. Add it
+with:
+
+```sql
+INSERT INTO users (username, name, role, permissions, homedir, password)
+VALUES ('guest', 'Guest', 'guest', '', '/', '');
+```
+
+With empty permissions the row does nothing: anonymous visitors get the login
+screen. Grant `read` (and optionally `download` and `batchdownload`) and set
+`homedir` to the folder to publish. See
+[Guest access]({{< ref "guest-access.md" >}}) for what a guest may do. The row
+can also be created from **Admin → Users**.
+
 ### PostgreSQL
 
 ```sql
