@@ -352,6 +352,121 @@ func TestS3CopySignsSourceHeader(t *testing.T) {
 	t.Fatal("no CopyObject request recorded")
 }
 
+// TestS3ScopeHomePaths checks that a scope rooted at a folder behaves as the
+// storage root for its user: listing "/" must list the home, and the paths it
+// returns must be relative to the home so the interface can navigate them.
+func TestS3ScopeHomePaths(t *testing.T) {
+	b, _ := newTestBackend(t)
+	root, _ := b.Scope("/")
+	root.MkdirAll("/team/alice")
+	root.MkdirAll("/team/bob")
+	w, _ := root.Create("/team/alice/greeting.txt")
+	w.Write([]byte("hello"))
+	w.Close()
+	w, _ = root.Create("/team/bob/secret.txt")
+	w.Write([]byte("bob"))
+	w.Close()
+
+	alice, err := b.Scope("/team/alice")
+	if err != nil {
+		t.Fatalf("Scope: %v", err)
+	}
+
+	entries, err := alice.ReadDir("/")
+	if err != nil {
+		t.Fatalf("ReadDir home: %v", err)
+	}
+	if len(entries) != 1 || entries[0].Path != "/greeting.txt" {
+		t.Fatalf("home listing = %+v, want one entry at /greeting.txt", entries)
+	}
+
+	if _, err := alice.Stat("/greeting.txt"); err != nil {
+		t.Errorf("Stat home file: %v", err)
+	}
+	f, err := alice.Open("/greeting.txt")
+	if err != nil {
+		t.Fatalf("Open home file: %v", err)
+	}
+	data, _ := io.ReadAll(f)
+	f.Close()
+	if string(data) != "hello" {
+		t.Errorf("home file = %q", data)
+	}
+
+	if err := alice.Mkdir("/docs"); err != nil {
+		t.Fatalf("Mkdir in home: %v", err)
+	}
+	w, err = alice.Create("/docs/note.txt")
+	if err != nil {
+		t.Fatalf("Create in home subfolder: %v", err)
+	}
+	w.Write([]byte("note"))
+	w.Close()
+
+	sub, err := alice.ReadDir("/docs")
+	if err != nil {
+		t.Fatalf("ReadDir subfolder: %v", err)
+	}
+	if len(sub) != 1 || sub[0].Path != "/docs/note.txt" {
+		t.Errorf("subfolder listing = %+v, want one entry at /docs/note.txt", sub)
+	}
+	if err := alice.Copy("/greeting.txt", "/docs/copy.txt"); err != nil {
+		t.Errorf("Copy in home: %v", err)
+	}
+	if !alice.Exists("/docs/copy.txt") {
+		t.Error("copied file missing")
+	}
+	if err := alice.Remove("/docs"); err != nil {
+		t.Errorf("Remove in home: %v", err)
+	}
+	if alice.Exists("/docs") {
+		t.Error("removed folder still exists")
+	}
+	if _, err := alice.Open("/../bob/secret.txt"); err == nil {
+		t.Error("alice read bob's file")
+	}
+}
+
+// TestS3ScopeHomeWithPrefix is the same home-relative behaviour under a
+// configured key prefix, where both the prefix and the home must be stripped
+// from listing paths.
+func TestS3ScopeHomeWithPrefix(t *testing.T) {
+	f, srv := newFakeS3(t)
+	b, err := New(config.S3{
+		Bucket: "testbucket", Region: "us-east-1", Endpoint: srv.URL,
+		AccessKey: "k", SecretKey: "s", UsePathStyle: true, Prefix: "team", Timeout: 5,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	root, _ := b.Scope("/")
+	if err := b.EnsureDir("/test11"); err != nil {
+		t.Fatalf("EnsureDir: %v", err)
+	}
+	w, _ := root.Create("/test11/a.txt")
+	w.Write([]byte("a"))
+	w.Close()
+
+	scope, err := b.Scope("/test11")
+	if err != nil {
+		t.Fatalf("Scope: %v", err)
+	}
+	entries, err := scope.ReadDir("/")
+	if err != nil {
+		t.Fatalf("ReadDir: %v", err)
+	}
+	if len(entries) != 1 || entries[0].Path != "/a.txt" {
+		t.Fatalf("listing = %+v, want one entry at /a.txt", entries)
+	}
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+	for key := range f.objects {
+		if !strings.HasPrefix(key, "team/test11/") {
+			t.Errorf("object written outside the configured prefix and home: %q", key)
+		}
+	}
+}
+
 func TestS3ScopeConfinement(t *testing.T) {
 	b, _ := newTestBackend(t)
 	fsys, _ := b.Scope("/")

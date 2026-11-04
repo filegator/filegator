@@ -126,6 +126,24 @@ func (b *Backend) virtualKey(raw string) string {
 	return "/" + trimmed
 }
 
+// scopeKey maps a raw object key to a path relative to the scope's home. The
+// API and the interface deal in scope-relative paths, so the home folder must
+// not leak into the entries a listing returns.
+func (s *Scope) scopeKey(raw string) string {
+	virtual := s.backend.virtualKey(raw)
+	if s.home == "/" {
+		return virtual
+	}
+	trimmed := strings.TrimPrefix(virtual, s.home)
+	if trimmed == "" {
+		return "/"
+	}
+	if !strings.HasPrefix(trimmed, "/") {
+		return virtual
+	}
+	return trimmed
+}
+
 // Scope is a confined S3 view rooted at home.
 type Scope struct {
 	backend *Backend
@@ -141,9 +159,9 @@ func (s *Scope) dirKey(p string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if s.home != "/" && !withinPath(s.home, clean) {
-		return "", storage.ErrOutsideScope
-	}
+	// Paths are relative to the scope: "/" is the home folder itself, not the
+	// bucket root. CleanPath already rejects "..", so a cleaned path cannot
+	// leave the home scope.
 	full := path.Join(s.home, strings.TrimPrefix(clean, "/"))
 	if full == "." {
 		full = "/"
@@ -211,15 +229,16 @@ func (s *Scope) isDir(clean string) bool {
 	if clean == "/" {
 		return true
 	}
-	if _, err := s.dirKey(clean); err != nil {
+	key, err := s.dirKey(clean)
+	if err != nil {
 		return false
 	}
-	if meta, err := s.backend.client.headObject(s.backend.key(clean) + "/"); err == nil && meta != nil {
+	if meta, err := s.backend.client.headObject(key); err == nil && meta != nil {
 		return true
 	}
 	// A directory can also exist implicitly because children are stored under
 	// it, so a one-item listing decides.
-	result, err := s.backend.client.listPrefix(s.backend.key(clean)+"/", "/", "")
+	result, err := s.backend.client.listPrefix(key, "/", "")
 	return err == nil && len(result.Entries) > 0
 }
 
@@ -243,7 +262,7 @@ func (s *Scope) ReadDir(dir string) ([]*storage.Entry, error) {
 			return nil, err
 		}
 		for _, item := range result.Entries {
-			virtual := s.backend.virtualKey(item.Key)
+			virtual := s.scopeKey(item.Key)
 			// Skip the directory's own placeholder object.
 			if virtual == clean {
 				continue
