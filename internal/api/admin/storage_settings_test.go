@@ -178,6 +178,43 @@ func TestSetStorageConfigKeepsPasswordWhenBlank(t *testing.T) {
 	}
 }
 
+func TestSetStorageConfigKeepsSecretsWhenSwitchingToLocal(t *testing.T) {
+	w := adminEnv(t)
+	if err := w.srv.Config.Update(func(c *config.Config) error {
+		c.Storage.Type = config.StorageTypeS3
+		c.Storage.S3 = config.S3{Bucket: "b", Region: "us-east-1", AccessKey: "a", SecretKey: "stored-secret"}
+		c.Storage.SFTP = config.SFTP{Host: "example.com", User: "demo", Password: "stored-password"}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// The form cannot echo a secret back, so both secret fields arrive blank.
+	// Switching to local must not erase the inactive backends' credentials.
+	rec := w.submit("/api/admin/storage", w.storageBody(func(c *StorageConfig) {
+		c.Type = config.StorageTypeLocal
+		c.Root = w.root.Dir()
+		c.S3SecretKey = ""
+		c.S3HasSecret = true
+		c.SFTPPassword = ""
+		c.SFTPHasPassword = true
+	}))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d, want 200 (body %s)", rec.Code, rec.Body)
+	}
+
+	stored := w.srv.Config.Get().Storage
+	if stored.Type != config.StorageTypeLocal {
+		t.Errorf("type = %q, want local", stored.Type)
+	}
+	if stored.S3.SecretKey != "stored-secret" {
+		t.Errorf("s3 secret = %q, want it preserved", stored.S3.SecretKey)
+	}
+	if stored.SFTP.Password != "stored-password" {
+		t.Errorf("sftp password = %q, want it preserved", stored.SFTP.Password)
+	}
+}
+
 func TestSetStorageConfigRequiresAdmin(t *testing.T) {
 	e := newEnv(t)
 	e.addUser("bob", "pw", "/bob", auth.RoleUser, auth.PermRead)

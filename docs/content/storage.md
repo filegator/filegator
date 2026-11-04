@@ -132,6 +132,7 @@ at the cost of size limits and slow bulk operations.
   `chmod 600 private/config.json`, and do not commit it (`private/` is
   git-ignored).
 - API responses never return the SFTP password or S3 secret. An empty value in
-  the admin form keeps the stored one.
+  the admin form keeps the stored one, including when switching to a different
+  backend: the inactive settings stay in `config.json`.
 - Nothing is written into a user's folders by FileGator itself — no index files,
   no metadata. Any existing folder can be pointed at and managed.

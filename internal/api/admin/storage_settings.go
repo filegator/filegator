@@ -85,13 +85,15 @@ func (h *Handler) SetStorage(w http.ResponseWriter, r *http.Request, _ router.Pa
 		req.Type = config.StorageTypeLocal
 	}
 
-	// Build the candidate configuration, keeping the stored password when the
-	// form left it blank.
+	// Build the candidate configuration, keeping the stored secrets when the
+	// form left them blank. This applies even when switching to another
+	// backend: the inactive subtree is kept in config.json, so switching back
+	// must not require re-entering a credential.
 	current := h.Core.Config.Get().Storage
-	if req.SFTPPassword == "" && req.SFTPHasPassword && req.Type == config.StorageTypeSFTP {
+	if req.SFTPPassword == "" && req.SFTPHasPassword {
 		req.SFTPPassword = current.SFTP.Password
 	}
-	if req.S3SecretKey == "" && req.S3HasSecret && req.Type == config.StorageTypeS3 {
+	if req.S3SecretKey == "" && req.S3HasSecret {
 		req.S3SecretKey = current.S3.SecretKey
 	}
 
