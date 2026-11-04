@@ -2,6 +2,9 @@
 
 ## Upcoming...
 
+## 7.16.9 - 2026-11-04
+* Add floating tags tracking the latest stable 7.x release
+
 ## 7.16.8 - 2026-09-27
 * Security fix for Critical PHP Vulnerabilities CVE-2026-109618 & CVE-2026-109619 (PHP2Shell) affecting FileGator Docker Image.
 * Security fix for [GHSA-33r5-wp7h-gc72](https://github.com/filegator/filegator/security/advisories/GHSA-c2f4-g7pq-3p3f)
