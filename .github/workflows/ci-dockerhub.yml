@@ -35,4 +35,4 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: filegator/filegator:latest, filegator/filegator:${{ github.ref_name }}
+          tags: filegator/filegator:latest, filegator/filegator:${{ github.ref_name }}, filegator/filegator:v7
