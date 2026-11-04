@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
@@ -90,8 +91,12 @@ func (f *fakeS3) serve(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		body, _ := io.ReadAll(r.Body)
 		if src := r.Header.Get("X-Amz-Copy-Source"); src != "" {
-			// CopyObject: "bucket/key" possibly URL-escaped.
-			srcKey := strings.TrimPrefix(src, "/")
+			// CopyObject: "bucket/key", percent-encoded as in a URL.
+			srcKey, err := url.PathUnescape(strings.TrimPrefix(src, "/"))
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			if i := strings.Index(srcKey, "/"); i >= 0 {
 				srcKey = srcKey[i+1:]
 			}
@@ -307,6 +312,44 @@ func TestS3CopyDirectory(t *testing.T) {
 	if !fsys.Exists("/dst/a.txt") {
 		t.Error("nested file not copied")
 	}
+}
+
+// TestS3CopySignsSourceHeader guards the copy path: X-Amz-Copy-Source is an
+// x-amz-* header, so it must be present before SigV4 signs the request or S3
+// rejects the copy with SignatureDoesNotMatch.
+func TestS3CopySignsSourceHeader(t *testing.T) {
+	b, f := newTestBackend(t)
+	fsys, _ := b.Scope("/")
+	w, _ := fsys.Create("/my report.txt")
+	w.Write([]byte("payload"))
+	w.Close()
+
+	if err := fsys.Copy("/my report.txt", "/copy.txt"); err != nil {
+		t.Fatalf("Copy: %v", err)
+	}
+	if !fsys.Exists("/copy.txt") {
+		t.Fatal("copy target missing")
+	}
+
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+	for _, r := range f.requests {
+		if r.Method != http.MethodPut {
+			continue
+		}
+		src := r.Header.Get("X-Amz-Copy-Source")
+		if src == "" {
+			continue
+		}
+		if src != "/testbucket/my%20report.txt" {
+			t.Errorf("X-Amz-Copy-Source = %q, want percent-encoded key", src)
+		}
+		if !strings.Contains(r.Header.Get("Authorization"), "x-amz-copy-source") {
+			t.Errorf("Authorization does not sign X-Amz-Copy-Source: %s", r.Header.Get("Authorization"))
+		}
+		return
+	}
+	t.Fatal("no CopyObject request recorded")
 }
 
 func TestS3ScopeConfinement(t *testing.T) {

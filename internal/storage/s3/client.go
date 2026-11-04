@@ -76,7 +76,11 @@ func newClient(cfg config.S3) (*client, error) {
 
 // request builds a signed request for an object key. An empty key addresses the
 // bucket itself.
-func (c *client) request(method, key string, query url.Values, body []byte, contentType string) (*http.Request, error) {
+//
+// extra headers must be set before signing, because every x-amz-* header is
+// part of the signature: a request that adds one afterwards is rejected with
+// SignatureDoesNotMatch.
+func (c *client) request(method, key string, query url.Values, body []byte, contentType string, extra map[string]string) (*http.Request, error) {
 	u := *c.endpoint
 	if c.pathStyle {
 		u.Path = "/" + c.bucket
@@ -103,6 +107,9 @@ func (c *client) request(method, key string, query url.Values, body []byte, cont
 	}
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
+	}
+	for name, value := range extra {
+		req.Header.Set(name, value)
 	}
 	c.signer.sign(req, payloadHash)
 	return req, nil
@@ -161,7 +168,7 @@ func (c *client) putObject(key string, body []byte, contentType string) error {
 	if int64(len(body)) > maxSinglePut {
 		return fmt.Errorf("s3: object is larger than the %d GiB single-upload limit", maxSinglePut>>30)
 	}
-	req, err := c.request(http.MethodPut, key, nil, body, contentType)
+	req, err := c.request(http.MethodPut, key, nil, body, contentType, nil)
 	if err != nil {
 		return err
 	}
@@ -171,7 +178,7 @@ func (c *client) putObject(key string, body []byte, contentType string) error {
 
 // getObject reads one object. The caller closes the body.
 func (c *client) getObject(key string) (io.ReadCloser, error) {
-	req, err := c.request(http.MethodGet, key, nil, nil, "")
+	req, err := c.request(http.MethodGet, key, nil, nil, "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +196,7 @@ func (c *client) getObject(key string) (io.ReadCloser, error) {
 
 // headObject returns metadata for one object.
 func (c *client) headObject(key string) (*objectMeta, error) {
-	req, err := c.request(http.MethodHead, key, nil, nil, "")
+	req, err := c.request(http.MethodHead, key, nil, nil, "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +223,7 @@ func (c *client) headObject(key string) (*objectMeta, error) {
 
 // deleteObject removes one object.
 func (c *client) deleteObject(key string) error {
-	req, err := c.request(http.MethodDelete, key, nil, nil, "")
+	req, err := c.request(http.MethodDelete, key, nil, nil, "", nil)
 	if err != nil {
 		return err
 	}
@@ -226,19 +233,22 @@ func (c *client) deleteObject(key string) error {
 
 // copyObject copies one object server-side.
 func (c *client) copyObject(srcKey, dstKey string) error {
-	req, err := c.request(http.MethodPut, dstKey, nil, nil, "")
+	// The source is identified in a header, not the body, and that header is
+	// signed with the request, so it must be present before signing.
+	req, err := c.request(http.MethodPut, dstKey, nil, nil, "", map[string]string{
+		"X-Amz-Copy-Source": encodeCopySource(c.bucket, srcKey),
+	})
 	if err != nil {
 		return err
 	}
-	// The source is identified in a header, not the body.
-	req.Header.Set("X-Amz-Copy-Source", encodeCopySource(c.bucket, srcKey))
 	_, _, err = c.do(req)
 	return err
 }
 
-// encodeCopySource formats the copy source header value.
+// encodeCopySource formats the copy source header value. S3 expects the key to
+// be percent-encoded, as it appears in a URL.
 func encodeCopySource(bucket, key string) string {
-	return "/" + bucket + "/" + strings.TrimPrefix(key, "/")
+	return "/" + uriEncode(bucket, false) + "/" + uriEncode(strings.TrimPrefix(key, "/"), false)
 }
 
 // listEntry is one item returned by ListObjectsV2.
@@ -275,7 +285,7 @@ func (c *client) listPrefix(prefix, delimiter, token string) (*listResult, error
 	}
 	query.Set("max-keys", "1000")
 
-	req, err := c.request(http.MethodGet, "", query, nil, "")
+	req, err := c.request(http.MethodGet, "", query, nil, "", nil)
 	if err != nil {
 		return nil, err
 	}
