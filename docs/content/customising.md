@@ -118,7 +118,10 @@ light, "Light mode" while it is dark.
   `prefers-color-scheme` media query decides. The icon follows it too, so it is
   right before any JavaScript runs.
 - **A stored choice wins in both directions** — dark on a light machine, and
-  light on a dark one.
+  light on a dark one. The browser's own controls (checkboxes, radio buttons,
+  dropdowns, scrollbars) follow that choice too, because `color-scheme` is set
+  per theme; otherwise a light interface would keep dark checkboxes on a dark
+  machine.
 - **The choice is applied before the first paint**, by a small inline script in
   `index.html`, so there is no flash of light on every page load.
 - **The account menu is in the file browser's header**, so the login and admin

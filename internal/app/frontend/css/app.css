@@ -1,5 +1,12 @@
 /* FileGator v8 — core theme */
 :root {
+  /* Native controls (checkbox, radio, select, scrollbar) follow this, not the
+     palette variables. The <meta> says the page supports both schemes, but it
+     can only follow the system; without this declaration a user who chose
+     Light on a dark machine keeps dark checkboxes. Each theme block below sets
+     it again, matching the variables. */
+  color-scheme: light;
+
   --primary: #34b891;
   --primary-dark: #2a9b79;
   --primary-light: #e8f8f3;
@@ -92,6 +99,8 @@ body {
  */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
     --text: #e6e6e8;
     --text-light: #9a9aa0;
     --text-invert: #17171a;
@@ -132,6 +141,8 @@ body {
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
+
   --text: #e6e6e8;
   --text-light: #9a9aa0;
   --text-invert: #17171a;

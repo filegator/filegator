@@ -57,9 +57,38 @@ func TestThemeIsAppliedBeforeTheFirstPaint(t *testing.T) {
 		}
 	}
 	// Both themes are declared, so the browser paints its own form controls,
-	// scrollbars and the like for whichever is active.
+	// scrollbars and the like for whichever is active. The declaration itself
+	// can only follow the system; app.css has to match it to the chosen theme.
 	if !strings.Contains(page, `name="color-scheme" content="light dark"`) {
 		t.Error("color-scheme should be \"light dark\" now that the interface has a dark theme")
+	}
+}
+
+// TestNativeControlsFollowTheChosenTheme pins `color-scheme` to the palette.
+//
+// The <meta> declaration follows the operating system, so a user who picks
+// Light on a dark machine got a light interface with dark checkboxes, radio
+// buttons and scrollbars: native controls look at the used color-scheme, and
+// nothing in the stylesheet overrode the system value. Each theme block must
+// set it beside the variables it changes, including the `color-scheme: light`
+// on :root that makes the stored choice win over the media query.
+func TestNativeControlsFollowTheChosenTheme(t *testing.T) {
+	app := readAsset(t, "css/app.css")
+
+	light := app[:strings.Index(app, "@media (prefers-color-scheme: dark)")]
+	if !strings.Contains(light, "color-scheme: light;") {
+		t.Error("the :root block does not set color-scheme: light, so native controls follow the system on a stored light choice")
+	}
+
+	darkMedia := app[strings.Index(app, "@media (prefers-color-scheme: dark)"):]
+	darkMedia = darkMedia[:strings.Index(darkMedia, "\n}")]
+	if !strings.Contains(darkMedia, "color-scheme: dark;") {
+		t.Error("the prefers-color-scheme block does not set color-scheme: dark")
+	}
+
+	darkTheme := app[strings.Index(app, `:root[data-theme="dark"]`):]
+	if !strings.Contains(darkTheme, "color-scheme: dark;") {
+		t.Error("the data-theme=\"dark\" block does not set color-scheme: dark")
 	}
 }
 
