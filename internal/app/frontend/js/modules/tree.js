@@ -21,6 +21,9 @@ export class TreeNode {
     this.children = null; // null = never loaded
     this.expanded = false;
     this.loading = false;
+    // The load in flight, so a second expand/collapse click waits for it
+    // instead of racing it.
+    this.pending = null;
     this.error = "";
   }
 
@@ -35,7 +38,18 @@ export class TreeNode {
  * Returns the node so callers can await the load and then re-render.
  */
 export async function toggleNode(node) {
-  if (node.expanded) {
+  // An arrow clicked while the folder is still loading must not collapse it:
+  // the first load would then finish and re-expand it, which looked like the
+  // arrow did nothing until another click had settled the tree.
+  if (node.loading) {
+    try {
+      await node.pending;
+    } catch (err) {
+      // The load that owns this promise reports the error itself.
+    }
+    return node;
+  }
+  if (node.expanded && node.children !== null) {
     collapseSubtree(node);
     return node;
   }
@@ -46,20 +60,24 @@ export async function toggleNode(node) {
 
   node.loading = true;
   node.error = "";
-  try {
-    const listing = await api.list(node.path);
-    node.children = (listing.entries || [])
-      .filter((entry) => entry.type === "dir")
-      .map((entry) => new TreeNode(entry, node));
-  } catch (err) {
-    // A folder the user may not open is not an error worth breaking the tree
-    // for: show it as empty and say why.
-    node.children = [];
-    node.error = err && err.message ? err.message : t("Unknown error");
-    node.expanded = false;
-  } finally {
-    node.loading = false;
-  }
+  node.pending = (async () => {
+    try {
+      const listing = await api.list(node.path);
+      node.children = (listing.entries || [])
+        .filter((entry) => entry.type === "dir")
+        .map((entry) => new TreeNode(entry, node));
+    } catch (err) {
+      // A folder the user may not open is not an error worth breaking the tree
+      // for: show it as empty and say why.
+      node.children = [];
+      node.error = err && err.message ? err.message : t("Unknown error");
+      node.expanded = false;
+    } finally {
+      node.loading = false;
+      node.pending = null;
+    }
+  })();
+  await node.pending;
   return node;
 }
 
@@ -405,11 +423,8 @@ export async function expandNode(node) {
   if (node.expanded && node.children !== null) {
     return node;
   }
-  if (node.expanded) {
-    // Expanded but never loaded: load it in place rather than toggling, which
-    // would collapse it.
-    node.expanded = false;
-  }
+  // toggleNode loads an expanded node whose children are still null, and
+  // waits for a load already in flight.
   return toggleNode(node);
 }
 
