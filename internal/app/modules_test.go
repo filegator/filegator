@@ -427,6 +427,7 @@ func TestAdminPagesSaveOnlyTheirOwnFields(t *testing.T) {
 			want: []string{
 				"upload_max_size", "upload_chunk_size", "upload_simultaneous",
 				"default_archive_name", "editable", "download_inline",
+				"min_free_percent",
 			},
 		},
 		{
@@ -477,6 +478,12 @@ func TestAdminPagesSaveOnlyTheirOwnFields(t *testing.T) {
 	}
 	if !strings.Contains(filesPage, "download_inline") {
 		t.Error("the Files page should be able to save download_inline")
+	}
+	if !strings.Contains(filesPage, "Minimum free space (%)") {
+		t.Error("the Files page should offer the minimum free space setting")
+	}
+	if !strings.Contains(filesPage, "adminStorageSpace") || !strings.Contains(filesPage, "Free space:") {
+		t.Error("the Files page should report current free space next to the setting")
 	}
 
 	// The security fields left the UI page with the split, and the interface

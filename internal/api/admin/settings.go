@@ -49,6 +49,9 @@ type Settings struct {
 	UploadSimultaneous *int      `json:"upload_simultaneous"`
 	DefaultArchiveName *string   `json:"default_archive_name"`
 	Editable           *[]string `json:"editable"`
+	// MinFreePercent refuses content-growing writes below this percentage of
+	// free disk. 0 disables the guard.
+	MinFreePercent     *int      `json:"min_free_percent"`
 	SearchSimultaneous *int      `json:"search_simultaneous"`
 	FilterEntries      *[]string `json:"filter_entries"`
 	// GuestRedirection sends logged-out visitors to this URL instead of
@@ -108,6 +111,7 @@ func settingsFrom(c *config.Config) Settings {
 		UploadSimultaneous:  ptr(c.Frontend.UploadSimultaneous),
 		DefaultArchiveName:  ptr(c.Frontend.DefaultArchiveName),
 		Editable:            ptr(c.Frontend.Editable),
+		MinFreePercent:      ptr(c.Storage.MinFreePercent),
 		SearchSimultaneous:  ptr(c.Frontend.SearchSimultaneous),
 		FilterEntries:       ptr(c.Frontend.FilterEntries),
 		GuestRedirection:    ptr(c.Frontend.GuestRedirection),
@@ -258,6 +262,9 @@ func applySettings(c *config.Config, req *SettingsIn) {
 	if req.set("editable") {
 		c.Frontend.Editable = slices.Clone(*req.Editable)
 	}
+	if req.set("min_free_percent") {
+		c.Storage.MinFreePercent = *req.MinFreePercent
+	}
 	if req.set("download_inline") {
 		// Entries are stored in the dotless lowercase form v7 used ("pdf"),
 		// so the same list keeps working in either version.
@@ -392,6 +399,10 @@ func validateSettings(req *SettingsIn) error {
 	if req.set("upload_chunk_size") && *req.UploadChunkSize <= 0 {
 		return httpx.Errorf(http.StatusBadRequest, httpx.CodeBadRequest, "upload chunk size must be positive")
 	}
+	if req.set("min_free_percent") && (*req.MinFreePercent < 0 || *req.MinFreePercent > 100) {
+		return httpx.Errorf(http.StatusBadRequest, httpx.CodeBadRequest,
+			"minimum free space must be between 0 and 100 percent")
+	}
 	if req.set("session_ttl") && *req.SessionTTL <= 0 {
 		return httpx.Errorf(http.StatusBadRequest, httpx.CodeBadRequest, "session lifetime must be positive")
 	}
@@ -487,6 +498,7 @@ type SettingsView struct {
 	UploadSimultaneous  int               `json:"upload_simultaneous"`
 	DefaultArchiveName  string            `json:"default_archive_name"`
 	Editable            []string          `json:"editable"`
+	MinFreePercent      int               `json:"min_free_percent"`
 	SearchSimultaneous  int               `json:"search_simultaneous"`
 	FilterEntries       []string          `json:"filter_entries"`
 	GuestRedirection    string            `json:"guest_redirection"`
@@ -524,6 +536,7 @@ func (s Settings) view() SettingsView {
 		UploadSimultaneous:  deref(s.UploadSimultaneous),
 		DefaultArchiveName:  deref(s.DefaultArchiveName),
 		Editable:            emptyIfNil(deref(s.Editable)),
+		MinFreePercent:      deref(s.MinFreePercent),
 		SearchSimultaneous:  deref(s.SearchSimultaneous),
 		FilterEntries:       emptyIfNil(deref(s.FilterEntries)),
 		GuestRedirection:    deref(s.GuestRedirection),

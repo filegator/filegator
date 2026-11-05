@@ -208,6 +208,17 @@ directory works on the first run. A save that cannot be persisted is **refused**
 the caller is told it will not survive a restart, and `Store.Why()` names the
 cause instead of only saying "read-only".
 
+**The local free-space guard is a filesystem limit, not a per-user quota.**
+`storage.min_free_percent` (default `10`, `0` disables) refuses uploads, new
+files, saves, copies, zip and unzip while the disk holding the local storage
+root is below that percentage. The size of an upload, save, zip or unzip is
+reserved before it starts where known; copy enforces the allowance during its
+own tree walk rather than measuring the tree first. A write budget stops an
+unknown size from crossing the reserve; rename, move, delete, chmod and mkdir
+stay available for recovery. A probe failure allows the write, because the
+operating system still refuses a genuinely full disk and a broken probe must not
+make the file manager read-only. The setting is on **Admin → Files**.
+
 **There is no `config.json.sample`**, though there is a `users.json.sample`.
 A sample would carry a session key identical on every install, or become a
 second description of the defaults that drifts. The reference is the
@@ -238,7 +249,10 @@ handlers respond identically. Confinement must be enforced **in the backend**,
 not in the HTTP layer.
 
 `Capabilities` decides what the UI hides: no `Chmod` means no permission action,
-no `ServerBrowse` means no host folder picker.
+no `ServerBrowse` means no host folder picker. A backend with a filesystem can
+implement `storage.SpaceReporter` and report `FreeSpace: true`; the local
+backend does, and the free-space guard applies only to a backend that reports
+it. SFTP and S3 do not report free space in this release.
 
 ## Adding an auth provider
 

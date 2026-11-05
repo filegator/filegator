@@ -51,6 +51,7 @@ func (h *Handler) Routes(rt *router.Router) {
 	// Storage
 	rt.Get("/api/admin/browse", h.adminOnly(h.BrowseHost))
 	rt.Get("/api/admin/storage/browse", h.adminOnly(h.BrowseStorage))
+	rt.Get("/api/admin/storage/space", h.adminOnly(h.StorageSpace))
 	rt.Get("/api/admin/root", h.adminOnly(h.GetRoot))
 	rt.Post("/api/admin/root", h.adminOnly(h.SetRoot))
 	rt.Get("/api/admin/storage", h.adminOnly(h.GetStorage))

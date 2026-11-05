@@ -264,6 +264,9 @@ export const api = {
   adminBrowseStorage: (path) =>
     request(url(`/api/admin/storage/browse?path=${encodeURIComponent(path)}`)),
 
+  /** Returns free space behind the active storage backend, when reported. */
+  adminStorageSpace: () => request(url("/api/admin/storage/space")),
+
   /** Returns the active storage root. */
   adminRoot: () => request(url("/api/admin/root")),
 

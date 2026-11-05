@@ -97,6 +97,10 @@ func (s *Server) Upload(w http.ResponseWriter, r *http.Request, u *auth.User, fs
 			fmt.Sprintf("file is too large, the limit is %d bytes", cfg.UploadMaxSize)))
 		return
 	}
+	if _, _, err := s.checkFreeSpace(meta.totalSize); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	// A refusal costs one request, not a whole upload, so the collision is
 	// checked before a single byte is staged. With "upcount" or "replace" the
@@ -477,6 +481,19 @@ func (s *Server) assemble(meta chunkMeta, fsys storage.FS) (*Entry, error) {
 		os.Remove(assembled)
 		return nil, Errorf(http.StatusInternalServerError, CodeInternal, "cannot assemble the upload")
 	}
+	info, err := os.Stat(assembled)
+	if err != nil {
+		os.Remove(assembled)
+		return nil, Errorf(http.StatusInternalServerError, CodeInternal, "cannot assemble the upload")
+	}
+	allowance, guarded, err := s.checkFreeSpace(info.Size())
+	if err != nil {
+		return nil, err
+	}
+	var budget *writeBudget
+	if guarded {
+		budget = &writeBudget{remaining: allowance}
+	}
 
 	// The final name is decided here, not when chunk 1 arrived: a long upload
 	// gives another client time to create the same file.
@@ -495,12 +512,15 @@ func (s *Server) assemble(meta chunkMeta, fsys storage.FS) (*Entry, error) {
 	if err != nil {
 		return nil, mapStorageError(err)
 	}
+	dst = budget.wrap(dst)
 	if _, err := io.Copy(dst, in); err != nil {
 		dst.Close()
-		return nil, Errorf(http.StatusInternalServerError, CodeInternal, "cannot store the upload")
+		fsys.Remove(target)
+		return nil, mapStorageError(err)
 	}
 	if err := dst.Close(); err != nil {
-		return nil, Errorf(http.StatusInternalServerError, CodeInternal, "cannot store the upload")
+		fsys.Remove(target)
+		return nil, mapStorageError(err)
 	}
 
 	entry, err := fsys.Stat(target)

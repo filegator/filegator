@@ -21,12 +21,19 @@ the interface behaves.
 ## Local folder (default)
 
 ```json
-{ "storage": { "type": "local", "root": "repository" } }
+{
+  "storage": {
+    "type": "local",
+    "root": "repository",
+    "min_free_percent": 10
+  }
+}
 ```
 
-| Key | Meaning |
-|-----|---------|
-| `root` | Folder on this machine. Relative to the working directory, or absolute |
+| Key | Default | Meaning |
+|-----|---------|---------|
+| `root` | `repository` | Folder on this machine. Relative to the working directory, or absolute |
+| `min_free_percent` | `10` | Refuse content-growing writes while less than this percentage of the disk is free. `0` disables the check |
 
 The admin can point it at **any folder on the server** with a folder picker, and
 the change applies immediately. Use an absolute path in production so a
@@ -34,6 +41,25 @@ different working directory cannot change what users see.
 
 Permissions are the operating system's. FileGator runs as one user, so that user
 must be able to read and write everything inside the root.
+
+### Free-space guard
+
+The guard applies to the filesystem holding the local storage root, not to a
+user's home folder. It refuses uploads, new files, saves, copies, zip and unzip
+when the disk is below `min_free_percent`; rename, move, delete, chmod and mkdir
+stay available so an administrator can recover space.
+
+The check reserves the size of an upload, save, zip or unzip before writing where
+that size is known. Copy enforces the same allowance file by file as it walks
+the tree, so a large folder is refused without a separate measuring pass. A byte
+budget stops an unknown or lying size from writing past the reserve. A copy or
+archive that would cross the line is refused instead of filling the disk.
+
+If free space cannot be read, the write is allowed: the operating system still
+refuses a genuinely full disk, and a broken probe must not turn the file manager
+into a read-only one. **Admin → Files** shows the current free space when the
+backend reports it, alongside the threshold. The guard is not a per-user quota,
+and it cannot stop another process on the same machine from filling the disk.
 
 ## SFTP
 

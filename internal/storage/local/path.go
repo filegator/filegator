@@ -260,6 +260,22 @@ func (v view) Rename(src, dst string) error {
 
 // Copy copies src to dst, recursively for directories.
 func (v view) Copy(src, dst string) error {
+	return v.copy(src, dst, nil)
+}
+
+// CopyWithLimit copies src to dst while writing at most limit bytes. It returns
+// the bytes written, so a caller copying several entries can share one budget.
+func (v view) CopyWithLimit(src, dst string, limit int64) (int64, error) {
+	remaining := limit
+	if err := v.copy(src, dst, &remaining); err != nil {
+		return limit - remaining, err
+	}
+	return limit - remaining, nil
+}
+
+// copy performs the shared validation and then copies the tree. A non-nil
+// budget limits how many bytes may be written.
+func (v view) copy(src, dst string, budget *int64) error {
 	_, absSrc, err := v.resolve(src)
 	if err != nil {
 		return err
@@ -275,7 +291,7 @@ func (v view) Copy(src, dst string) error {
 	if withinRoot(absSrc, absDst) {
 		return storage.ErrInvalidPath
 	}
-	return copyTree(absSrc, absDst)
+	return copyTree(absSrc, absDst, budget)
 }
 
 // Remove deletes p, recursively for directories.
@@ -320,8 +336,9 @@ func (v view) Chmod(p string, mode fs.FileMode) error {
 	return nil
 }
 
-// copyTree copies a file or directory recursively.
-func copyTree(src, dst string) error {
+// copyTree copies a file or directory recursively. A non-nil budget is the
+// number of bytes the whole copy may still write.
+func copyTree(src, dst string, budget *int64) error {
 	info, err := os.Lstat(src)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -330,7 +347,7 @@ func copyTree(src, dst string) error {
 		return err
 	}
 	if !info.IsDir() {
-		return copyFile(src, dst, info.Mode().Perm())
+		return copyFile(src, dst, info, budget)
 	}
 	if err := os.Mkdir(dst, info.Mode().Perm()|0o700); err != nil {
 		return err
@@ -340,30 +357,53 @@ func copyTree(src, dst string) error {
 		return err
 	}
 	for _, item := range items {
-		if err := copyTree(filepath.Join(src, item.Name()), filepath.Join(dst, item.Name())); err != nil {
+		if err := copyTree(filepath.Join(src, item.Name()), filepath.Join(dst, item.Name()), budget); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// copyFile copies a single regular file.
-func copyFile(src, dst string, mode fs.FileMode) error {
+// copyFile copies a single regular file, checking its known size first and
+// using a limited writer for the copy so a file that grows cannot overshoot.
+func copyFile(src, dst string, info fs.FileInfo, budget *int64) error {
+	if budget != nil && info.Size() > *budget {
+		return storage.ErrInsufficientStorage
+	}
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
 
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode().Perm())
 	if err != nil {
 		return err
 	}
-	if _, err := io.Copy(out, in); err != nil {
+	var writer io.Writer = out
+	if budget != nil {
+		writer = &budgetWriter{w: out, remaining: budget}
+	}
+	if _, err := io.Copy(writer, in); err != nil {
 		out.Close()
 		return err
 	}
 	return out.Close()
+}
+
+// budgetWriter stops a copy before it writes past the space it was allowed.
+type budgetWriter struct {
+	w         io.Writer
+	remaining *int64
+}
+
+func (b *budgetWriter) Write(p []byte) (int, error) {
+	if int64(len(p)) > *b.remaining {
+		return 0, storage.ErrInsufficientStorage
+	}
+	n, err := b.w.Write(p)
+	*b.remaining -= int64(n)
+	return n, err
 }
 
 // cleanPath is the shared normaliser, kept local so call sites stay short.

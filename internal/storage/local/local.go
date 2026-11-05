@@ -51,7 +51,7 @@ func (r *Root) Description() string { return r.dir }
 
 // Capabilities reports the operations a local filesystem supports.
 func (r *Root) Capabilities() storage.Caps {
-	return storage.Caps{Chmod: true, ServerBrowse: true}
+	return storage.Caps{Chmod: true, ServerBrowse: true, FreeSpace: true}
 }
 
 // Scope returns a user's confined view of the tree. home is relative to the

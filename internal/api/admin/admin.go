@@ -25,6 +25,33 @@ type RootConfig struct {
 	Path string `json:"path"`
 }
 
+// SpaceInfo reports the free space behind the active storage backend. It is
+// advisory: a backend without a filesystem, or a failed probe, returns
+// Supported false rather than an error, so the Files page can simply hide the
+// line.
+type SpaceInfo struct {
+	Supported bool    `json:"supported"`
+	Free      uint64  `json:"free"`
+	Total     uint64  `json:"total"`
+	Percent   float64 `json:"percent"`
+}
+
+// StorageSpace handles GET /api/admin/storage/space.
+func (h *Handler) StorageSpace(w http.ResponseWriter, r *http.Request, _ router.Params) {
+	info := SpaceInfo{}
+	root := h.Core.ActiveStorage()
+	if reporter, ok := root.(storage.SpaceReporter); ok {
+		free, total, err := reporter.FreeSpace()
+		if err == nil && total > 0 {
+			info.Supported = true
+			info.Free = free
+			info.Total = total
+			info.Percent = float64(free) * 100 / float64(total)
+		}
+	}
+	httpx.WriteJSON(w, http.StatusOK, info)
+}
+
 // BrowseHost handles GET /api/admin/browse?path=/srv/data and lists the
 // directories inside path. Only administrators may call it, and only
 // directories are returned, never file contents.

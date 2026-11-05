@@ -29,6 +29,9 @@ var (
 	// ErrUnsupported is returned when a backend cannot perform an operation,
 	// such as chmod on an object store.
 	ErrUnsupported = errors.New("storage: operation not supported by this backend")
+	// ErrInsufficientStorage is returned when a write would take the disk
+	// below the configured free-space reserve.
+	ErrInsufficientStorage = errors.New("storage: not enough free space")
 )
 
 // Entry describes a single file or directory.

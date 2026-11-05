@@ -60,7 +60,7 @@ a JSON `null` is treated as absent.
     "allow_logout": true
   },
 
-  "storage": { "type": "local", "root": "repository", "sftp": { }, "s3": { } },
+  "storage": { "type": "local", "root": "repository", "min_free_percent": 10, "sftp": { }, "s3": { } },
   "auth": { "type": "json", "users_file": "private/users.json", "ldap": { }, "sql": { } },
   "logging": { "enabled": true, "file": "-", "level": "info", "max_size": 0 },
   "sso": { "applications": [] }
@@ -268,12 +268,23 @@ existing sessions, because the cookie carries a fingerprint of the record.
 ## `storage`
 
 ```json
-{ "storage": { "type": "local", "root": "repository" } }
+{
+  "storage": {
+    "type": "local",
+    "root": "repository",
+    "min_free_percent": 10
+  }
+}
 ```
 
 `type` is `local`, `sftp` or `s3`. The full option set for each is documented in
 [Storage backends]({{< ref "storage.md" >}}). The path is relative to the
 working directory unless absolute.
+
+`min_free_percent` is a safety margin for local storage: content-growing writes
+are refused while less than this percentage of the disk is free. `0` disables
+it, and remote backends ignore it because they do not report disk space. It is
+edited on **Admin → Files**.
 
 ## `auth`
 

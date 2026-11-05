@@ -7,16 +7,17 @@ import "github.com/filegator/filegator/internal/api/httpx"
 // reading naturally.
 
 const (
-	CodeBadRequest     = httpx.CodeBadRequest
-	CodeUnauthorized   = httpx.CodeUnauthorized
-	CodeForbidden      = httpx.CodeForbidden
-	CodeNotFound       = httpx.CodeNotFound
-	CodeConflict       = httpx.CodeConflict
-	CodeInternal       = httpx.CodeInternal
-	CodeTooManyLogin   = httpx.CodeTooManyLogin
-	CodeCSRF           = httpx.CodeCSRF
-	CodeNotAllowed     = httpx.CodeNotAllowed
-	CodeReadOnlyConfig = httpx.CodeReadOnlyConfig
+	CodeBadRequest          = httpx.CodeBadRequest
+	CodeUnauthorized        = httpx.CodeUnauthorized
+	CodeForbidden           = httpx.CodeForbidden
+	CodeNotFound            = httpx.CodeNotFound
+	CodeConflict            = httpx.CodeConflict
+	CodeInternal            = httpx.CodeInternal
+	CodeTooManyLogin        = httpx.CodeTooManyLogin
+	CodeCSRF                = httpx.CodeCSRF
+	CodeNotAllowed          = httpx.CodeNotAllowed
+	CodeReadOnlyConfig      = httpx.CodeReadOnlyConfig
+	CodeInsufficientStorage = httpx.CodeInsufficientStorage
 )
 
 // APICodeError is a client-safe error carrying an HTTP status and code.

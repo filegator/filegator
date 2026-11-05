@@ -86,6 +86,7 @@ var description = map[string]string{
 	"POST /api/admin/users/{username}/password": "Set a password without knowing the old one",
 	"GET /api/admin/browse":                     "Browse the host filesystem",
 	"GET /api/admin/storage/browse":             "Browse inside the storage root",
+	"GET /api/admin/storage/space":              "Read the free space behind the storage backend",
 	"GET /api/admin/root":                       "Read the storage root",
 	"POST /api/admin/root":                      "Change the storage root",
 	"GET /api/admin/storage":                    "Read the storage backend settings",

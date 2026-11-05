@@ -161,6 +161,10 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request, u *auth.User, fs
 		WriteError(w, err)
 		return
 	}
+	if _, _, err := s.checkFreeSpace(0); err != nil {
+		WriteError(w, err)
+		return
+	}
 	f, err := fsys.Create(target)
 	if err != nil {
 		WriteError(w, mapStorageError(err))
@@ -291,6 +295,15 @@ func (s *Server) Copy(w http.ResponseWriter, r *http.Request, u *auth.User, fsys
 		WriteError(w, err)
 		return
 	}
+	// Copy itself stays inside the remaining allowance, so there is no
+	// separate walk to measure the tree: a large source is refused as soon as
+	// it would cross the reserve.
+	allowance, guarded, err := s.checkFreeSpace(0)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	remaining := allowance
 	copied := make([]Entry, 0, len(req.Paths))
 	for _, src := range req.Paths {
 		dst, _, err := resolveTarget(fsys, path.Join(target, path.Base(src)), policy)
@@ -298,8 +311,25 @@ func (s *Server) Copy(w http.ResponseWriter, r *http.Request, u *auth.User, fsys
 			WriteError(w, err)
 			return
 		}
-		if err := fsys.Copy(src, dst); err != nil {
-			WriteError(w, mapStorageError(err))
+		var copyErr error
+		if guarded {
+			if copier, ok := fsys.(storage.LimitedCopier); ok {
+				var written int64
+				written, copyErr = copier.CopyWithLimit(src, dst, remaining)
+				if copyErr == nil {
+					remaining -= written
+				}
+			} else {
+				copyErr = fsys.Copy(src, dst)
+			}
+		} else {
+			copyErr = fsys.Copy(src, dst)
+		}
+		if copyErr != nil {
+			// The destination is new (or was removed by "replace"), so a
+			// failed copy must not leave a partial tree behind.
+			fsys.Remove(dst)
+			WriteError(w, mapStorageError(copyErr))
 			return
 		}
 		e, err := fsys.Stat(dst)
@@ -454,6 +484,15 @@ func (s *Server) Save(w http.ResponseWriter, r *http.Request, u *auth.User, fsys
 		WriteError(w, Errorf(http.StatusBadRequest, CodeBadRequest, "this file type is not editable"))
 		return
 	}
+	allowance, guarded, err := s.checkFreeSpace(int64(len(req.Content)))
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	var budget *writeBudget
+	if guarded {
+		budget = &writeBudget{remaining: allowance}
+	}
 	// Save rewrites a file, so it opens the existing one for writing instead
 	// of creating: Create is exclusive now, which would refuse every save.
 	f, err := fsys.OpenWrite(req.Path)
@@ -461,13 +500,14 @@ func (s *Server) Save(w http.ResponseWriter, r *http.Request, u *auth.User, fsys
 		WriteError(w, mapStorageError(err))
 		return
 	}
-	if _, err := io.WriteString(f, req.Content); err != nil {
+	out := budget.wrap(f)
+	if _, err := io.WriteString(out, req.Content); err != nil {
 		f.Close()
-		WriteError(w, err)
+		WriteError(w, mapStorageError(err))
 		return
 	}
-	if err := f.Close(); err != nil {
-		WriteError(w, err)
+	if err := out.Close(); err != nil {
+		WriteError(w, mapStorageError(err))
 		return
 	}
 	e, err := fsys.Stat(req.Path)

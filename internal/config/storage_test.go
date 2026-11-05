@@ -15,6 +15,27 @@ func TestStorageTypeDefaultsToLocal(t *testing.T) {
 	}
 }
 
+func TestMinFreePercentDefaultsAndValidates(t *testing.T) {
+	c := Default()
+	if c.Storage.MinFreePercent != 10 {
+		t.Errorf("default minimum free space = %d, want 10", c.Storage.MinFreePercent)
+	}
+	for _, percent := range []int{0, 1, 100} {
+		c := Default()
+		c.Storage.MinFreePercent = percent
+		if err := c.Validate(); err != nil {
+			t.Errorf("%d%% rejected: %v", percent, err)
+		}
+	}
+	for _, percent := range []int{-1, 101} {
+		c := Default()
+		c.Storage.MinFreePercent = percent
+		if err := c.Validate(); err == nil {
+			t.Errorf("%d%% accepted", percent)
+		}
+	}
+}
+
 func TestStorageTypeLocalAccepted(t *testing.T) {
 	c := Default()
 	c.Storage.Type = StorageTypeLocal

@@ -27,6 +27,9 @@ const (
 	// CodeReadOnlyConfig reports that a setting could not be saved because
 	// the configuration file is not writable.
 	CodeReadOnlyConfig = "read_only_config"
+	// CodeInsufficientStorage reports that a write was refused because it
+	// would leave too little free space on the storage disk.
+	CodeInsufficientStorage = "insufficient_storage"
 )
 
 // ErrorBody is the body of an error response.

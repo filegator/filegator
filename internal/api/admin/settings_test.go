@@ -77,6 +77,9 @@ func TestGetSettings(t *testing.T) {
 	if result.Data.SessionTTL <= 0 {
 		t.Error("session ttl missing")
 	}
+	if result.Data.MinFreePercent != 10 {
+		t.Errorf("minimum free space = %d, want 10", result.Data.MinFreePercent)
+	}
 	// The session key must never be exposed.
 	if containsStr(rec.Body.String(), "session_key") {
 		t.Error("settings leak the session key")
@@ -91,6 +94,7 @@ func TestUpdateSettings(t *testing.T) {
 		s.Logo = "/img/logo.svg"
 		s.UploadMaxSize = 50 << 20
 		s.IPAllowlist = []string{"10.0.0.0/8"}
+		s.MinFreePercent = 25
 	})
 
 	rec := w.submit("/api/admin/settings", body)
@@ -111,6 +115,9 @@ func TestUpdateSettings(t *testing.T) {
 	if len(cfg.Security.IPAllowlist) != 1 {
 		t.Errorf("allowlist = %v", cfg.Security.IPAllowlist)
 	}
+	if cfg.Storage.MinFreePercent != 25 {
+		t.Errorf("minimum free space = %d, want 25", cfg.Storage.MinFreePercent)
+	}
 
 	// And it must survive a reload from disk.
 	reloaded, err := config.Load(w.srv.Config.Path())
@@ -125,14 +132,16 @@ func TestUpdateSettings(t *testing.T) {
 func TestUpdateSettingsValidation(t *testing.T) {
 	w := adminEnv(t)
 	cases := map[string]func(*SettingsView){
-		"empty app name":   func(s *SettingsView) { s.AppName = "  " },
-		"bad language":     func(s *SettingsView) { s.Language = "German!" },
-		"zero max size":    func(s *SettingsView) { s.UploadMaxSize = 0 },
-		"zero chunk size":  func(s *SettingsView) { s.UploadChunkSize = 0 },
-		"zero session ttl": func(s *SettingsView) { s.SessionTTL = 0 },
-		"negative lockout": func(s *SettingsView) { s.LockoutAttempts = -1 },
-		"bad ip":           func(s *SettingsView) { s.IPAllowlist = []string{"999.1.1.1"} },
-		"bad header name":  func(s *SettingsView) { s.Headers = map[string]string{"Bad Name": "x"} },
+		"empty app name":     func(s *SettingsView) { s.AppName = "  " },
+		"bad language":       func(s *SettingsView) { s.Language = "German!" },
+		"zero max size":      func(s *SettingsView) { s.UploadMaxSize = 0 },
+		"zero chunk size":    func(s *SettingsView) { s.UploadChunkSize = 0 },
+		"zero session ttl":   func(s *SettingsView) { s.SessionTTL = 0 },
+		"negative lockout":   func(s *SettingsView) { s.LockoutAttempts = -1 },
+		"negative min free":  func(s *SettingsView) { s.MinFreePercent = -1 },
+		"min free above 100": func(s *SettingsView) { s.MinFreePercent = 101 },
+		"bad ip":             func(s *SettingsView) { s.IPAllowlist = []string{"999.1.1.1"} },
+		"bad header name":    func(s *SettingsView) { s.Headers = map[string]string{"Bad Name": "x"} },
 		// A logo is written into an <img src>: a scheme other than http(s) or
 		// a bare relative path either breaks the page or runs script here.
 		"script logo":     func(s *SettingsView) { s.Logo = "javascript:alert(1)" },
@@ -417,6 +426,7 @@ func TestSettingsResponseHasEveryField(t *testing.T) {
 		"app_name", "language", "language_selection", "logo", "logo_dark", "date_format",
 		"download_inline", "upload_max_size", "upload_chunk_size",
 		"upload_simultaneous", "default_archive_name", "editable",
+		"min_free_percent",
 		"search_simultaneous", "filter_entries", "guest_redirection",
 		"frontend_dir", "logging_enabled", "logging_file", "logging_level",
 		"logging_max_size", "csrf_protection", "session_ttl", "secure_cookies",

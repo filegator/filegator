@@ -58,6 +58,9 @@ func MapStorageError(err error) error {
 		return Errorf(http.StatusForbidden, CodeForbidden, "permission denied")
 	case errors.Is(err, storage.ErrUnsupported):
 		return Errorf(http.StatusBadRequest, CodeBadRequest, "this operation is not supported by the storage backend")
+	case errors.Is(err, storage.ErrInsufficientStorage):
+		return Errorf(http.StatusInsufficientStorage, CodeInsufficientStorage,
+			"not enough free space on the storage disk")
 	}
 	return err
 }

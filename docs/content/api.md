@@ -26,7 +26,12 @@ Failure:
 ```
 
 Stable error codes: `bad_request`, `unauthorized`, `forbidden`, `not_found`,
-`conflict`, `internal_error`, `too_many_attempts`, `csrf_failed`.
+`conflict`, `internal_error`, `too_many_attempts`, `csrf_failed`,
+`read_only_config`, `insufficient_storage`.
+
+`507` with `insufficient_storage` means the local free-space guard refused a
+write that would leave less than `storage.min_free_percent` of the disk free.
+See [Storage backends]({{< ref "storage.md" >}}).
 
 ## Authentication
 
@@ -439,6 +444,7 @@ token.
 | `GET` | `/api/admin/storage` | Read the storage backend settings |
 | `POST` | `/api/admin/storage` | Switch or configure the storage backend |
 | `GET` | `/api/admin/storage/browse` | Browse inside the storage root |
+| `GET` | `/api/admin/storage/space` | Read the free space behind the storage backend |
 | `GET` | `/api/admin/users` | List users |
 | `POST` | `/api/admin/users` | Create a user |
 | `POST` | `/api/admin/users/{username}` | Update a user |

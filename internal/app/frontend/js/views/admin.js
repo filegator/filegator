@@ -6,6 +6,7 @@ import { api, ApiError } from "../modules/api.js";
 import { clear, create, el, hide, show } from "../modules/dom.js";
 import { confirmAction, dialogRoot } from "../modules/dialog.js";
 import { DEFAULT_DATE_FORMAT, formatDatePattern } from "../modules/datetime.js";
+import { formatSize } from "../modules/format.js";
 import { t } from "../modules/i18n.js";
 import { BUILT_IN_LOGO, BUILT_IN_LOGO_DARK } from "../modules/logo.js";
 
@@ -1166,6 +1167,14 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
       reportError(err);
       return;
     }
+    // Advisory: a backend without a filesystem, or a failed probe, returns
+    // supported false and the line stays hidden.
+    let space = null;
+    try {
+      space = await api.adminStorageSpace();
+    } catch (err) {
+      space = null;
+    }
 
     const form = create("form", { className: "settings-form" }, []);
     const error = create("p", { className: "form-error hidden" });
@@ -1198,6 +1207,41 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
         text: "Comma separated. These files open in the editor instead of downloading.",
       })
     );
+
+    // A safety margin, not a quota: it applies to the whole disk holding the
+    // local storage root, and only to writes that add data. 0 turns it off.
+    const minFree = field(form, "Minimum free space (%)", "number", settings.min_free_percent);
+    minFree.min = "0";
+    minFree.max = "100";
+    minFree.step = "1";
+    form.append(
+      create("p", {
+        className: "admin-hint",
+        text: "Applies to local storage. Uploads, saves, copies, zip and unzip are refused below this percentage free. 0 disables the check.",
+      })
+    );
+    // Show the state the threshold is compared with. It is a snapshot from
+    // when the page opened, not a live gauge: the guard is re-evaluated on
+    // every write.
+    if (space) {
+      const spaceHint = create("p", { className: "admin-hint" });
+      if (space.supported) {
+        const renderSpace = () => {
+          const threshold = Number(minFree.value) || 0;
+          const below = space.percent < threshold;
+          spaceHint.classList.toggle("is-warning", below);
+          spaceHint.textContent =
+            `Free space: ${formatSize(space.free)} of ${formatSize(space.total)} ` +
+            `(${space.percent.toFixed(1)}%).` +
+            (below ? " Below the configured minimum; content writes are refused." : "");
+        };
+        minFree.addEventListener("input", renderSpace);
+        renderSpace();
+      } else {
+        spaceHint.textContent = "This storage backend does not report free space.";
+      }
+      form.append(spaceHint);
+    }
 
     // Extensions the browser renders instead of downloading. v7 kept this in
     // config.json as `download_inline` (default ["pdf"]); v8 widened the
@@ -1258,6 +1302,7 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
         default_archive_name: archiveName.value.trim(),
         editable: splitList(editable.value),
         download_inline: splitList(inline.value),
+        min_free_percent: Number(minFree.value) || 0,
       };
 
       try {

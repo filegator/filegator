@@ -180,6 +180,12 @@ sure everything works:
 - **Guest access is read-only and off by default**, enforced in code rather
   than by the stored permission string. See
   [Guest access]({{< ref "guest-access.md" >}}).
+- **A local free-space guard** refuses content-growing writes when the disk is
+  below `storage.min_free_percent` (default `10`%). An installation that is
+  already below the threshold will refuse uploads, saves, copies, zip and unzip
+  straight after the upgrade until space is freed or an administrator sets
+  **Admin → Files → Minimum free space (%)** to `0`. See
+  [Storage backends]({{< ref "storage.md" >}}).
 - **A clean JSON API** under `/api/` with a stable error envelope, documented
   and generated from the router itself. See [HTTP API]({{< ref "api.md" >}}).
 

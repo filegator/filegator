@@ -208,6 +208,19 @@ Follow the surrounding style. These are patterns already used throughout:
   `app.ResolveInit` decides (it is pure and tested); the terminal detection
   lives in `main`'s `init_terminal_unix.go`, because it is about the process,
   not the application.
+- **The local free-space guard is a filesystem limit, not a quota.**
+  `storage.min_free_percent` (default `10`, `0` disables) refuses uploads, new
+  files, saves, copies, zip and unzip while the disk holding the local storage
+  root is below that percentage. Reserve a known operation size before writing
+  and use a write budget for unknown sizes; copy enforces the allowance during
+  its own tree walk rather than measuring the tree first. Keep rename, move,
+  delete, chmod and mkdir available so an administrator can recover space. A
+  probe failure allows the write: the OS still refuses a genuinely full disk,
+  and a broken probe must not make the file manager read-only. The setting is on
+  **Admin → Files**.
+  Backends with a filesystem can implement `storage.SpaceReporter`; the local
+  backend does, while SFTP and S3 do not report free space, so the guard does
+  not apply to them.
 - `private/` and `repository/` are created as needed **once the first start is
   allowed**, so a binary started in an empty folder works on the first run. That
   is also what makes a wrong `-config` path look like a working instance: the

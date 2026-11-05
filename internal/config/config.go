@@ -72,6 +72,10 @@ type Storage struct {
 	// local backend it is a path on this machine; for sftp it is a directory
 	// on the remote server.
 	Root string `json:"root"`
+	// MinFreePercent refuses content-growing writes while the local disk has
+	// less than this percentage free. 0 disables the guard. It has no effect
+	// on remote backends, which do not report disk space.
+	MinFreePercent int `json:"min_free_percent"`
 	// SFTP holds the connection settings for the sftp backend.
 	SFTP SFTP `json:"sftp"`
 	// S3 holds the connection settings for the s3 backend.
@@ -373,7 +377,7 @@ func Default() *Config {
 			FilterEntries:      []string{},
 			MaxWidth:           960,
 		},
-		Storage: Storage{Type: StorageTypeLocal, Root: "repository"},
+		Storage: Storage{Type: StorageTypeLocal, Root: "repository", MinFreePercent: 10},
 		Auth:    Auth{Type: AuthTypeJSON, UsersFile: DefaultUsersFile},
 		Security: Security{
 			CSRFProtection: true,
@@ -670,6 +674,9 @@ func (c *Config) Validate() error {
 	// key, so it has no root folder.
 	if c.Storage.Root == "" && c.Storage.Type != StorageTypeS3 {
 		return errors.New("config: storage.root must not be empty")
+	}
+	if c.Storage.MinFreePercent < 0 || c.Storage.MinFreePercent > 100 {
+		return errors.New("config: storage.min_free_percent must be between 0 and 100")
 	}
 	// An unknown type would silently fall back to local storage, which could
 	// point at the wrong place, so reject it instead.

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"archive/zip"
 	"errors"
 	"io"
 	"net/http"
@@ -80,6 +81,10 @@ func (s *Server) Zip(w http.ResponseWriter, r *http.Request, u *auth.User) {
 		WriteError(w, Errorf(http.StatusConflict, CodeConflict, "target already exists"))
 		return
 	}
+	if _, _, err := s.checkFreeSpace(0); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	// Write into a temporary file first: the archive size is unknown until it
 	// is complete, and a failure must not leave a half-written zip in the
@@ -100,19 +105,36 @@ func (s *Server) Zip(w http.ResponseWriter, r *http.Request, u *auth.User) {
 		WriteError(w, Errorf(http.StatusInternalServerError, CodeInternal, "cannot read the archive"))
 		return
 	}
+	info, err := tmp.Stat()
+	if err != nil {
+		WriteError(w, Errorf(http.StatusInternalServerError, CodeInternal, "cannot read the archive"))
+		return
+	}
+	allowance, guarded, err := s.checkFreeSpace(info.Size())
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	var budget *writeBudget
+	if guarded {
+		budget = &writeBudget{remaining: allowance}
+	}
 
 	dst, err := fsys.Create(target)
 	if err != nil {
 		WriteError(w, mapStorageError(err))
 		return
 	}
+	dst = budget.wrap(dst)
 	if _, err := io.Copy(dst, tmp); err != nil {
 		dst.Close()
-		WriteError(w, Errorf(http.StatusInternalServerError, CodeInternal, "cannot store the archive"))
+		fsys.Remove(target)
+		WriteError(w, mapStorageError(err))
 		return
 	}
 	if err := dst.Close(); err != nil {
-		WriteError(w, Errorf(http.StatusInternalServerError, CodeInternal, "cannot store the archive"))
+		fsys.Remove(target)
+		WriteError(w, mapStorageError(err))
 		return
 	}
 
@@ -157,6 +179,10 @@ func (s *Server) Unzip(w http.ResponseWriter, r *http.Request, u *auth.User) {
 		WriteError(w, Errorf(http.StatusBadRequest, CodeBadRequest, "not a file"))
 		return
 	}
+	if _, _, err := s.checkFreeSpace(0); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	// Read the archive into a temporary file: archive/zip needs random access
 	// and storage backends only offer a stream.
@@ -185,6 +211,31 @@ func (s *Server) Unzip(w http.ResponseWriter, r *http.Request, u *auth.User) {
 		return
 	}
 
+	// Reserve the declared uncompressed size before writing anything. The
+	// archive can lie, so the extraction itself runs behind a byte budget too.
+	zr, err := zip.NewReader(tmp, size)
+	if err != nil {
+		WriteError(w, Errorf(http.StatusBadRequest, CodeBadRequest, "the file is not a valid zip archive"))
+		return
+	}
+	var need int64
+	for _, f := range zr.File {
+		if f.UncompressedSize64 > uint64(maxInt64-need) {
+			need = maxInt64
+			break
+		}
+		need += int64(f.UncompressedSize64)
+	}
+	allowance, guarded, err := s.checkFreeSpace(need)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	var budget *writeBudget
+	if guarded {
+		budget = &writeBudget{remaining: allowance}
+	}
+
 	// v7 always extracted into a subfolder so loose files never spill into the
 	// current directory. The caller may override the name.
 	dest := req.Destination
@@ -210,8 +261,11 @@ func (s *Server) Unzip(w http.ResponseWriter, r *http.Request, u *auth.User) {
 		return
 	}
 
-	created, err := archiver.Extract(fsys, tmp, size, target)
+	created, err := archiver.Extract(budgetFS{FS: fsys, budget: budget}, tmp, size, target)
 	if err != nil {
+		// The target did not exist before this request; remove whatever was
+		// extracted so a refusal leaves no partial tree behind.
+		fsys.Remove(target)
 		WriteError(w, mapArchiveError(err))
 		return
 	}
