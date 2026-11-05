@@ -94,6 +94,9 @@ export function createBrowser({ onLogout }) {
   }
   // Selected paths for the batch actions, keyed by path.
   const selected = new Set();
+  // The last row checkbox clicked without Shift. Shift-click selects the range
+  // from here to the clicked row, like a desktop file manager.
+  let selectionAnchor = null;
   let entriesByPath = new Map();
   // The listing as the server sent it, before filtering, so the "show hidden"
   // toggle can redraw without another request.
@@ -245,6 +248,30 @@ export function createBrowser({ onLogout }) {
     syncSelection();
   }
 
+  /** Selects every row between the anchor and path, in display order. */
+  function selectRangeTo(path, checked) {
+    const boxes = [...list.querySelectorAll(".row-check[data-path]")];
+    const from = boxes.findIndex((box) => box.dataset.path === selectionAnchor);
+    const to = boxes.findIndex((box) => box.dataset.path === path);
+    if (from < 0 || to < 0) {
+      selectionAnchor = path;
+      toggleSelection(path, checked);
+      return;
+    }
+    const start = Math.min(from, to);
+    const end = Math.max(from, to);
+    for (let i = start; i <= end; i++) {
+      const box = boxes[i];
+      box.checked = checked;
+      if (checked) {
+        selected.add(box.dataset.path);
+      } else {
+        selected.delete(box.dataset.path);
+      }
+    }
+    syncSelection();
+  }
+
   /** Creates an archive of the selection in the current folder. */
   async function zipSelection() {
     if (!selected.size) {
@@ -344,7 +371,19 @@ export function createBrowser({ onLogout }) {
         attrs: { type: "checkbox", "data-path": entry.path, "aria-label": entry.name },
       });
       checkbox.checked = selected.has(entry.path);
-      checkbox.addEventListener("change", () => toggleSelection(entry.path, checkbox.checked));
+      let shiftRange = false;
+      checkbox.addEventListener("mousedown", (event) => {
+        shiftRange = event.shiftKey;
+      });
+      checkbox.addEventListener("change", () => {
+        if (shiftRange && selectionAnchor) {
+          selectRangeTo(entry.path, checkbox.checked);
+        } else {
+          selectionAnchor = entry.path;
+          toggleSelection(entry.path, checkbox.checked);
+        }
+        shiftRange = false;
+      });
       selectCell.append(checkbox);
     }
 
@@ -1138,6 +1177,7 @@ export function createBrowser({ onLogout }) {
     lastListing = [];
     entriesByPath = new Map();
     selected.clear();
+    selectionAnchor = null;
     hiddenEntriesCount = 0;
     visibleCount = 0;
     backRow = null;
@@ -1393,6 +1433,7 @@ export function createBrowser({ onLogout }) {
     syncSelection();
   });
   selectAll.addEventListener("change", () => {
+    selectionAnchor = null;
     if (selectAll.checked) {
       for (const path of entriesByPath.keys()) {
         selected.add(path);
