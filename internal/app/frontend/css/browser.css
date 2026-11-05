@@ -436,7 +436,7 @@
    the content instead of moving it. */
 .toast {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + 4.5rem);
+  top: calc(env(safe-area-inset-top) + 7.8rem);
   left: 50%;
   transform: translateX(-50%);
   z-index: 80;
