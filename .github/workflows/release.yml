@@ -97,6 +97,20 @@ jobs:
 
           (cd dist && sha256sum ./*.tar.gz ./*.zip > SHA256SUMS)
 
+      - name: Verify archives
+        # Both formats must reach the release: a glob left over from an earlier
+        # layout once uploaded only the Windows zip while SHA256SUMS named all
+        # eight archives.
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          archives=(dist/*.tar.gz dist/*.zip)
+          if [ "${#archives[@]}" -ne 8 ]; then
+            echo "expected 8 archives, found ${#archives[@]}:" >&2
+            ls -l dist >&2
+            exit 1
+          fi
+
       - name: Wait for the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -116,4 +130,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ github.ref_name }}
         # --clobber makes a re-run replace the assets instead of failing.
-        run: gh release upload "$VERSION" dist/*.zip dist/SHA256SUMS --clobber
+        # Both archive formats: tar.gz for Linux/macOS and zip for Windows.
+        run: gh release upload "$VERSION" dist/*.tar.gz dist/*.zip dist/SHA256SUMS --clobber
