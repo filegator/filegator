@@ -59,10 +59,14 @@ build_and_restart() {
     wait "$child" 2>/dev/null || true
   fi
   echo "[watch] starting $BINARY${BASE_PATH:+ under $BASE_PATH}"
+  # -init: the server is a background job, so bash gives it /dev/null on stdin
+  # and the first-start question cannot be answered. `make watch` is a
+  # development command, so creating private/ on a fresh checkout is the
+  # expected result; `make run` still asks, because it runs in the foreground.
   if [ -n "$BASE_PATH" ]; then
-    "./$BINARY" -addr "$ADDR" -config "$CONFIG" -base-path "$BASE_PATH" &
+    "./$BINARY" -init -addr "$ADDR" -config "$CONFIG" -base-path "$BASE_PATH" &
   else
-    "./$BINARY" -addr "$ADDR" -config "$CONFIG" &
+    "./$BINARY" -init -addr "$ADDR" -config "$CONFIG" &
   fi
   child=$!
 }

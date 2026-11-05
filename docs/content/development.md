@@ -69,6 +69,11 @@ Then open <http://127.0.0.1:8080> and sign in as `admin` / `admin123`.
 The first start creates `private/users.json` from the sample. Change the
 password, or the server logs a warning at every start.
 
+`make watch` starts the server as a background job, so it passes `-init`: bash
+gives a background job no terminal on stdin, and the first-start question would
+otherwise refuse to start on a fresh checkout. `make run` still asks, because it
+runs in the foreground.
+
 Under a subpath:
 
 ```sh
