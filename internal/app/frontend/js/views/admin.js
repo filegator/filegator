@@ -42,7 +42,7 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
   const panel = el("admin-panel");
   const toast = el("admin-toast");
 
-  let activeTab = "users";
+  let activeTab = "ui";
   let settingsLanguages = [];
   let toastTimer = null;
 
@@ -1061,7 +1061,10 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
     const maxWidth = field(form, "Maximum interface width (px)", "number", settings.max_width ?? 960);
     maxWidth.min = "0";
     maxWidth.step = "1";
-    form.append(create("p", { className: "admin-hint", text: "0 removes the limit." }));
+    maxWidth.placeholder = "960";
+    form.append(
+      create("p", { className: "admin-hint", text: "Defaults to 960. 0 removes the limit." })
+    );
 
     // The two account switches are here rather than on Security by decision
     // (2026-10-26): they control what the signed-in user's header offers, which
@@ -1106,9 +1109,12 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
         date_format: dateFormat.value.trim(),
         frontend_dir: frontendDir.value.trim(),
         guest_redirection: guestRedirection.value.trim(),
-        // An empty field means "no limit", the same as typing 0: leaving it
-        // blank is the least surprising reading of an empty number input.
-        max_width: Math.max(0, Math.round(Number(maxWidth.value) || 0)),
+        // A blank field means the default width and an explicit 0 means no
+        // limit. The placeholder says 960, so a cleared field must save that,
+        // not the no-limit value the number input would otherwise produce.
+        max_width: maxWidth.value.trim() === ""
+          ? 960
+          : Math.max(0, Math.round(Number(maxWidth.value) || 0)),
         allow_password_change: allowPasswordChange.checked,
         allow_logout: allowLogout.checked,
       };
@@ -1330,6 +1336,12 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
     form.append(labelWrap("Write an event log", loggingEnabled));
     const loggingFile = field(form, "Log file", "text", settings.logging_file);
     loggingFile.placeholder = "private/logs/app.log";
+    form.append(
+      create("p", {
+        className: "admin-hint",
+        text: "A dash (-) writes to standard output; a path writes to that file instead.",
+      })
+    );
     const loggingLevel = create("select", { className: "select" });
     for (const level of ["debug", "info", "warn", "error"]) {
       loggingLevel.append(
@@ -1608,8 +1620,8 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
     // admin-only keys were removed from every language file: nothing outside
     // this file used them.
     const items = [
-      ["users", "Users"],
       ["ui", "UI"],
+      ["users", "Users"],
       ["files", "Files"],
       ["security", "Security"],
       ["storage", "Repository"],

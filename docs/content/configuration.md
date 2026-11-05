@@ -9,7 +9,7 @@ key, and rewritten on every save. Every key can also be edited by hand;
 **changes need a restart** unless the admin interface says otherwise.
 
 Most of it is editable in the admin area, which is reached from the **Setup**
-button and split into **Users**, **UI**, **Files**, **Security**,
+button and split into **UI**, **Users**, **Files**, **Security**,
 **Repository** and **Auth**. This page documents the file itself, including the
 keys that have no screen.
 

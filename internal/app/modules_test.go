@@ -254,7 +254,7 @@ func TestAdminNavIsBelowTheHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 	source := string(adminJS)
-	// The sections are labelled <- Back, Users, UI, Files, Security,
+	// The sections are labelled <- Back, UI, Users, Files, Security,
 	// Repository, Auth. The administration area is English only (user
 	// decision 2026-10-27), so its labels are plain strings and the arrow is
 	// markup beside them rather than part of a translated key.
@@ -265,13 +265,13 @@ func TestAdminNavIsBelowTheHeader(t *testing.T) {
 		t.Error("the arrow belongs in the markup, not in a translation key")
 	}
 	// The order is asserted so a page cannot move without the change being
-	// visible here: UI and Files came from the old single Settings page, and
-	// Security was split out of it.
+	// visible here: UI is first because Setup lands there, then Users. Both
+	// came from the old single Settings page, and Security was split out of it.
 	items := adminTabOrder.FindStringSubmatch(source)
 	if items == nil {
 		t.Fatal("the admin tab list could not be found in admin.js")
 	}
-	want := []string{"users", "ui", "files", "security", "storage", "auth"}
+	want := []string{"ui", "users", "files", "security", "storage", "auth"}
 	var got []string
 	for _, match := range adminTabID.FindAllStringSubmatch(items[1], -1) {
 		got = append(got, match[1])
@@ -492,6 +492,14 @@ func TestAdminPagesSaveOnlyTheirOwnFields(t *testing.T) {
 	}
 	if !strings.Contains(ui, "max_width") {
 		t.Error("the interface width stayed on the UI page by decision")
+	}
+	if !strings.Contains(ui, `maxWidth.placeholder = "960"`) {
+		t.Error("the interface width should hint its 960 default instead of an empty field")
+	}
+	// The log destination accepts "-" for stdout, which is not obvious from a
+	// bare dash in the field.
+	if security := adminFunction(t, source, "renderSecurity"); !strings.Contains(security, "standard output") {
+		t.Error("the Log file field does not explain what - means")
 	}
 	// The two account switches live on UI by decision (2026-10-26): they
 	// change what the signed-in user's header offers, not who may connect.
