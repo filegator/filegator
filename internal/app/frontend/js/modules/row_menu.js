@@ -49,15 +49,17 @@ export function closeRowMenu() {
  *   label   - accessible name for the menu ("Actions for notes.txt")
  *   actions - [{ id, label, icon, danger }]
  *   onChoose - (id) => void
+ *   at      - optional {x, y} pointer position for a right-click
+ *   elevated - paint above an open dialog (the gallery uses this)
  */
-export function openRowMenu({ anchor, label, actions, onChoose, at }) {
+export function openRowMenu({ anchor, label, actions, onChoose, at, elevated }) {
   closeRowMenu();
   if (!actions.length) {
     return;
   }
 
   const menu = create("div", {
-    className: "row-menu",
+    className: `row-menu${elevated ? " is-elevated" : ""}`,
     attrs: { role: "menu", "aria-label": label },
   });
 

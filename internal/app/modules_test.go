@@ -612,19 +612,18 @@ func TestDownloadsOpenInANewTab(t *testing.T) {
 		t.Errorf("browser.js uses openDownload %d times, want 3 (name, row menu, batch)", got)
 	}
 
-	// The gallery's Download is a link with a real href that opens in a new
-	// tab, and it must not carry the download attribute: that would save the
-	// file in place and break the "opens in a tab" promise.
+	// The gallery no longer renders its own Download link: Download is one of
+	// the row actions in its ⋯ menu, which opens a tab through browser.js.
 	galleryJS, err := fs.ReadFile(frontendRoot(), "js/views/gallery.js")
 	if err != nil {
 		t.Fatal(err)
 	}
 	gallery := string(galleryJS)
-	if !strings.Contains(gallery, `attrs: { target: "_blank", rel: "noopener" }`) {
-		t.Error("the gallery Download link should open in a new tab")
+	if strings.Contains(gallery, "gallery-download") {
+		t.Error("the gallery still renders a standalone Download button")
 	}
-	if strings.Contains(gallery, "setAttribute(\"download\"") || strings.Contains(gallery, `attrs: { download: "" }`) {
-		t.Error("the gallery Download must not download in place")
+	if strings.Contains(gallery, `attrs: { download: "" }`) {
+		t.Error("the gallery must not download in place")
 	}
 
 	// And the helper opens a tab rather than throwing away its result.

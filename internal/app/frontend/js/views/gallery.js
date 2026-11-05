@@ -1,5 +1,6 @@
 /**
- * Image gallery: one large picture with a strip of the folder's other images.
+ * Image gallery: one large picture with a vertical column of the folder's
+ * other images.
  *
  * v7 opened a modal with the clicked image and a thumbnail column. This keeps
  * the same idea but adds keyboard navigation (arrow keys, Escape), a position
@@ -10,8 +11,8 @@
 import { api } from "../modules/api.js";
 import { closeDialog, dialogRoot } from "../modules/dialog.js";
 import { create } from "../modules/dom.js";
-import { formatSize } from "../modules/format.js";
 import { t } from "../modules/i18n.js";
+import { openRowMenu } from "../modules/row_menu.js";
 
 /** Extensions the browser can display directly. */
 export const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "avif"];
@@ -34,10 +35,12 @@ export function isImage(name) {
 /**
  * Opens the gallery.
  *
- * images - the folder's image entries, in display order
- * start  - the entry to show first
+ * images  - the folder's image entries, in display order
+ * start   - the entry to show first
+ * options - rowActions(entry) returns the menu actions, and
+ *           onRowAction(id, entry, actions) runs one after the gallery closes
  */
-export function openGallery(images, start) {
+export function openGallery(images, start, options = {}) {
   closeDialog();
   const node = dialogRoot();
 
@@ -52,6 +55,9 @@ export function openGallery(images, start) {
     index = list.length - 1;
   }
   const restoreFocus = document.activeElement;
+  const reduceMotion =
+    window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let stripAnimation = 0;
 
   const title = create("h2", { className: "dialog-title gallery-title", text: start.name });
   const info = create("span", { className: "gallery-count" });
@@ -60,6 +66,18 @@ export function openGallery(images, start) {
     className: "dialog-close",
     text: "×",
     attrs: { type: "button", "aria-label": t("Close"), title: t("Close") },
+  });
+
+  const menuBtn = create("button", {
+    className: "gallery-menu",
+    text: "⋯",
+    attrs: {
+      type: "button",
+      "aria-haspopup": "menu",
+      "aria-expanded": "false",
+      "aria-label": t("Actions"),
+      title: t("Actions"),
+    },
   });
 
   const picture = create("img", {
@@ -80,33 +98,69 @@ export function openGallery(images, start) {
 
   const stage = create("div", { className: "gallery-stage" }, [prev, picture, next]);
   const strip = create("div", { className: "gallery-strip" });
-  const status = create("p", { className: "gallery-status", attrs: { role: "status" } });
 
-  // The href stays a real link (copyable, middle-clickable), but it opens in a
-  // new tab: downloading the picture must not replace the gallery or the file
-  // manager behind it. No "download" attribute, or the link would save the file
-  // in place instead of opening the image.
-  const download = create("a", {
-    className: "gallery-download button button-ghost",
-    text: t("Download"),
-    attrs: { target: "_blank", rel: "noopener" },
-  });
+  const footerActions = create("div", { className: "gallery-footer-actions" }, [
+    menuBtn,
+  ]);
+  const caption = create("div", { className: "gallery-caption" }, [title]);
 
   const form = create("div", {
     className: "gallery",
     attrs: { role: "document" },
   }, [
-    create("div", { className: "dialog-header" }, [title, info, closeBtn]),
+    create("div", { className: "dialog-header" }, [info, closeBtn]),
     stage,
     list.length > 1 ? strip : create("div"),
-    create("div", { className: "gallery-footer" }, [status, download]),
+    create("div", { className: "gallery-footer" }, [caption, footerActions]),
   ]);
+
+  /** Actions shown in the gallery menu, minus View, which is the open image. */
+  function galleryActions(item) {
+    if (!options.rowActions) {
+      return [];
+    }
+    return options.rowActions(item).filter((action) => action.id !== "view");
+  }
+
+  /** Slides the strip to the active thumbnail in about 120 ms. */
+  function scrollThumbIntoView(thumb) {
+    if (!thumb) {
+      return;
+    }
+    const stripRect = strip.getBoundingClientRect();
+    const thumbRect = thumb.getBoundingClientRect();
+    const centred =
+      strip.scrollLeft +
+      (thumbRect.left - stripRect.left) -
+      (strip.clientWidth - thumbRect.width) / 2;
+    const target = Math.max(
+      0,
+      Math.min(centred, strip.scrollWidth - strip.clientWidth)
+    );
+    if (stripAnimation) {
+      cancelAnimationFrame(stripAnimation);
+    }
+    if (reduceMotion || Math.abs(target - strip.scrollLeft) < 1) {
+      strip.scrollLeft = target;
+      return;
+    }
+    const start = strip.scrollLeft;
+    const started = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - started) / 120);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      strip.scrollLeft = start + (target - start) * eased;
+      stripAnimation = progress < 1 ? requestAnimationFrame(step) : 0;
+    };
+    stripAnimation = requestAnimationFrame(step);
+  }
 
   /** Shows one image and syncs every control to it. */
   function show(i) {
     index = (i + list.length) % list.length;
     const item = list[index];
     const url = api.downloadUrl(item.path);
+    const actions = galleryActions(item);
 
     // The file name is shown in the header, so a screen reader announcing the
     // image again would only repeat it.
@@ -114,15 +168,14 @@ export function openGallery(images, start) {
     picture.alt = "";
     title.textContent = item.name;
     info.textContent = list.length > 1 ? `${index + 1} / ${list.length}` : "";
-    download.href = url;
-    status.textContent = formatSize(item.size);
+    menuBtn.hidden = actions.length === 0;
 
     for (const [n, thumb] of [...strip.children].entries()) {
       thumb.classList.toggle("is-current", n === index);
     }
     const current = strip.children[index];
     if (current) {
-      current.scrollIntoView({ block: "nearest", inline: "center" });
+      scrollThumbIntoView(current);
     }
     prev.hidden = list.length < 2;
     next.hidden = list.length < 2;
@@ -160,6 +213,10 @@ export function openGallery(images, start) {
       return;
     }
     settled = true;
+    if (stripAnimation) {
+      cancelAnimationFrame(stripAnimation);
+      stripAnimation = 0;
+    }
     node.classList.add("hidden");
     node.onclick = null;
     node.onkeydown = null;
@@ -171,6 +228,25 @@ export function openGallery(images, start) {
   }
 
   closeBtn.addEventListener("click", finish);
+  menuBtn.addEventListener("click", () => {
+    const item = list[index];
+    const actions = galleryActions(item);
+    if (!actions.length) {
+      return;
+    }
+    openRowMenu({
+      anchor: menuBtn,
+      elevated: true,
+      label: t("Actions for {0}", item.name),
+      actions,
+      onChoose: (id) => {
+        finish();
+        if (options.onRowAction) {
+          options.onRowAction(id, item, actions);
+        }
+      },
+    });
+  });
   prev.addEventListener("click", () => show(index - 1));
   next.addEventListener("click", () => show(index + 1));
 
@@ -187,7 +263,7 @@ export function openGallery(images, start) {
       show(index + 1);
     }
   });
-  for (const control of [prev, next, download]) {
+  for (const control of [prev, next]) {
     control.addEventListener("click", (event) => event.stopPropagation());
   }
 

@@ -518,7 +518,10 @@ export function createBrowser({ onLogout }) {
     const images = [...entriesByPath.values()]
       .filter((e) => e.type === "file" && isImage(e.name))
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
-    openGallery(images, entry);
+    openGallery(images, entry, {
+      rowActions: (item) => rowActions({ entry: item, can, isEditable, isImage }),
+      onRowAction: (id, item, specs) => runRowAction(id, item, specs),
+    });
   }
 
   async function editEntry(entry) {

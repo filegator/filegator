@@ -242,6 +242,9 @@
 
 /* Image gallery */
 
+/* The gallery is its own surface, not a bare stack on the dialog backdrop:
+   the file name used to sit directly on the translucent backdrop and blended
+   into whatever was behind it. */
 .gallery {
   display: flex;
   flex-direction: column;
@@ -249,6 +252,28 @@
   max-width: 56rem;
   max-height: 92dvh;
   gap: 0.5rem;
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.gallery-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The header now holds only the counter and the close button; center them on
+   one line instead of letting the generic top-aligned dialog header drift. */
+.gallery > .dialog-header {
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.gallery .dialog-close {
+  margin: 0;
 }
 
 .gallery-count {
@@ -257,6 +282,70 @@
   font-variant-numeric: tabular-nums;
   color: var(--text-light);
   flex: 1 1 auto;
+}
+
+.gallery-caption {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.gallery-caption .gallery-title {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.gallery-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+}
+
+.gallery-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--text-light);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.gallery-menu:hover,
+.gallery-menu:focus-visible {
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+}
+
+.gallery-menu[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-thumb {
+    transition: none;
+  }
+
+  .gallery-thumb.is-current {
+    transform: none;
+  }
+}
+
+/* The gallery is a modal dialog (100); its actions menu must still be
+   reachable, so it opts one step above the dialog band. This lives here rather
+   than with .row-menu so browser.css stays below every modal layer. */
+.row-menu.is-elevated {
+  z-index: 101;
 }
 
 .gallery-stage {
@@ -308,10 +397,13 @@
   right: 0.35rem;
 }
 
+/* A single row below the picture, scrolling sideways. Putting it back beside
+   the image stole width from the picture on a phone. */
 .gallery-strip {
   display: flex;
   gap: 0.4rem;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 0.15rem 0;
   scrollbar-width: thin;
 }
@@ -325,6 +417,7 @@
   border: 2px solid transparent;
   cursor: pointer;
   opacity: 0.7;
+  transition: opacity 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
 
 .gallery-thumb:hover {
@@ -334,6 +427,7 @@
 .gallery-thumb.is-current {
   border-color: var(--primary);
   opacity: 1;
+  transform: scale(1.04);
 }
 
 .gallery-footer {
@@ -343,20 +437,15 @@
   gap: 0.5rem;
 }
 
-.gallery-status {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--text-light);
-  font-variant-numeric: tabular-nums;
-}
-
-.gallery-download {
-  flex: none;
-}
-
-/* On a phone the picture needs the room, so the thumbnail strip is smaller
+/* On a phone the picture needs the room, so the thumbnail column is smaller
    and the viewer fills the bottom sheet. */
 @media (max-width: 560px) {
+  .gallery {
+    gap: 0.5rem;
+    padding: 0.75rem;
+    max-height: 94dvh;
+  }
+
   .gallery-image {
     max-height: 55dvh;
   }
@@ -364,6 +453,11 @@
   .gallery-thumb {
     width: 52px;
     height: 52px;
+  }
+
+  .gallery-menu {
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .gallery-nav {
