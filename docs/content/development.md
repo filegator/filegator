@@ -108,7 +108,10 @@ user (UID 65532). Things worth knowing while writing code:
 
 A release is published by `.github/workflows/ci-dockerhub.yml` on every `v8*`
 tag: one buildx job builds all five platforms and pushes
-`filegator/filegator:<tag>` and `filegator/filegator:v8` to Docker Hub.
+`filegator/filegator:<tag>` and `filegator/filegator:v8` to Docker Hub. The job
+repeats `make lint`, `go test`, `make docs-check` and `make build` before
+logging in, because a tag push does not run the Tests workflow and `needs`
+cannot cross workflow files; a red tag publishes nothing.
 The workflow has no QEMU setup step for the reason above; if
 the Dockerfile ever gains a foreign-architecture `RUN`, that absence turns into
 a real failure instead of being masked by emulation.

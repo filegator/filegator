@@ -271,7 +271,9 @@ Follow the surrounding style. These are patterns already used throughout:
   `v8*` tag.** One buildx job builds all five published platforms and pushes
   `filegator/filegator:<tag>` and `filegator/filegator:v8` to Docker Hub,
   authenticated with the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository
-  secrets. The workflow has no QEMU step because the Dockerfile cross-compiles and
+  secrets. It runs `make lint`, `go test`, `make docs-check` and `make build`
+  before the registry login, so a tag whose tests fail publishes nothing. The
+  workflow has no QEMU step because the Dockerfile cross-compiles and
   its runtime stage has no `RUN`; that absence is what makes a future
   foreign-architecture `RUN` fail visibly instead of being masked.
 

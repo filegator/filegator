@@ -7,6 +7,11 @@
 # `FROM --platform=$BUILDPLATFORM` stage and its runtime stage has no `RUN`,
 # only `COPY`. That is why there is no `docker/setup-qemu-action` step; adding
 # one would hide the fact that the build no longer has that property.
+#
+# The checks are repeated in this job rather than relying on the Tests
+# workflow: a tag push is not a branch push, and `needs` cannot reach across
+# workflow files. They run before the Docker Hub login, so a red tag publishes
+# nothing and never touches the registry.
 
 name: Docker Hub
 
@@ -22,8 +27,28 @@ jobs:
   docker:
     name: Build and push
     runs-on: ubuntu-latest
+    env:
+      GOPROXY: "off"
+      GOFLAGS: "-mod=vendor"
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Formatting
+        run: make lint
+
+      - name: Tests
+        run: go test ./... -count=1
+
+      - name: Documentation
+        run: make docs-check
+
+      - name: Build
+        run: make build
 
       - uses: docker/setup-buildx-action@v3
 

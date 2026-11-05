@@ -4,6 +4,7 @@
 
 <p align="center">
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
+<a href="https://github.com/filegator/filegator/actions/workflows/tests.yml?query=branch%3Av8"><img src="https://github.com/filegator/filegator/actions/workflows/tests.yml/badge.svg?branch=v8" alt="Tests v8"></a>
 </p>
 
 
