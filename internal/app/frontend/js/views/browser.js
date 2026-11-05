@@ -139,10 +139,24 @@ export function createBrowser({ onLogout }) {
     return Boolean(user && user.permissions && user.permissions.includes(permission));
   }
 
+  /** Rebuilds the folder tree after an operation changed the hierarchy. */
+  async function refreshTreeAfterMutation() {
+    if (!treeView) {
+      return;
+    }
+    try {
+      await treeView.reload();
+    } catch (err) {
+      // The listing refresh still runs; a tree that failed to reload must not
+      // turn a successful file operation into an error toast.
+    }
+  }
+
   /** Runs an action, reporting API failures as a toast. */
   async function run(action, successMessage) {
     try {
       await action();
+      await refreshTreeAfterMutation();
       if (successMessage) {
         showToast(successMessage, "info");
       }
@@ -289,6 +303,7 @@ export function createBrowser({ onLogout }) {
     }
     try {
       await api.zip([...selected], currentPath, name.trim());
+      await refreshTreeAfterMutation();
       showToast(t("Done"), "info");
       selected.clear();
       await navigate(currentPath, { push: false });
@@ -305,6 +320,7 @@ export function createBrowser({ onLogout }) {
     }
     try {
       await api.unzip(path, currentPath);
+      await refreshTreeAfterMutation();
       showToast(t("Done"), "info");
       selected.clear();
       await navigate(currentPath, { push: false });
@@ -336,6 +352,7 @@ export function createBrowser({ onLogout }) {
 
     try {
       await api.remove(paths);
+      await refreshTreeAfterMutation();
       selected.clear();
       showToast(t("Done"), "info");
       await navigate(currentPath, { push: false });
@@ -673,6 +690,7 @@ export function createBrowser({ onLogout }) {
           for (const box of list.querySelectorAll(".row-check")) {
             box.checked = false;
           }
+          await refreshTreeAfterMutation();
           showToast(t("Done"), "info");
           await navigate(currentPath, { push: false });
         } catch (err) {
@@ -1159,6 +1177,33 @@ export function createBrowser({ onLogout }) {
         if (node.path !== currentPath) {
           navigate(node.path);
         }
+      },
+      onContextMenu: (node, event, anchor) => {
+        // The root is the storage boundary, not an ordinary folder.
+        if (node.path === "/") {
+          return false;
+        }
+        const entry = {
+          name: node.name,
+          path: node.path,
+          type: "dir",
+          size: 0,
+          modified: "",
+          mode: "",
+        };
+        const specs = rowActions({ entry, can, isEditable, isImage });
+        if (!specs.length) {
+          return false;
+        }
+        openRowMenu({
+          anchor,
+          at: { x: event.clientX, y: event.clientY },
+          elevated: isDrawer(),
+          label: t("Actions for {0}", node.name),
+          actions: specs,
+          onChoose: (id) => runRowAction(id, entry, specs),
+        });
+        return true;
       },
     });
     el("tree-panel-body").append(treeView.element);

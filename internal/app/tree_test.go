@@ -27,3 +27,45 @@ func TestTreeWaitsForAnInFlightLoad(t *testing.T) {
 		t.Error("expandNode still flips an expanded node closed before loading it")
 	}
 }
+
+// TestTreeOffersRightClickActions checks a folder in the sidebar can open the
+// same menu as its file-list row.
+func TestTreeOffersRightClickActions(t *testing.T) {
+	tree := readAsset(t, "js/modules/tree.js")
+	browser := readAsset(t, "js/views/browser.js")
+
+	for _, want := range []string{"onContextMenu", `"contextmenu"`} {
+		if !strings.Contains(tree, want) {
+			t.Errorf("tree.js is missing %q", want)
+		}
+	}
+	for _, want := range []string{
+		"onContextMenu: (node, event, anchor) => {",
+		"rowActions({ entry, can, isEditable, isImage })",
+		"openRowMenu({",
+		"onChoose: (id) => runRowAction(id, entry, specs)",
+	} {
+		if !strings.Contains(browser, want) {
+			t.Errorf("browser.js is missing %q", want)
+		}
+	}
+}
+
+// TestTreeReloadsAfterMutations guards the stale-path bug: a moved folder
+// remained in the cached tree and clicking it produced "path not found".
+func TestTreeReloadsAfterMutations(t *testing.T) {
+	tree := readAsset(t, "js/modules/tree.js")
+	browser := readAsset(t, "js/views/browser.js")
+
+	for _, want := range []string{"async function reload()", "reload,", "collectExpanded", "reloadNode"} {
+		if !strings.Contains(tree, want) {
+			t.Errorf("tree.js is missing %q", want)
+		}
+	}
+	if !strings.Contains(browser, "async function refreshTreeAfterMutation()") {
+		t.Fatal("browser.js has no tree refresh after mutations")
+	}
+	if strings.Count(browser, "await refreshTreeAfterMutation();") < 5 {
+		t.Error("not every mutating path refreshes the tree")
+	}
+}

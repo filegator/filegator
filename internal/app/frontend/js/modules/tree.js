@@ -90,9 +90,11 @@ export async function toggleNode(node) {
  *   rootPath - the folder the tree starts at
  *   current  - the folder to highlight
  *   onSelect - (node) => void when a folder name is clicked
+ *   onContextMenu - (node, event, row) => boolean when a folder is
+ *                   right-clicked; return true when a menu was opened
  *   compact  - hides the status line (the sidebar has its own)
  */
-export function createTreeView({ rootPath = "/", current = "/", onSelect, compact = false }) {
+export function createTreeView({ rootPath = "/", current = "/", onSelect, onContextMenu, compact = false }) {
   const list = create("ul", { className: "tree-list" });
   const status = create("p", { className: "tree-status", attrs: { role: "status" } });
   const root = new TreeNode({ name: t("Home"), path: rootPath }, null);
@@ -190,6 +192,13 @@ export function createTreeView({ rootPath = "/", current = "/", onSelect, compac
     name.addEventListener("click", () => onSelect && onSelect(item));
 
     row.append(toggle, name);
+    if (onContextMenu) {
+      row.addEventListener("contextmenu", (event) => {
+        if (onContextMenu(item, event, row)) {
+          event.preventDefault();
+        }
+      });
+    }
     // The list item is held directly rather than reached through lastChild:
     // relying on the last appended child breaks as soon as the rendering order
     // changes.
@@ -287,6 +296,59 @@ export function createTreeView({ rootPath = "/", current = "/", onSelect, compac
     render();
   }
 
+  /** Records every expanded folder path, so a reload can reopen them. */
+  function collectExpanded(item, out) {
+    if (item.expanded && item !== root) {
+      out.add(item.path);
+    }
+    for (const child of item.children || []) {
+      collectExpanded(child, out);
+    }
+  }
+
+  /** Re-loads one expanded branch, keeping the branches below it open. */
+  async function reloadNode(item, keep) {
+    if (!item.expanded) {
+      return;
+    }
+    item.children = null;
+    await expandNode(item);
+    for (const child of item.children || []) {
+      if (keep.has(child.path)) {
+        child.expanded = true;
+        await reloadNode(child, keep);
+      }
+    }
+  }
+
+  /**
+   * Re-loads the whole tree from storage, keeping the open branches open.
+   *
+   * A mutation elsewhere — a move, rename or delete — can leave a path in the
+   * cached tree that no longer exists; clicking it then said "path not found".
+   * Rebuilding is cheap because only the folders that were open are fetched.
+   */
+  async function reload() {
+    if (!root.expanded) {
+      return;
+    }
+    const keep = new Set();
+    collectExpanded(root, keep);
+    root.children = null;
+    await expandNode(root);
+    for (const child of root.children || []) {
+      if (keep.has(child.path)) {
+        child.expanded = true;
+        await reloadNode(child, keep);
+      }
+    }
+    // The DOM holds the old node objects, so force a rebuild even when the
+    // shape looks unchanged.
+    renderedSignature = null;
+    render();
+    scrollToActive();
+  }
+
   /** Finds a node by path. */
   function find(item, path) {
     if (item.path === path) {
@@ -310,6 +372,7 @@ export function createTreeView({ rootPath = "/", current = "/", onSelect, compac
     element: compact ? list : create("div", { className: "tree-body" }, parts),
     show,
     refresh,
+    reload,
     reset,
     /** Opens the root immediately, so a sidebar is not empty on first paint. */
     async open() {
