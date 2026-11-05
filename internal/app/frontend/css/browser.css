@@ -826,12 +826,12 @@ body.is-dragging::after {
     display: none;
   }
 
-  /* One compact row per entry: checkbox, icon, name, ⋯.
+  /* One compact row per entry: checkbox, icon, name, ⋯, with size and date as
+     a small second line under the name.
 
-     The size and date used to sit on a second line under every card, which
-     made a phone listing mostly metadata — the least useful information in a
-     file manager, repeated forty times. They are still in the row's title and
-     one tap away in the ⋯ menu. */
+     They used to fill a full second line of their own, which made a phone
+     listing mostly metadata. Keeping them to one muted line gives the useful
+     context without turning every row into a card. */
   /* Plain rows separated by a hairline, not boxed cards.
      A border, radius and gap around every entry made a phone listing look like
      a wall of boxes; a line between rows reads as a list, which is what it is. */
@@ -839,7 +839,9 @@ body.is-dragging::after {
     position: relative;
     display: grid;
     grid-template-columns: auto 1fr auto;
-    grid-template-areas: "select name actions";
+    grid-template-areas:
+      "select name actions"
+      "select meta actions";
     align-items: center;
     gap: 0 0.5rem;
     margin: 0;
@@ -855,9 +857,23 @@ body.is-dragging::after {
     border-bottom: 0;
   }
 
-  /* The second line is gone, so the cells that filled it go too. Same
-     specificity reason as the columns below. */
+  /* The metadata line sits under the name, in the same column, so the
+     checkbox and the actions keep the full row height beside it. */
   .file-table .col-meta {
+    display: block;
+    grid-area: meta;
+    padding: 0 0 0.45rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--text-light);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* The back row is navigation, not an entry: it has no size or date. */
+  .file-table tr.is-back .col-meta {
     display: none;
   }
 
