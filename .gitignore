@@ -1,10 +1,12 @@
 /node_modules
 /vendor
+/bin
 /dist/css
 /dist/js
 /dist/main.html
 
 /configuration.php
+/private/config.json
 
 /tests/backend/coverage
 /tests/backend/tmp/repository/*
