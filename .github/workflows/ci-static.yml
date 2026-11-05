@@ -3,7 +3,7 @@ name: ci-static
 on:
   push:
     tags:
-      - v*
+      - v7*
 
 jobs:
   build:
