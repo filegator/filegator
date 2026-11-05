@@ -29,7 +29,7 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} go build \
 RUN mkdir -p /out/root/data/private /out/root/data/repository \
   && cp private/users.json.sample /out/root/data/private/
 
-FROM alpine:3.22
+FROM alpine:3.24
 
 COPY --from=build /out/filegator /usr/local/bin/filegator
 COPY --from=build --chown=65532:65532 /out/root/data /data
