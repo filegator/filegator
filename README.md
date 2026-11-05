@@ -69,8 +69,9 @@ Check out the official [Documentation](https://docs-v8.filegator.io/) on how to 
 # Try it out with docker
 ```
 docker run --rm -p 8080:8080 filegator/filegator:v8
-visit: http://127.0.0.1:8080 login as admin/admin123
 ```
+visit: http://127.0.0.1:8080 login as admin/admin123
+
 # Version 8 highlights
 
 - **Why the rewrite:** keep the project simple and easy to maintain for the long term, after the PHP/Vue setup had grown harder to evolve and harder to deploy.
