@@ -1,7 +1,7 @@
 # FileGator — one static binary, one small image.
 #
 #   docker buildx build --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
-#     -t filegator/filegator:v8.0.0-beta.1 --push .
+#     -t filegator/filegator:v8 -t filegator/filegator:v8.x.x --push .
 
 # Cross-compile on the host architecture, so a multi-platform build never needs
 # emulation. CGO_ENABLED=0 makes the binary static, so the libc does not matter.
@@ -27,7 +27,7 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} go build \
 # The runtime filesystem, laid out in the build stage so the final stage needs
 # no RUN (a RUN there executes as the target architecture and needs qemu).
 RUN mkdir -p /out/root/data/private /out/root/data/repository \
- && cp private/users.json.sample /out/root/data/private/
+  && cp private/users.json.sample /out/root/data/private/
 
 FROM alpine:3.22
 

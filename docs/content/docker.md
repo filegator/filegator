@@ -23,8 +23,8 @@ hand. A 64-bit ARM host running a 64-bit OS needs `arm64` — it cannot run the
 docker run -d --name filegator \
   -p 127.0.0.1:8080:8080 \
   -v filegator-data:/data \
-  -e FILEGATOR_ADMIN_PASSWORD='a long passphrase of your choosing' \
-  filegator/filegator:v8.0.0-beta.1
+  -e FILEGATOR_ADMIN_PASSWORD='mysecret' \
+  filegator/filegator:v8
 ```
 
 Open <http://127.0.0.1:8080> and sign in as `admin`. `FILEGATOR_ADMIN_PASSWORD`
@@ -35,7 +35,7 @@ The image needs no setup of its own, so a bare run starts a working server on
 the first try:
 
 ```sh
-docker run --rm -p 8080:8080 filegator/filegator:v8.0.0-beta.1
+docker run --rm -p 8080:8080 filegator/filegator:v8
 ```
 
 It creates `private/` with the accounts, a configuration with a fresh session
@@ -43,7 +43,7 @@ key, and the storage folder. Everything it writes lives in the container, so
 that form is for a quick look, not for keeping: add `-v` as above for an
 installation that survives.
 
-Titled `v8.0.0-beta.1`, and `latest` once a final release is made. Pre-releases
+Titled `v8.x.x`, `v8`, and `latest` once a final release is made. Pre-releases
 are never tagged `latest`.
 
 ## The volume
@@ -107,7 +107,7 @@ The command line is passed straight through, so every flag in
 
 ```sh
 docker run -d -p 127.0.0.1:8080:8080 -v filegator-data:/data \
-  filegator/filegator:v8.0.0-beta.1 \
+  filegator/filegator:v8.x.x \
   -init -addr 0.0.0.0:8080 -config /data/private/config.json -base-path /files
 ```
 
@@ -138,7 +138,7 @@ it from a secret file rather than writing it in a compose file.
 ## Upgrading
 
 ```sh
-docker pull filegator/filegator:v8.0.0-beta.1
+docker pull filegator/filegator:v8
 ```
 
 The volume is read as it is: same layout, same `users.json` format. A release that
@@ -157,11 +157,10 @@ user it runs as.
 A version 7 file like this:
 
 ```yaml
-version: '2'
 services:
   filegator:
     container_name: filegator
-    image: filegator/filegator
+    image: filegator/filegator:v7
     restart: always
     ports:
       - "8080:8080"
@@ -177,7 +176,7 @@ becomes this:
 services:
   filegator:
     container_name: filegator
-    image: filegator/filegator:v8.0.0-beta.1
+    image: filegator/filegator:v8
     restart: always
     ports:
       - "8080:8080"
@@ -266,7 +265,7 @@ and set the same values on the Setup screens.
 6. **Follow [How to upgrade]({{< ref "upgrading.md" >}}#how-to-upgrade)** for the
    rest: authentication settings, HTTPS, and the guest account.
 
-Until `latest` is published, pin the tag: `filegator/filegator:v8.0.0-beta.1`.
+Until `latest` is published, pin the tag: `filegator/filegator:v8`.
 
 ### If the volume looks empty
 
@@ -292,8 +291,8 @@ See [Forgotten admin password]({{< ref "install.md" >}}#forgotten-admin-password
 ## Building it yourself
 
 ```sh
-docker buildx build --load -t filegator/filegator:v8.0.0-beta.1 .
-docker run --rm -p 127.0.0.1:8080:8080 -v filegator-data:/data filegator/filegator:v8.0.0-beta.1
+docker buildx build --load -t filegator/filegator:v8.x.x .
+docker run --rm -p 127.0.0.1:8080:8080 -v filegator-data:/data filegator/filegator:v8.x.x
 ```
 
 A release builds every platform. `--push` is required on a multi-platform build —
@@ -303,7 +302,7 @@ the result is a manifest list, which cannot be loaded into the local Docker:
 docker buildx create --use            # once, for a multi-platform builder
 docker buildx build \
   --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
-  -t filegator/filegator:v8.0.0-beta.1 --push .
+  -t filegator/filegator:v8.x.x --push .
 ```
 
 `arm/v7` and `arm64` are unrelated builds: the first is 32-bit ARM, the second

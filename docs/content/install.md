@@ -80,7 +80,7 @@ Running it with `-h` prints the version and the flags:
 
 ```
 $ ./bin/filegator -h
-FileGator v8.0.0-beta.1 - a web file manager.
+FileGator v8.x.x - a web file manager.
 ...
 ```
 

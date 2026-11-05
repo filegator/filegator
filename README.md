@@ -13,7 +13,7 @@ Documentation link while in beta:
 
 # Try it out with docker
 ```
-docker run --rm -p 8080:8080 filegator/filegator:v8.0.0-beta.1
+docker run --rm -p 8080:8080 filegator/filegator:v8
 ```
 Login as admin/admin123
 
@@ -28,37 +28,6 @@ Login as admin/admin123
 - **Easy configuration:** storage and auth are set up from the admin interface instead of hand-edited config files.
 - **Trade-off:** you can no longer copy a few PHP files to a cheap shared hosting account and have it run — FileGator now needs somewhere to run a single Go binary, such as a small VPS, a container or a systemd service.
 - **How the rewrite was made:** the version 8 rewrite was done with LLM assistance (an AI coding agent) working under the project's written guidelines in [AGENTS.md](AGENTS.md), with the test suite, `make lint` and `make docs-check` as the gate. The code is human-reviewed and human-committed.
-
-## Status and remaining work
-
-FileGator v8 is usable: the file browser, admin area, all three storage
-backends (local, SFTP, S3), all three auth providers (users file, LDAP, MySQL,
-PostgreSQL), SSO handoff, guest access, the event log and the documentation site
-are in place, with the test suite and `make lint` / `make docs-check` / `make
-build` green in CI.
-
-What is left is below.
-
-### Open — needs a decision
-
-- [ ] **Race detector in CI: blocking or nightly?** The suite passes under
-      `-race` on every package (`internal/api` alone takes ~3.5 minutes), so the
-      job works; the question is whether to make it a required check and double
-      every pull request's wait, or to run it on a schedule instead.
-      Needs a number for the packages that hold authorisation logic.
-- [ ] **Sharing / public links**: not built yet. Four possible
-      scopes (file link, folder link, logged-in-only, upload drop-box) still need
-      the scoping questions answered first.
-
-### Open — need testing against real services
-
-- [ ] **LDAP against a real directory**: the mapping logic is unit-tested, the
-      connection paths are not.
-- [ ] **MySQL / PostgreSQL integration tests**: test against the real connection.
-- [ ] **S3 multipart upload**, for objects over the current 5 GiB single-request
-      limit, and **browser-direct (presigned) uploads**. Neither is implemented.
-      Test against a real S3-compatible service.
-
 
 ## License
 

@@ -81,8 +81,8 @@ The image is built with `docker buildx` directly — there is no `make` target f
 it:
 
 ```sh
-docker buildx build --load -t filegator/filegator:v8.0.0-beta.1 .
-docker run --rm -p 127.0.0.1:8080:8080 -v filegator-data:/data filegator/filegator:v8.0.0-beta.1
+docker buildx build --load -t filegator/filegator:v8.x.x .
+docker run --rm -p 127.0.0.1:8080:8080 -v filegator-data:/data filegator/filegator:v8.x.x
 ```
 
 The `Dockerfile` is deliberately small: a `golang` builder with the **vendored**
