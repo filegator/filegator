@@ -158,6 +158,28 @@ func TestUpdateUser(t *testing.T) {
 	}
 }
 
+func TestUpdateUserCanMoveFromDeletedHome(t *testing.T) {
+	w := adminEnv(t)
+	e := w
+	// The stored home no longer exists. Moving the user to another folder
+	// must work without recreating the old one first.
+	e.addUser("dana", "pw", "/temp11", auth.RoleUser, auth.PermRead)
+	if err := os.MkdirAll(filepath.Join(e.root.Dir(), "temp12"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	body := `{"role":"user","homedir":"/temp12","permissions":["read"]}`
+	rec := w.submit("/api/admin/users/dana", body)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rec.Code, rec.Body)
+	}
+	var updated AdminUser
+	decode(t, rec, &updated)
+	if updated.HomeDir != "/temp12" {
+		t.Errorf("homedir = %q, want /temp12", updated.HomeDir)
+	}
+}
+
 func TestUpdateUserChangesPassword(t *testing.T) {
 	w := adminEnv(t)
 	e := w

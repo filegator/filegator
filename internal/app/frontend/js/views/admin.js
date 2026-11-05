@@ -237,6 +237,8 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
     // Both modes treat "/" as the top; scoped mode simply cannot reach past
     // the storage root because the server refuses those paths.
     const atTop = (dir) => dir === "/";
+    const parentOf = (dir) =>
+      dir.replace(/\/+$/, "").split("/").slice(0, -1).join("/") || "/";
     let path = startPath;
     let finish = () => { };
 
@@ -273,11 +275,18 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
     return new Promise((resolve) => {
       finish = resolve;
 
-      async function render(dir) {
+      async function render(dir, fallback = false) {
         let result;
         try {
           result = await browse(dir);
         } catch (err) {
+          // A user's stored home folder can be deleted after it was assigned.
+          // Opening the picker there would leave an empty list with no way
+          // back to the storage root, so the first load climbs to the nearest
+          // ancestor that still exists. Later navigation reports the error.
+          if (fallback && !atTop(dir)) {
+            return render(parentOf(dir), true);
+          }
           showToast("Cannot read this folder");
           return;
         }
@@ -296,8 +305,7 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
             create("button", { className: "picker-item", text: "..", attrs: { type: "button" } }),
           ]);
           parent.firstChild.addEventListener("click", () => {
-            const up = path.replace(/\/+$/, "").split("/").slice(0, -1).join("/") || "/";
-            render(up);
+            render(parentOf(path));
           });
           list.append(parent);
         }
@@ -326,7 +334,7 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
       };
       root.replaceChildren(dialog);
       root.classList.remove("hidden");
-      render(path);
+      render(path, true);
     });
   }
 
