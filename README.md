@@ -102,7 +102,7 @@ Check out [the official docker image](https://hub.docker.com/r/filegator/filegat
 
 Docker quick start:
 ```
-docker run --rm -p 8080:8080 filegator/filegator
+docker run --rm -p 8080:8080 filegator/filegator:v7
 visit: http://127.0.0.1:8080 login as admin/admin123
 ```
 

@@ -33,11 +33,11 @@ File upload supports drag&drop, progress bar, pause and resume. Upload is chunke
 [https://demo.filegator.io](https://demo.filegator.io)
 
 ## Docker
-Check out [the official docker image](https://hub.docker.com/r/filegator/filegator) with instructions on how to use it
+Check out [the official docker image](https://hub.docker.com/r/filegator/filegator) with instructions on how to use it. Make sure you pick the right version (tag) for your needs.
 
 Docker quick start:
 ```
-docker run --rm -p 8080:8080 filegator/filegator
+docker run --rm -p 8080:8080 filegator/filegator:v7
 visit: http://127.0.0.1:8080 login as admin/admin123
 ```
 
