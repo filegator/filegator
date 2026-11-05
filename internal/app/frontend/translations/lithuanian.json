@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Konfigūracijos failas skirtas tik skaitymui. Pakeitimai neišsaugomi po paleidimo iš naujo.",
   "The users file is read-only. User changes cannot be saved.": "Vartotojų failas skirtas tik skaitymui. Vartotojų pakeitimų išsaugoti negalima.",
   "Unsaved changes": "Neišsaugoti pakeitimai"
+,
+  "Calculate size": "Apskaičiuoti dydį",
+  "Size: {0}": "Dydis: {0}"
 }

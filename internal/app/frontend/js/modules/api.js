@@ -254,6 +254,10 @@ export const api = {
   /** Returns what the auth provider and storage backend support. */
   capabilities: () => request(url("/api/capabilities")),
 
+  /** Returns the total size of a folder, walked on demand. */
+  folderSize: (path) =>
+    request(url(`/api/files/size?path=${encodeURIComponent(path)}`)),
+
   // --- administration ---
 
   /** Lists directories anywhere on the server (storage root picker). */

@@ -219,6 +219,38 @@ func TestModeMenuActionShowsMode(t *testing.T) {
 	}
 }
 
+// TestFolderSizeAction checks a folder can report its size from the row menu.
+func TestFolderSizeAction(t *testing.T) {
+	actions, err := fs.ReadFile(frontendRoot(), "js/modules/row_actions.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(actions)
+	if !strings.Contains(source, `id: "size"`) || !strings.Contains(source, `label: "Calculate size"`) {
+		t.Error("folders should offer a Calculate size action")
+	}
+	if !strings.Contains(source, `entry.type === "file"`) || !strings.Contains(source, `!isFile && can("read")`) {
+		t.Error("the size action should be limited to readable folders")
+	}
+	chmod := strings.Index(source, `id: "chmod"`)
+	size := strings.Index(source, `id: "size"`)
+	del := strings.Index(source, `id: "delete"`)
+	if chmod < 0 || size < 0 || del < 0 || !(chmod < size && size < del) {
+		t.Error("Calculate size should appear below Mode and above Delete")
+	}
+
+	browser, err := fs.ReadFile(frontendRoot(), "js/views/browser.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(browser), "api.folderSize") {
+		t.Error("browser.js does not call the folder size endpoint")
+	}
+	if !strings.Contains(string(browser), `t("Size: {0}", formatSize(result.size))`) {
+		t.Error("the result should be shown as a translated size")
+	}
+}
+
 // adminTabOrder captures the tab list literal in admin.js, and adminTabID the
 // id of each entry in it.
 var (

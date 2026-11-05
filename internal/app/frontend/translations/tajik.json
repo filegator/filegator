@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Файли конфигуратсия танҳо барои хондан аст. Тағйирот пас аз аз нав оғоз кардан нигоҳ дошта намешаванд.",
   "The users file is read-only. User changes cannot be saved.": "Файли корбарон танҳо барои хондан аст. Тағйироти корбарон нигоҳ дошта намешаванд.",
   "Unsaved changes": "Тағйироти нигаҳдоштнашуда"
+,
+  "Calculate size": "Андозаро ҳисоб кардан",
+  "Size: {0}": "Андоза: {0}"
 }

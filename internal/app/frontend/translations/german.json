@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Die Konfigurationsdatei ist schreibgeschützt. Änderungen werden nach einem Neustart nicht gespeichert.",
   "The users file is read-only. User changes cannot be saved.": "Die Benutzerdatei ist schreibgeschützt. Benutzeränderungen können nicht gespeichert werden.",
   "Unsaved changes": "Nicht gespeicherte Änderungen"
+,
+  "Calculate size": "Größe berechnen",
+  "Size: {0}": "Größe: {0}"
 }

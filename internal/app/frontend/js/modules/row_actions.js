@@ -68,6 +68,11 @@ export function rowActions({ entry, can, isEditable, isImage }) {
       icon: "🔒",
     });
   }
+  // A folder has no size in the listing until it is walked. The calculation is
+  // on demand because a recursive scan of a large tree is expensive.
+  if (!isFile && can("read")) {
+    actions.push({ id: "size", label: "Calculate size", icon: "∑" });
+  }
   if (can("write")) {
     actions.push({ id: "delete", label: "Delete", icon: "🗑", danger: true });
   }

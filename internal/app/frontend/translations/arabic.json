@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "ملف التهيئة للقراءة فقط. لا تُحفظ التغييرات بعد إعادة التشغيل.",
   "The users file is read-only. User changes cannot be saved.": "ملف المستخدمين للقراءة فقط. لا يمكن حفظ تغييرات المستخدمين.",
   "Unsaved changes": "تغييرات غير محفوظة"
+,
+  "Calculate size": "احسب الحجم",
+  "Size: {0}": "الحجم: {0}"
 }

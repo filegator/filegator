@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Yapılandırma dosyası salt okunur. Değişiklikler yeniden başlatmadan sonra kaydedilmez.",
   "The users file is read-only. User changes cannot be saved.": "Kullanıcı dosyası salt okunur. Kullanıcı değişiklikleri kaydedilemez.",
   "Unsaved changes": "Kaydedilmemiş değişiklikler"
+,
+  "Calculate size": "Boyutu hesapla",
+  "Size: {0}": "Boyut: {0}"
 }

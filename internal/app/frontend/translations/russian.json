@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Файл конфигурации доступен только для чтения. Изменения не сохранятся после перезапуска.",
   "The users file is read-only. User changes cannot be saved.": "Файл пользователей доступен только для чтения. Изменения пользователей не могут быть сохранены.",
   "Unsaved changes": "Несохранённые изменения"
+,
+  "Calculate size": "Вычислить размер",
+  "Size: {0}": "Размер: {0}"
 }

@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Konfigurationsfilen är skrivskyddad. Ändringar sparas inte efter en omstart.",
   "The users file is read-only. User changes cannot be saved.": "Användarfilen är skrivskyddad. Användarändringar kan inte sparas.",
   "Unsaved changes": "Osparade ändringar"
+,
+  "Calculate size": "Beräkna storlek",
+  "Size: {0}": "Storlek: {0}"
 }

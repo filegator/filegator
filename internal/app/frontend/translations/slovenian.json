@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Konfiguracijska datoteka je samo za branje. Spremembe se po ponovnem zagonu ne shranijo.",
   "The users file is read-only. User changes cannot be saved.": "Datoteka uporabnikov je samo za branje. Sprememb uporabnikov ni mogoče shraniti.",
   "Unsaved changes": "Neshranjene spremembe"
+,
+  "Calculate size": "Izračunaj velikost",
+  "Size: {0}": "Velikost: {0}"
 }

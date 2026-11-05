@@ -77,6 +77,7 @@ A `..` segment that would leave the home folder is rejected with `403`.
 | `POST` | `/api/files/rename` | Rename, or move in one step |
 | `POST` | `/api/files/save` | Write text content |
 | `GET` | `/api/files/search` | Search names below a folder |
+| `GET` | `/api/files/size` | Total size of a folder |
 | `GET` | `/api/files/stat` | Describe one entry |
 | `POST` | `/api/files/unzip` | Extract an archive into a new folder |
 | `GET` | `/api/files/upload` | Which chunks are already stored (resume) |

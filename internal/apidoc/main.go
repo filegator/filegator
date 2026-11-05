@@ -57,6 +57,7 @@ var description = map[string]string{
 	// Files.
 	"GET /api/files":                "List a directory",
 	"GET /api/files/stat":           "Describe one entry",
+	"GET /api/files/size":           "Total size of a folder",
 	"GET /api/files/download":       "Download a file",
 	"POST /api/files/mkdir":         "Create a directory",
 	"POST /api/files/create":        "Create an empty file",

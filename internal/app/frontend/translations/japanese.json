@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "設定ファイルは読み取り専用です。変更は再起動後に保存されません。",
   "The users file is read-only. User changes cannot be saved.": "ユーザーファイルは読み取り専用です。ユーザーの変更を保存できません。",
   "Unsaved changes": "保存されていない変更"
+,
+  "Calculate size": "サイズを計算",
+  "Size: {0}": "サイズ: {0}"
 }

@@ -572,6 +572,7 @@ export function createBrowser({ onLogout }) {
       copy: () => transferEntry(entry, "copy"),
       move: () => transferEntry(entry, "move"),
       rename: () => renameEntry(entry),
+      size: () => showFolderSize(entry),
       zip: () => zipEntry(entry),
       unzip: () => unzipEntry(entry),
       chmod: () => changePermissions(entry),
@@ -639,6 +640,20 @@ export function createBrowser({ onLogout }) {
         }
       },
     });
+  }
+
+  /** Reports the total size of a folder in a toast. */
+  async function showFolderSize(entry) {
+    try {
+      const result = await api.folderSize(entry.path);
+      showToast(t("Size: {0}", formatSize(result.size)), "info");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        onLogout(true);
+        return;
+      }
+      showToast(err instanceof ApiError ? t(err.message) : t("Unknown error"));
+    }
   }
 
   /** Zips one entry in place. */

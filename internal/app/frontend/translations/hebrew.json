@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "קובץ התצורה לקריאה בלבד. השינויים לא יישמרו לאחר הפעלה מחדש.",
   "The users file is read-only. User changes cannot be saved.": "קובץ המשתמשים לקריאה בלבד. לא ניתן לשמור שינויי משתמשים.",
   "Unsaved changes": "שינויים שלא נשמרו"
+,
+  "Calculate size": "חשב גודל",
+  "Size: {0}": "גודל: {0}"
 }

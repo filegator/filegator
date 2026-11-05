@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "پرونده پیکربندی فقط‌خواندنی است. تغییرات پس از راه‌اندازی مجدد ذخیره نمی‌شوند.",
   "The users file is read-only. User changes cannot be saved.": "پرونده کاربران فقط‌خواندنی است. تغییرات کاربران ذخیره نمی‌شوند.",
   "Unsaved changes": "تغییرات ذخیره‌نشده"
+,
+  "Calculate size": "محاسبه اندازه",
+  "Size: {0}": "اندازه: {0}"
 }

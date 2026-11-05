@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Konfiguratsioonifail on kirjutuskaitstud. Muudatusi ei salvestata pärast taaskäivitust.",
   "The users file is read-only. User changes cannot be saved.": "Kasutajate fail on kirjutuskaitstud. Kasutajate muudatusi ei saa salvestada.",
   "Unsaved changes": "Salvestamata muudatused"
+,
+  "Calculate size": "Arvuta suurus",
+  "Size: {0}": "Suurus: {0}"
 }

@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Konfigurační soubor je jen pro čtení. Změny se po restartu neuloží.",
   "The users file is read-only. User changes cannot be saved.": "Soubor uživatelů je jen pro čtení. Změny uživatelů nelze uložit.",
   "Unsaved changes": "Neuložené změny"
+,
+  "Calculate size": "Vypočítat velikost",
+  "Size: {0}": "Velikost: {0}"
 }

@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Konfigurationsfilen er skrivebeskyttet. Ændringer gemmes ikke efter en genstart.",
   "The users file is read-only. User changes cannot be saved.": "Brugerfilen er skrivebeskyttet. Brugerændringer kan ikke gemmes.",
   "Unsaved changes": "Ugemte ændringer"
+,
+  "Calculate size": "Beregn størrelse",
+  "Size: {0}": "Størrelse: {0}"
 }

@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "配置文件为只读。重启后更改将不会保存。",
   "The users file is read-only. User changes cannot be saved.": "用户文件为只读。无法保存用户更改。",
   "Unsaved changes": "未保存的更改"
+,
+  "Calculate size": "计算大小",
+  "Size: {0}": "大小：{0}"
 }

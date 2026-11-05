@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Fișierul de configurare este doar pentru citire. Modificările nu se salvează după o repornire.",
   "The users file is read-only. User changes cannot be saved.": "Fișierul utilizatorilor este doar pentru citire. Modificările utilizatorilor nu pot fi salvate.",
   "Unsaved changes": "Modificări nesalvate"
+,
+  "Calculate size": "Calculează dimensiunea",
+  "Size: {0}": "Dimensiune: {0}"
 }

@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Het configuratiebestand is alleen-lezen. Wijzigingen worden na een herstart niet opgeslagen.",
   "The users file is read-only. User changes cannot be saved.": "Het gebruikersbestand is alleen-lezen. Wijzigingen aan gebruikers kunnen niet worden opgeslagen.",
   "Unsaved changes": "Niet-opgeslagen wijzigingen"
+,
+  "Calculate size": "Grootte berekenen",
+  "Size: {0}": "Grootte: {0}"
 }

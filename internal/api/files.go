@@ -359,5 +359,6 @@ func cleanForClient(p string) (string, error) { return httpx.CleanPath(p) }
 func (s *Server) Routes(rt *router.Router) {
 	rt.Get("/api/files", s.withUser(s.ListDir))
 	rt.Get("/api/files/stat", s.withUser(s.Stat))
+	rt.Get("/api/files/size", s.withUser(s.FolderSize))
 	rt.Get("/api/files/download", s.withUser(s.Download))
 }

@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "구성 파일이 읽기 전용입니다. 변경 사항은 다시 시작한 후 저장되지 않습니다.",
   "The users file is read-only. User changes cannot be saved.": "사용자 파일이 읽기 전용입니다. 사용자 변경 사항을 저장할 수 없습니다.",
   "Unsaved changes": "저장하지 않은 변경 사항"
+,
+  "Calculate size": "크기 계산",
+  "Size: {0}": "크기: {0}"
 }

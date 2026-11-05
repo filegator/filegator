@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "The configuration file is read-only. Changes are not saved after a restart.",
   "The users file is read-only. User changes cannot be saved.": "The users file is read-only. User changes cannot be saved.",
   "Unsaved changes": "Unsaved changes"
+,
+  "Calculate size": "Calculate size",
+  "Size: {0}": "Size: {0}"
 }

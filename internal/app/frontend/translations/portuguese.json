@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "O ficheiro de configuração é só de leitura. As alterações não são guardadas após um reinício.",
   "The users file is read-only. User changes cannot be saved.": "O ficheiro de utilizadores é só de leitura. As alterações aos utilizadores não podem ser guardadas.",
   "Unsaved changes": "Alterações não guardadas"
+,
+  "Calculate size": "Calcular tamanho",
+  "Size: {0}": "Tamanho: {0}"
 }

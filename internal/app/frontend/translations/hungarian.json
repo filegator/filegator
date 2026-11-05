@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "A konfigurációs fájl írásvédett. A módosítások újraindítás után nem mentődnek.",
   "The users file is read-only. User changes cannot be saved.": "A felhasználói fájl írásvédett. A felhasználói módosítások nem menthetők.",
   "Unsaved changes": "Nem mentett módosítások"
+,
+  "Calculate size": "Méret kiszámítása",
+  "Size: {0}": "Méret: {0}"
 }

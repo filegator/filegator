@@ -103,4 +103,7 @@
   "The configuration file is read-only. Changes are not saved after a restart.": "Konfiqurasiya faylı yalnız oxunur. Dəyişikliklər yenidən başlatmadan sonra yadda saxlanılmır.",
   "The users file is read-only. User changes cannot be saved.": "İstifadəçi faylı yalnız oxunur. İstifadəçi dəyişiklikləri yadda saxlanıla bilməz.",
   "Unsaved changes": "Yadda saxlanmamış dəyişikliklər"
+,
+  "Calculate size": "Ölçüsü hesabla",
+  "Size: {0}": "Ölçü: {0}"
 }
