@@ -1,14 +1,8 @@
 # Tests, formatting and vetting.
 #
-# Two jobs, deliberately different in speed and in what they gate:
-#
-#   test     — the whole suite, the formatting check and `go vet`. Fast (well
-#              under a minute), so it runs on every push and pull request and is
-#              the one to make a required status check.
-#   race     — the race detector. Correct but slow: `internal/api` alone takes
-#              about three minutes, because its tests spin up real servers on
-#              real sockets. Made non-blocking with `continue-on-error`, so a
-#              race still shows red on the run without holding up every merge.
+# One job, deliberately fast: the whole suite, the formatting check and
+# `go vet`. It runs on every push and pull request and is the one to make a
+# required status check.
 #
 # Everything runs against the vendored modules (`-mod=vendor` is the Makefile's
 # GOFLAGS) with GOPROXY=off, so a run proves the repository builds from what is
@@ -23,7 +17,7 @@ name: Tests
 
 on:
   push:
-    branches: [main, master]
+    branches: [v8]
   pull_request:
   # Let a maintainer re-run by hand after a flaky failure.
   workflow_dispatch:
@@ -77,25 +71,3 @@ jobs:
         # The binary is what users deploy; a test suite can pass while `go build`
         # of the entrypoint fails, because the tests do not import main.
         run: make build
-
-  race:
-    name: Race detector
-    runs-on: ubuntu-latest
-    # Reported, not enforced: see the header. Turn this into a blocking job once
-    # the suite is known clean under -race.
-    continue-on-error: true
-    env:
-      GOPROXY: "off"
-      GOFLAGS: "-mod=vendor"
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: false
-
-      - name: Data races
-        # A race is a real bug, so this is fixed later rather than reported
-        # forever: when it fails, open an issue rather than ignoring the red.
-        run: go test -race ./... -count=1

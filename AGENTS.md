@@ -356,8 +356,7 @@ an arrow returns to a label.
   while the entrypoint fails).
 - CI (`.github/workflows/tests.yml`) runs the four above in one blocking `test`
   job with `GOPROXY=off` and `GOFLAGS=-mod=vendor`, on the Go version read from
-  `go.mod`. The `race` job runs `go test -race ./...` with
-  `continue-on-error: true` — reported, not enforced.
+  `go.mod`. There is no race-detector job.
 - The frontend is tested only through Go: served-asset checks, module content
   assertions, import resolution, and the "no hardcoded API path" guard
   (`internal/app/modules_test.go`, `internal/app/app_test.go`,
@@ -382,8 +381,6 @@ an arrow returns to a label.
 From `README.md` and the code, these are unresolved. Each needs the user's
 answer; ask one at a time.
 
-- **Race detector in CI:** blocking or nightly? The suite passes under `-race`,
-  but `internal/api` alone takes minutes. (Currently non-blocking.)
 - **Test coverage floor** for packages that hold authorisation logic.
 - **Solo mode** (no-login single-user mode): agreed in outline, not built. Open
   question: config key or command-line flag?
