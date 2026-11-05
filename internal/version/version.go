@@ -7,7 +7,7 @@
 package version
 
 // Version is the release. Bump it when tagging a release.
-const Version = "v8.0.0-rc3"
+const Version = "v8.0.0-rc4"
 
 // String returns the release number.
 func String() string { return Version }
