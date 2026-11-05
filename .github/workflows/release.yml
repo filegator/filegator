@@ -1,0 +1,112 @@
+# Publish the platform binaries on a release.
+#
+# A `v8*` tag builds every released platform and attaches one archive per
+# platform plus a `SHA256SUMS` file to the GitHub release for that tag. Linux
+# and macOS get `.tar.gz`, Windows gets `.zip` — the same convention Go uses
+# for its own releases, and the one each platform handles natively. This is
+# triggered by the tag rather than by `release: published` on purpose: GitHub
+# runs release-triggered workflows from the default branch (currently `master`),
+# so a workflow that lives on `v8` would not run until it reached `master`. A
+# tag runs the workflow from the tagged commit, exactly like the Docker Hub job.
+#
+# Publishing a release in the web interface creates the tag and the release
+# together, and the order is not guaranteed. The job builds first and then
+# waits for the release to appear before uploading, so either order works. A
+# tag that never gets a release fails after five minutes instead of hanging.
+#
+# The archives are named `filegator_<tag>_<os>_<platform>.tar.gz` (`zip` on
+# Windows), for example `filegator_v8.0.0_linux_armv6.tar.gz`. `armv6` and
+# `armv7` are spelled out because a slash is not allowed in an asset name. The
+# Windows archive holds `filegator.exe`; every other archive holds `filegator`.
+
+name: Release binaries
+
+on:
+  push:
+    tags:
+      - "v8*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and attach binaries
+    runs-on: ubuntu-latest
+    env:
+      GOPROXY: "off"
+      GOFLAGS: "-mod=vendor"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      # A tag push does not run the Tests workflow, so check first: a tag with a
+      # broken test must not publish binaries.
+      - name: Formatting
+        run: make lint
+
+      - name: Tests
+        run: go test ./... -count=1
+
+      - name: Documentation
+        run: make docs-check
+
+      - name: Build binaries
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          build() {
+            local goos=$1 goarch=$2 goarm=$3 name=$4 ext=$5
+            local base="$PWD/dist/filegator_${VERSION}_${goos}_${name}"
+            local dir="${base}.d"
+            local bin="filegator${ext}"
+            mkdir -p "$dir"
+            env GOOS="$goos" GOARCH="$goarch" ${goarm:+GOARM="$goarm"} CGO_ENABLED=0 \
+              go build -trimpath -buildvcs=false -ldflags "-s -w" \
+              -o "$dir/$bin" .
+            if [ "$goos" = windows ]; then
+              (cd "$dir" && zip -q "${base}.zip" "$bin")
+            else
+              tar -C "$dir" -czf "${base}.tar.gz" "$bin"
+            fi
+            rm -rf "$dir"
+          }
+
+          build linux 386 "" 386 ""
+          build linux amd64 "" amd64 ""
+          build linux arm 6 armv6 ""
+          build linux arm 7 armv7 ""
+          build linux arm64 "" arm64 ""
+          build darwin amd64 "" amd64 ""
+          build darwin arm64 "" arm64 ""
+          build windows amd64 "" amd64 ".exe"
+
+          (cd dist && sha256sum ./*.tar.gz ./*.zip > SHA256SUMS)
+
+      - name: Wait for the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          for _ in $(seq 1 60); do
+            if gh release view "$VERSION" >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Release $VERSION was not found after five minutes." >&2
+          exit 1
+
+      - name: Upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
+        # --clobber makes a re-run replace the assets instead of failing.
+        run: gh release upload "$VERSION" dist/*.zip dist/SHA256SUMS --clobber

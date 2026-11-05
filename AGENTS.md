@@ -276,6 +276,17 @@ Follow the surrounding style. These are patterns already used throughout:
   workflow has no QEMU step because the Dockerfile cross-compiles and
   its runtime stage has no `RUN`; that absence is what makes a future
   foreign-architecture `RUN` fail visibly instead of being masked.
+- **Binaries are published by `.github/workflows/release.yml` on every `v8*`
+  tag.** It runs `make lint`, `go test` and `make docs-check`, cross-compiles
+  every released target with `CGO_ENABLED=0` (five Linux platforms, macOS
+  amd64/arm64, Windows amd64), puts
+  each binary in `filegator_<tag>_<os>_<platform>.tar.gz` (`.zip` on Windows;
+  `armv6`/`armv7` spelled out) — an `.exe` inside the Windows archive — writes
+  `SHA256SUMS`, waits for the GitHub release for the tag, and attaches
+  everything with `gh release upload --clobber`. The trigger is the tag, not
+  `release: published`, because GitHub runs release-triggered workflows from
+  the default branch (`master`), where a `v8`-only workflow would not exist
+  yet.
 
 ## Frontend conventions
 

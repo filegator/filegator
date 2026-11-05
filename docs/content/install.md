@@ -3,10 +3,50 @@ title: "Installation"
 weight: 10
 ---
 
-FileGator is a single Go binary. There are two ways to run it: as a **container**
-(`filegator/filegator`, see [Docker]({{< ref "docker.md" >}})), or as the
-**binary**, built from the repository — there is no prebuilt release download at
-this stage.
+FileGator is a single Go binary. There are three ways to run it: as a
+**container** (`filegator/filegator`, see [Docker]({{< ref "docker.md" >}})), as
+a **prebuilt binary** from a [GitHub
+release](https://github.com/filegator/filegator/releases), or built from the
+repository.
+
+## Download a release
+
+Every release attaches one archive per platform. Unzip it and run the
+`filegator` executable inside:
+
+| Platform | For | Asset |
+|----------|-----|-------|
+| `linux/386` | 32-bit x86 | `filegator_<version>_linux_386.tar.gz` |
+| `linux/amd64` | 64-bit x86 | `filegator_<version>_linux_amd64.tar.gz` |
+| `linux/arm/v6` | ARMv6 boards, such as the first Raspberry Pi | `filegator_<version>_linux_armv6.tar.gz` |
+| `linux/arm/v7` | 32-bit ARM, such as Raspberry Pi 2 and 3 | `filegator_<version>_linux_armv7.tar.gz` |
+| `linux/arm64` | 64-bit ARM, such as Raspberry Pi 4 and 5 | `filegator_<version>_linux_arm64.tar.gz` |
+| `darwin/amd64` | Intel Macs | `filegator_<version>_darwin_amd64.tar.gz` |
+| `darwin/arm64` | Apple Silicon Macs | `filegator_<version>_darwin_arm64.tar.gz` |
+| `windows/amd64` | 64-bit Windows | `filegator_<version>_windows_amd64.zip` |
+
+The release also carries `SHA256SUMS`. Put the archives in one folder and
+verify them before running:
+
+```sh
+sha256sum -c SHA256SUMS              # Linux
+shasum -a 256 -c SHA256SUMS          # macOS
+tar -xzf filegator_<version>_linux_amd64.tar.gz
+./filegator
+```
+
+The binary is static and needs no runtime installed.
+
+The macOS binaries are not signed or notarised, so Gatekeeper may refuse the
+first run. After unzipping, remove the quarantine attribute once:
+
+```sh
+xattr -d com.apple.quarantine ./filegator
+```
+
+On Windows, unzip the archive and run `filegator.exe` from PowerShell or
+`cmd`. Filesystem permission bits are a Unix concept; the **Permissions**
+action has no useful effect on a local Windows drive.
 
 ## Build from source
 

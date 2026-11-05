@@ -116,6 +116,16 @@ The workflow has no QEMU setup step for the reason above; if
 the Dockerfile ever gains a foreign-architecture `RUN`, that absence turns into
 a real failure instead of being masked by emulation.
 
+`.github/workflows/release.yml` runs on the same tags and publishes the
+binaries themselves: one archive per target named
+`filegator_<tag>_<os>_<platform>.tar.gz` (`.zip` on Windows) plus
+`SHA256SUMS`, attached to the GitHub release. It covers the five Linux
+platforms, macOS on amd64 and arm64, and Windows on amd64. It uses the tag trigger for the same reasons as the
+Docker job, and because GitHub only runs `release`-triggered workflows from the
+default branch. It runs the same lint, test and docs checks before building,
+and waits for the release to exist before uploading, so publishing the tag and
+the release in either order works.
+
 `docs/content/docker.md` is the operator's page: volumes, ownership, a proxy in
 front, and upgrading. Change it in the same commit as the `Dockerfile`.
 
