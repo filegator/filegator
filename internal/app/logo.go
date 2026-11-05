@@ -15,9 +15,11 @@ import (
 // dark grey lettering: on a dark surface it would be unreadable, which is why
 // the project ships a lightened variant.
 //
-// Empty means the artwork embedded in this binary. Every slot is resolved
-// before it is sent to the browser, so the interface is never unbranded and
-// never has to know where the built-in files live.
+// An empty light logo means no logo at all: the header shows the application
+// title instead, and the login card shows it above the form. The built-in
+// artwork is reachable by setting its path, but it is not substituted for an
+// empty field. Every slot is resolved before it is sent to the browser, so the
+// interface never has to know where the built-in files live.
 
 // publicLogo is the logo pair /api/config hands the browser.
 type publicLogo struct {
@@ -27,24 +29,24 @@ type publicLogo struct {
 
 // resolveLogo fills in the two URLs from the stored settings.
 //
-// An empty dark logo falls back to the light one when a light logo was set:
-// an administrator who supplied one picture meant that picture, and showing
-// the built-in FileGator drawing beside their own branding in half of the
-// themes would be a surprise. (Dark artwork on a dark page may be hard to read;
-// the field exists for exactly that case.)
+// An empty light logo means no branding image: it is returned as an empty pair
+// so the browser can show the title instead. The dark slot is ignored then,
+// because the pair is one piece of branding and a value in only one theme would
+// leave the other without a logo and without the title that replaces it.
+//
+// An empty dark logo falls back to the light one: an administrator who supplied
+// one picture meant that picture, and showing the built-in FileGator drawing
+// beside their own branding in half of the themes would be a surprise. (Dark
+// artwork on a dark page may be hard to read; the field exists for exactly that
+// case.)
 func resolveLogo(f config.Frontend) publicLogo {
 	light := strings.TrimSpace(f.Logo)
-	dark := strings.TrimSpace(f.LogoDark)
 	if light == "" {
-		light = config.DefaultLogo
+		return publicLogo{}
 	}
-	switch {
-	case dark != "":
-		// As configured.
-	case strings.TrimSpace(f.Logo) != "":
+	dark := strings.TrimSpace(f.LogoDark)
+	if dark == "" {
 		dark = light
-	default:
-		dark = config.DefaultLogoDark
 	}
 	return publicLogo{Logo: light, LogoDark: dark}
 }

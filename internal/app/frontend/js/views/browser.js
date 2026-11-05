@@ -13,7 +13,7 @@ import {
 } from "../modules/format.js";
 import { DEFAULT_DATE_FORMAT, formatDate } from "../modules/datetime.js";
 import { t } from "../modules/i18n.js";
-import { applyLogo } from "../modules/logo.js";
+import { applyAppName, applyLogo } from "../modules/logo.js";
 import { createExpandableSearch, createHeaderSearch } from "../modules/header_search.js";
 import { createUploadPanel } from "../modules/upload_panel.js";
 
@@ -1488,13 +1488,17 @@ export function createBrowser({ onLogout }) {
       }
     },
     setBrand(appName, logos) {
-      // The title belongs in the browser tab; the header shows the logo only.
+      // The title belongs in the browser tab; in the header it replaces the
+      // logo when no logo is configured, rather than sitting beside it.
       document.title = appName || "FileGator";
 
       // The browser and the administration area each have their own pair of
-      // images, and both show the same branding: there is one logo setting.
+      // images and their own title element, and both show the same branding:
+      // there is one logo setting and one app name.
       applyLogo("app-logo", logos.light, logos.dark, t("Home"));
       applyLogo("admin-logo", logos.light, logos.dark, t("Home"));
+      applyAppName("app-name", appName, !logos.light);
+      applyAppName("admin-name", appName, !logos.light);
       // The logo is a home button, so its label and tooltip follow the language.
       const home = el("app-home");
       home.title = t("Home");

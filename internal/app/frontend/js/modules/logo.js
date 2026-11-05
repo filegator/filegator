@@ -2,10 +2,10 @@
  * The logo, in two themes.
  *
  * The branding comes from /api/config as a pair — `logo` for light mode and
- * `logo_dark` for dark mode — and the server has already replaced an empty
- * value with the FileGator artwork embedded in the binary. One pair serves
- * every surface: the file browser header, the administration header and the
- * login card.
+ * `logo_dark` for dark mode. Both are empty when the administrator removed the
+ * logo; the header and the login card then show `app_name` instead. One pair
+ * serves every surface: the file browser header, the administration header and
+ * the login card.
  *
  * Each logo in the markup is TWO images distinguished by class rather than by
  * id: a `.logo-light` for the light theme and a `.logo-dark` for the dark one,
@@ -19,29 +19,32 @@
  * The artwork embedded in the binary.
  *
  * These are config.DefaultLogo and config.DefaultLogoDark, repeated because the
- * browser cannot import Go. The admin page's live preview shows them for an
- * empty field, which is what the server resolves an empty logo to.
+ * browser cannot import Go. The admin page uses them as the placeholder hints
+ * on an empty logo field, so the built-in artwork stays reachable after it has
+ * been removed; an empty field itself shows no logo.
  */
 export const BUILT_IN_LOGO = "/img/filegator-logo.svg";
 export const BUILT_IN_LOGO_DARK = "/img/filegator-logo-dark.svg";
 
 /**
- * Points the tab icon at one of the logos.
+ * Points the tab icon at one of the logos, or removes it when there is none.
  *
  * The favicon is the logo, as on the docs site: one SVG, no raster copy to keep
- * in step. index.html sets it to the built-in file for the active theme before
- * the first paint, and this replaces it when the administrator configured a
- * logo of their own — a browser tab showing FileGator's drawing beside a
- * customised product name would be the same drift the docs fixed.
+ * in step. It is applied once /api/config answers, so an installation without
+ * a logo keeps the browser's own tab icon rather than falling back to the
+ * built-in FileGator drawing.
  *
  * A non-SVG file still works: a browser that does not read it as an icon falls
  * back to its own, which is the same loss as having no favicon.
  */
 export function applyFavicon(src) {
+  let link = document.querySelector('link[rel="icon"]');
   if (!src) {
+    if (link) {
+      link.remove();
+    }
     return;
   }
-  let link = document.querySelector('link[rel="icon"]');
   if (!link) {
     link = document.createElement("link");
     link.rel = "icon";
@@ -79,6 +82,23 @@ export function applyLogo(group, light, dark, alt) {
 }
 
 /**
+ * Shows the application title where a logo would have been.
+ *
+ * The title is the fallback branding, not a caption: when a logo is configured
+ * it is hidden, and when the logo is removed it takes the logo's place in the
+ * header and on the login card. `visible` is false when a logo is set, so the
+ * two never appear side by side.
+ */
+export function applyAppName(id, title, visible) {
+  const element = document.getElementById(id);
+  if (!element) {
+    return;
+  }
+  element.textContent = title || "";
+  element.classList.toggle("hidden", !visible || !title);
+}
+
+/**
  * The pair the page should show, read from the public configuration. Kept here
  * so app.js does not have to remember which key belongs to which theme, and so
  * a missing key means "no logo" in one place.
@@ -93,18 +113,19 @@ export function logosFromConfig(config) {
  *
  * The dark variant is not used here: a tab icon sits on the browser's own
  * chrome, not on our page background, so it has one picture rather than a
- * themed pair. With no configured logo the built-in artwork stays.
+ * themed pair. No configured logo means no tab icon at all, rather than the
+ * built-in artwork reappearing after it was removed.
  */
 export function faviconFromConfig(config) {
-  return logosFromConfig(config).light || BUILT_IN_LOGO;
+  return logosFromConfig(config).light || "";
 }
 
 /**
  * What to show before /api/config has answered, and if it never does.
  *
- * The same artwork the server substitutes for an unset logo: a page that
- * already has its branding in the first paint, which is what "embedded in the
- * binary" is for.
+ * The artwork embedded in the binary, so the first paint is branded even before
+ * /api/config answers. A configuration with empty logo fields replaces it with
+ * the application title once it arrives.
  */
 export function defaultLogos() {
   return { light: BUILT_IN_LOGO, dark: BUILT_IN_LOGO_DARK };

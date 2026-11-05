@@ -45,6 +45,45 @@ func TestEveryLogoHasBothThemes(t *testing.T) {
 	}
 }
 
+// The title stands in for a logo that was removed. Every surface the logo
+// served needs its own title element, and the views must show it through the
+// module rather than writing text themselves.
+func TestTheTitleStandsInForAMissingLogo(t *testing.T) {
+	page := readAsset(t, "index.html")
+	for id, where := range map[string]string{
+		"app-name":   "file browser header",
+		"admin-name": "administration header",
+		"login-name": "login card",
+	} {
+		if !strings.Contains(page, `id="`+id+`"`) {
+			t.Errorf("the %s has no #%s element for the title", where, id)
+		}
+	}
+
+	module := readAsset(t, "js/modules/logo.js")
+	if !strings.Contains(module, "export function applyAppName") {
+		t.Error("logo.js has no applyAppName helper")
+	}
+	for _, file := range []string{"js/views/browser.js", "js/views/login.js"} {
+		if !strings.Contains(readAsset(t, file), "applyAppName(") {
+			t.Errorf("%s never shows the title when no logo is configured", file)
+		}
+	}
+
+	// The hint keeps the built-in artwork reachable after it has been removed,
+	// without hardcoding the path outside logo.js.
+	admin := readAsset(t, "js/views/admin.js")
+	for _, want := range []string{
+		"logo.placeholder = BUILT_IN_LOGO",
+		"logoDark.placeholder = BUILT_IN_LOGO_DARK",
+		"Leave both fields empty to show the title",
+	} {
+		if !strings.Contains(admin, want) {
+			t.Errorf("admin.js is missing %q", want)
+		}
+	}
+}
+
 // The hook the dark palette uses. Without both selectors one of the two — the
 // system preference, or the user's toggle — stops switching the logo.
 func TestTheDarkThemeSwapsTheLogo(t *testing.T) {
@@ -208,24 +247,15 @@ func TestLogoPathsAreNotServedByHand(t *testing.T) {
 	}
 }
 
-// The favicon is the logo. index.html sets the built-in file for the active
-// theme before the first paint, so the tab is never iconless; a configured logo
-// replaces it. A raster or non-SVG file must not keep the SVG type, or the
-// browser reads it as the wrong kind of image.
+// The favicon is the logo, and nothing else: a configured logo becomes the tab
+// icon, and removing the logo removes the icon rather than leaving the
+// built-in FileGator drawing in the tab. It is applied once /api/config
+// answers, so index.html must not install a built-in icon in the meantime.
 func TestTheFaviconFollowsTheLogo(t *testing.T) {
 	page := readAsset(t, "index.html")
 	head := page[:strings.Index(page, "</head>")]
-	icon := strings.Index(head, `icon.rel = "icon"`)
-	if icon < 0 {
-		t.Fatal("index.html does not set a favicon")
-	}
-	if !strings.Contains(head[icon:], `icon.type = "image/svg+xml"`) {
-		t.Error("the favicon link does not declare the SVG type")
-	}
-	// Relative, so it resolves through <base> like every other asset: an
-	// absolute "/img/..." would 404 under -base-path.
-	if !strings.Contains(head[icon:], `icon.href = file.slice(1)`) {
-		t.Error("the favicon URL should be relative to <base>, not prefixed by hand")
+	if strings.Contains(head, `icon.rel = "icon"`) {
+		t.Error("index.html installs a built-in favicon before the configuration is known")
 	}
 
 	module := readAsset(t, "js/modules/logo.js")
@@ -238,9 +268,12 @@ func TestTheFaviconFollowsTheLogo(t *testing.T) {
 			t.Errorf("logo.js is missing %q", want)
 		}
 	}
-	// The built-in file when nothing is configured, the configured one otherwise.
-	if !strings.Contains(module, `logosFromConfig(config).light || BUILT_IN_LOGO`) {
-		t.Error("faviconFromConfig should fall back to the built-in logo")
+	// No logo means no icon: there is no fallback to the embedded artwork.
+	if strings.Contains(module, `logosFromConfig(config).light || BUILT_IN_LOGO`) {
+		t.Error("faviconFromConfig still falls back to the built-in logo")
+	}
+	if !strings.Contains(module, `logosFromConfig(config).light || ""`) {
+		t.Error("faviconFromConfig should return an empty source when no logo is set")
 	}
 	app := readAsset(t, "js/app.js")
 	if !strings.Contains(app, "applyFavicon(faviconFromConfig(config))") {
@@ -286,7 +319,9 @@ const images = {};
 for (const g of ["login-logo", "app-logo", "admin-logo"]) {
   for (const t of ["light", "dark"]) images[g + "-" + t] = image(g + "-" + t);
 }
-globalThis.document = { getElementById: (id) => images[id] || null };
+const titles = {};
+for (const id of ["app-name", "admin-name", "login-name"]) titles[id] = image(id);
+globalThis.document = { getElementById: (id) => images[id] || titles[id] || null };
 // A head with one favicon link already in it, as index.html leaves it.
 const head = [];
 const icon = {
@@ -294,9 +329,10 @@ const icon = {
   removeAttribute(n) { delete this.attrs[n]; },
   setAttribute(n, v) { this.attrs[n] = String(v); },
   getAttribute(n) { return Object.prototype.hasOwnProperty.call(this.attrs, n) ? this.attrs[n] : null; },
+  remove() { this.removed = true; },
 };
 head.push(icon);
-globalThis.document.querySelector = () => icon;
+globalThis.document.querySelector = () => (icon.removed ? null : icon);
 globalThis.document.createElement = () => ({ attrs: {}, removeAttribute(n) { delete this.attrs[n]; }, setAttribute(n, v) { this.attrs[n] = String(v); }, getAttribute(n) { return this.attrs[n] ?? null; } });
 globalThis.document.head = { appendChild: (n) => head.push(n) };
 
@@ -325,6 +361,15 @@ logo.applyLogo("login-logo", "", "", "");
 check(images["login-logo-light"].classes.has("hidden"), "light hidden");
 check(images["login-logo-dark"].classes.has("hidden"), "dark hidden");
 
+// No logo: the title takes its place, and a configured logo hides it again.
+logo.applyAppName("app-name", "FileGator", true);
+check(titles["app-name"].textContent === "FileGator", "title text");
+check(!titles["app-name"].classes.has("hidden"), "title shown");
+logo.applyAppName("app-name", "FileGator", false);
+check(titles["app-name"].classes.has("hidden"), "title hidden beside a logo");
+logo.applyAppName("login-name", "", true);
+check(titles["login-name"].classes.has("hidden"), "an empty title is never shown");
+
 // Unchanged src is not rewritten, which would restart the download.
 let writes = 0;
 const real = images["app-logo-light"].setAttribute;
@@ -332,10 +377,10 @@ images["app-logo-light"].setAttribute = (n, v) => { if (n === "src") writes++; r
 logo.applyLogo("app-logo", "/a.svg", "/b.svg", "Home");
 check(writes === 0, "src rewritten although unchanged");
 
-// The favicon: built-in when nothing is configured, the configured logo when
-// there is one, and the SVG type dropped for a file that is not one.
-check(logo.faviconFromConfig({}) === logo.BUILT_IN_LOGO, "favicon falls back to the built-in logo");
-check(logo.faviconFromConfig(null) === logo.BUILT_IN_LOGO, "favicon survives a missing config");
+// The favicon: none when nothing is configured, the configured logo when there
+// is one, and the SVG type dropped for a file that is not one.
+check(logo.faviconFromConfig({}) === "", "no favicon when no logo is configured");
+check(logo.faviconFromConfig(null) === "", "no favicon for a missing config");
 check(logo.faviconFromConfig({ logo: "/brand/logo.png" }) === "/brand/logo.png", "favicon follows the configured logo");
 logo.applyFavicon("logo.svg?v=1");
 check(icon.attrs.href === "logo.svg?v=1", "favicon href");
@@ -344,6 +389,10 @@ logo.applyFavicon("/brand/logo.png");
 check(icon.attrs.href === "/brand/logo.png", "favicon href for a raster file");
 check(!("type" in icon.attrs), "a raster file must not be declared SVG");
 check(head.length === 1, "an existing icon link is reused, not duplicated");
+logo.applyFavicon("");
+check(icon.removed === true, "removing the logo removes the tab icon");
+logo.applyFavicon("/brand/logo.svg");
+check(head.length === 2, "a logo set again installs a new icon link");
 
 if (fail.length) { console.error(fail.join("\n")); process.exit(1); }
 `

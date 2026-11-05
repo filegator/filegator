@@ -104,9 +104,9 @@ The remaining top-level keys:
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `app_name` | `FileGator` | Page title. |
-| `logo` | the built-in logo | The logo in light mode, shown in the header and on the login page. Empty means the FileGator artwork built into the binary. See [The logo](#the-logo) |
-| `logo_dark` | the built-in dark logo | The logo in dark mode. Empty means the built-in dark artwork |
+| `app_name` | `FileGator` | Page title, and the header and login branding when `logo` is empty. |
+| `logo` | the built-in logo | The logo in light mode, shown in the header and on the login page. Empty means **no logo**: the header and login card show `app_name` instead. The built-in artwork stays available at `/img/filegator-logo.svg`. See [The logo](#the-logo) |
+| `logo_dark` | the built-in dark logo | The logo in dark mode. Empty means `logo` is used in both themes |
 | `language` | `english` | Default interface language |
 | `language_selection` | `true` | Whether users may switch languages. When `true`, the account menu offers **Language** (a dialog with a dropdown of every available language); when `false` the item is absent and the interface stays in `language`. **Admin → UI** |
 | `date_format` | `YYYY/MM/DD HH:mm:ss` | How the **Modified** column is written. See below |
@@ -135,13 +135,13 @@ shows the FileGator logo without reaching out to another server, and keeps
 working on a machine with no internet access.
 
 Both fields are edited on **Admin → UI**, with a preview showing the two
-variants side by side. Each accepts:
+variants side by side and their empty state. Each accepts:
 
 - an absolute `http(s)` URL, for a logo hosted elsewhere;
 - a path on this server, such as `/img/mine.svg`. A file in a custom interface
   folder (`frontend_dir`) is served from there, so `/img/mine.svg` works when
   the folder has an `img/mine.svg`;
-- an empty value, meaning the built-in logo.
+- an empty value, meaning no logo.
 
 Anything else — a bare relative path, `javascript:`, `data:` — is refused when
 saved, because the value is written into an `<img src>` where those either break
@@ -154,9 +154,13 @@ logo, and the FileGator drawing reappearing in half of the themes would be a
 surprise. Dark lettering on a dark page is hard to read, which is the reason
 `logo_dark` exists.
 
-**Removing a logo** is done by emptying both fields, which restores the built-in
-artwork. There is no "no logo at all" setting: the header's home button and the
-login page both lean on the branding.
+**Removing a logo** is done by emptying both fields. The header and the login
+card then show `app_name` instead, so the installation still has branding. The
+browser tab icon is removed too, rather than falling back to the built-in
+drawing. The built-in artwork is not forced back: it is available at the path
+shown as the field's placeholder (`/img/filegator-logo.svg`, and
+`/img/filegator-logo-dark.svg` for the dark field), and typing that path
+restores it.
 
 Under `-base-path` the built-in paths are returned with that prefix
 (`/browser/img/filegator-logo.svg`), so a deployment under a subpath loads

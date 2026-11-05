@@ -34,10 +34,10 @@ type Settings struct {
 	AppName           *string `json:"app_name"`
 	Language          *string `json:"language"`
 	LanguageSelection *bool   `json:"language_selection"`
-	// The logo pair: light and dark. Empty means the FileGator artwork
-	// embedded in the binary, so clearing a field restores it rather than
-	// leaving the interface unbranded. One pair covers every surface — the
-	// header of the browser and of the admin area, and the login card.
+	// The logo pair: light and dark. Empty means no logo, so the header and
+	// the login card show the application title instead. One pair covers every
+	// surface — the header of the browser and of the admin area, and the login
+	// card. The built-in artwork stays reachable by setting its path.
 	Logo       *string `json:"logo"`
 	LogoDark   *string `json:"logo_dark"`
 	DateFormat *string `json:"date_format"`
@@ -383,7 +383,7 @@ func validateSettings(req *SettingsIn) error {
 		}
 		if err := config.ValidateLogoURL(*logo.value); err != nil {
 			return httpx.Errorf(http.StatusBadRequest, httpx.CodeBadRequest,
-				logo.field+" "+err.Error()+"; leave it empty to use the built-in logo")
+				logo.field+" "+err.Error()+"; leave it empty to show the title instead")
 		}
 	}
 	if req.set("upload_max_size") && *req.UploadMaxSize <= 0 {

@@ -973,29 +973,29 @@ export function createAdmin({ onRootChange, onClose, onSettingsChange, capabilit
     const languageSelection = checkbox(settings.language_selection);
     form.append(labelWrap("Allow users to change the language", languageSelection));
 
-    // The logo pair. Each field is a URL; an empty one means the FileGator
-    // artwork embedded in the binary, which is what a fresh install has. One
-    // pair serves every surface — the browser header, the admin header and the
-    // login card — so there is nothing else to configure for the login page.
-    // The preview renders the pair on split light/dark halves so the
-    // administrator sees which picture appears in each theme, not just what
-    // the URL says.
+    // The logo pair. Each field is a URL; leave both empty to show the title
+    // instead of a picture. The placeholders are the built-in artwork, so it
+    // stays easy to restore after it has been removed. One pair serves every
+    // surface — the browser header, the admin header and the login card — so
+    // there is nothing else to configure for the login page. The preview
+    // renders the pair on split light/dark halves so the administrator sees
+    // which picture appears in each theme, not just what the URL says.
     const logo = field(form, "Logo URL", "text", settings.logo || "");
-    logo.placeholder = "Leave empty to use the built-in logo";
+    logo.placeholder = BUILT_IN_LOGO;
     const logoDark = field(form, "Logo URL (dark mode)", "text", settings.logo_dark || "");
-    logoDark.placeholder = "Leave empty to use the built-in dark logo";
+    logoDark.placeholder = BUILT_IN_LOGO_DARK;
     const logoPreview = create("div", { className: "logo-preview" }, []);
     form.append(
       logoPreview,
       create("p", {
         className: "admin-hint",
-        text: "Shown in the header and on the login page. An empty field means the built-in FileGator logo. A path starting with / is served by this application; an http(s) URL is loaded from elsewhere.",
+        text: "Shown in the header and on the login page. Leave both fields empty to show the title instead of a logo. A path starting with / is served by this application; an http(s) URL is loaded from elsewhere.",
       })
     );
 
-    // The server substitutes the built-in artwork for an empty field, so an
-    // empty field previews the picture the page will actually show.
-    renderLogoPreview(logoPreview, logo, logoDark, BUILT_IN_LOGO, BUILT_IN_LOGO_DARK);
+    // An empty field previews the title that will replace the logo, not the
+    // built-in artwork: the preview promises what the page will show.
+    renderLogoPreview(logoPreview, logo, logoDark);
     // Date pattern, in the moment.js tokens v7 used so an upgraded config
     // keeps working. A preview renders the pattern with the current moment,
     // because "YY/MM/DD hh" is hard to read until it is shown as a date.
@@ -1737,33 +1737,35 @@ function field(form, labelText, type, value) {
  * because the dark artwork is meant to be seen on a dark surface: on a light
  * admin page a white logo would look broken. An image that fails to load is
  * replaced by a "?" rather than a broken-image glyph, so a typo reads as
- * "missing" while the field stays editable.
+ * "missing" while the field stays editable. An empty field shows "No logo",
+ * which is what the page will show: the title takes its place.
  *
- * `fallbackLight`/`fallbackDark` are what the server substitutes for an empty
- * field — the built-in artwork — except that an empty dark field shows the
- * light logo when one was typed, which is the rule the server applies too.
+ * An empty dark field shows the light logo when one was typed, which is the
+ * rule the server applies too.
  */
-function renderLogoPreview(container, lightInput, darkInput, fallbackLight, fallbackDark) {
-  const shownDark = () =>
-    darkInput.value.trim() || lightInput.value.trim() || fallbackDark;
+function renderLogoPreview(container, lightInput, darkInput) {
+  const shownDark = () => darkInput.value.trim() || lightInput.value.trim();
 
   function paint() {
     clear(container);
     const pair = [
-      ["is-light", lightInput.value.trim() || fallbackLight, "Light mode"],
+      ["is-light", lightInput.value.trim() || "", "Light mode"],
       ["is-dark", shownDark(), "Dark mode"],
     ];
     for (const [variant, src, label] of pair) {
-      const img = create("img", { className: "logo-preview-image", attrs: { alt: "" } });
-      img.addEventListener("error", () => img.classList.add("is-missing"));
-      img.addEventListener("load", () => img.classList.remove("is-missing"));
-      img.src = src;
-      container.append(
-        create("div", { className: `logo-preview-half ${variant}` }, [
-          create("span", { className: "logo-preview-label", text: label }),
-          img,
-        ])
-      );
+      const half = create("div", { className: `logo-preview-half ${variant}` }, [
+        create("span", { className: "logo-preview-label", text: label }),
+      ]);
+      if (src) {
+        const img = create("img", { className: "logo-preview-image", attrs: { alt: "" } });
+        img.addEventListener("error", () => img.classList.add("is-missing"));
+        img.addEventListener("load", () => img.classList.remove("is-missing"));
+        img.src = src;
+        half.append(img);
+      } else {
+        half.append(create("span", { className: "logo-preview-empty", text: "No logo" }));
+      }
+      container.append(half);
     }
   }
   lightInput.addEventListener("input", paint);

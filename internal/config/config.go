@@ -25,9 +25,9 @@ import (
 
 // Frontend holds settings exposed to the browser.
 type Frontend struct {
-	// AppName is the page title, shown in the browser tab and in the login
-	// heading. It is not repeated next to the logo. It may be empty, in which
-	// case only the logo is shown.
+	// AppName is the page title, shown in the browser tab, as the header and
+	// login branding when no logo is set, and as the login heading. It is not
+	// repeated next to a logo.
 	AppName string `json:"app_name"`
 	// Language is the default interface language, set by the administrator.
 	Language string `json:"language"`
@@ -35,16 +35,16 @@ type Frontend struct {
 	// language from the profile panel.
 	LanguageSelection bool `json:"language_selection"`
 	// Logo is the image shown in light mode: the header and the login card.
-	// Empty means the FileGator logo embedded in the binary — which is what
-	// every slot falls back to, so a fresh install is branded before anything
-	// is configured and never fetches its own logo from another server.
+	// Empty means no logo, in which case the interface shows AppName instead.
+	// The defaults point at the FileGator artwork embedded in the binary, so a
+	// fresh install is branded before anything is configured and never fetches
+	// its own logo from another server.
 	//
 	// The key and its meaning are unchanged from v7, so an upgraded config
 	// keeps its logo.
 	Logo string `json:"logo"`
-	// LogoDark is the logo shown in dark mode; empty means the dark variant of
-	// the embedded FileGator logo. The interface swaps to it while the theme is
-	// dark.
+	// LogoDark is the logo shown in dark mode. Empty falls back to Logo; the
+	// interface swaps to it while the theme is dark.
 	LogoDark           string   `json:"logo_dark"`
 	UploadMaxSize      int64    `json:"upload_max_size"`
 	UploadChunkSize    int64    `json:"upload_chunk_size"`

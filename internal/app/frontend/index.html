@@ -46,16 +46,6 @@
         link.as = "image";
         link.href = "{{BASE_PATH}}" + file;
         document.head.appendChild(link);
-
-        // The tab icon is the logo itself, as on the docs site: one SVG, no
-        // raster favicon to keep in step. Relative, so it follows <base> and
-        // works under a mount prefix; applyFavicon replaces it once /api/config
-        // answers, in case the administrator configured their own logo.
-        var icon = document.createElement("link");
-        icon.rel = "icon";
-        icon.type = "image/svg+xml";
-        icon.href = file.slice(1);
-        document.head.appendChild(icon);
       })();
     </script>
     <!--
@@ -92,6 +82,8 @@
       <form id="login-form" class="login-card" novalidate>
         <img id="login-logo-light" class="login-logo logo-light hidden" alt="" />
         <img id="login-logo-dark" class="login-logo logo-dark hidden" alt="" />
+        <!-- Shown when no logo is configured: the title is the branding. -->
+        <div id="login-name" class="login-name app-name hidden"></div>
 
         <label class="field" for="login-username">
           <span class="field-label" id="label-username">Username</span>
@@ -148,6 +140,8 @@
           <a id="app-home" class="app-home" href="#/" title="Home">
             <img id="app-logo-light" class="app-logo logo-light hidden" alt="" />
             <img id="app-logo-dark" class="app-logo logo-dark hidden" alt="" />
+            <!-- Shown when no logo is configured: the title is the branding. -->
+            <span id="app-name" class="app-name hidden"></span>
           </a>
         </div>
         <!-- Search leads the header and is always visible. On a phone it is an
@@ -383,6 +377,8 @@
             <a id="admin-home" class="app-home" href="#/" title="Home">
               <img id="admin-logo-light" class="app-logo admin-logo logo-light hidden" alt="" />
               <img id="admin-logo-dark" class="app-logo admin-logo logo-dark hidden" alt="" />
+              <!-- Shown when no logo is configured: the title is the branding. -->
+              <span id="admin-name" class="app-name hidden"></span>
             </a>
           </div>
 

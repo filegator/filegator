@@ -22,12 +22,11 @@ let userMenu = null;
 let currentUser = null;
 let notices = null;
 let capabilities = {};
-// An empty appName means "logo only": the interface shows no title text.
-//
-// The logo is a light/dark pair serving the header, the admin header and the
-// login card (js/modules/logo.js). Until /api/config answers, and if it never
-// does, the page already shows the artwork embedded in the binary: the same
-// files the server substitutes for an unset logo, so nothing flashes.
+// The app name is the branding when no logo is configured. Until /api/config
+// answers, and if it never does, the page already shows the artwork embedded in
+// the binary: the same files a fresh install's defaults point at, so nothing
+// flashes. An administrator who removes the logo gets the title once the
+// configuration arrives.
 let branding = { appName: "FileGator", logos: defaultLogos() };
 // What this start of the server created or could not resolve, from
 // /api/config. Shown in the notice bar to administrators (see modules/notices.js).

@@ -210,10 +210,12 @@ is used in the header of the file browser, in the header of the administration
 area and on the login page; the login screen has no separate setting. The
 browser shows the dark variant while the interface is in dark mode.
 
-An empty field means the FileGator logo that is **built into the binary**
-(`/img/filegator-logo.svg` and `/img/filegator-logo-dark.svg`), which is the
-default on a fresh install. No configuration is needed to get it, and nothing
-is fetched from another server to show it.
+An empty field means **no logo**. The logo's places — the header of the file
+browser, the header of the administration area and the login card — then show
+the application title instead, so the installation keeps its branding. The
+FileGator artwork is still **built into the binary** at
+`/img/filegator-logo.svg` and `/img/filegator-logo-dark.svg`; those paths are
+the fields' placeholders, and typing one restores the picture.
 
 To use your own artwork, either give an `http(s)` URL or put the file in a
 custom interface folder and point at it with a path:
@@ -236,8 +238,7 @@ any size and on any screen. A raster format works too — the fields are plain
 The **browser tab icon is the logo too**, as on the documentation site: the
 light logo becomes the favicon, so a customised install is branded in the tab
 as well as on the page. There is no separate favicon setting and no raster
-favicon to keep in step; with no logo configured, the tab shows the built-in
-FileGator drawing.
+favicon to keep in step. With no logo configured there is no tab icon either.
 
 Upgrading a customised interface:
 

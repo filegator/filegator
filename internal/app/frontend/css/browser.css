@@ -90,10 +90,12 @@
    keyboard focus ring already say it can be used. */
 
 /* Without a configured logo the link has nothing to show, so it disappears
-   with it rather than forming an invisible tap target in the corner.
+   with it rather than forming an invisible tap target in the corner — unless
+   the title is standing in for the logo, in which case the link is the home
+   button for the title.
    :has() cannot see through the theme pair, so it tests the artwork itself: a
    logo that resolved (src set) means the link stays, whatever the theme. */
-.app-home:not(:has(img[src])) {
+.app-home:not(:has(img[src])):not(:has(.app-name:not(.hidden))) {
   display: none;
 }
 

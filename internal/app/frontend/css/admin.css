@@ -499,6 +499,15 @@
   max-height: 40px;
 }
 
+/* An empty field has no picture to show: the title takes its place on the
+   page, and the preview says so rather than showing built-in artwork that is
+   no longer configured. */
+.logo-preview-empty {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 /* A URL that does not load is greyed out rather than shown as a broken-image
    icon: the field is still editable and the hint below says what an empty one
    means. */

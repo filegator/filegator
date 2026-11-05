@@ -5,7 +5,7 @@
 import { api, ApiError } from "../modules/api.js";
 import { el, hide, setVisible, show } from "../modules/dom.js";
 import { languages, canSelectLanguage, t } from "../modules/i18n.js";
-import { applyLogo } from "../modules/logo.js";
+import { applyAppName, applyLogo } from "../modules/logo.js";
 
 /**
  * Wires up the login form.
@@ -137,11 +137,12 @@ export function createLogin({ onSuccess, onLanguageChange }) {
     setConfig(next) {
       config = next || {};
     },
-    // The login card shows the logo only; the app name is the page title. It
-    // is the same logo as the header, in the theme's variant.
-    setBrand(_appName, logos) {
+    // The login card shows the logo, or the app name when no logo is set; the
+    // app name is also the page title. It is the same branding as the header.
+    setBrand(appName, logos) {
       render();
       applyLogo("login-logo", logos.light, logos.dark, "");
+      applyAppName("login-name", appName, !logos.light);
     },
   };
 }

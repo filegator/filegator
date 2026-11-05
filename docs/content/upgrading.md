@@ -268,7 +268,7 @@ both, after a confirmation.
 | Batch download created a temporary archive and handed out a link from an archive list. | The zip is **streamed** straight to the browser. Nothing is left behind, and there is nothing to expire. |
 | Navigating with the **browser's Back button skipped folders**. | Back and Forward walk the folder history. |
 | The **timezone** setting. | The browser's own clock is used; a `timezone` key in `config.json` is ignored. Times are formatted with `date_format`, in the same moment.js token syntax as version 7, so an old pattern keeps working. |
-| **`config.php`** was the place to set the logo, title and language, and a hand edit was how it was done. | The same things are on **Setup → UI**, so they survive an upgrade. Do not patch files for them. |
+| **`config.php`** was the place to set the logo, title and language, and a hand edit was how it was done. | The same things are on **Setup → UI**, so they survive an upgrade. Do not patch files for them. Clearing both logo fields shows the title instead of falling back to the built-in artwork. |
 | The frontend arrived **compiled**. | The frontend is readable source, served from the binary, and can be replaced with a folder. |
 | A PHP **web server setup**: the files in a web root, with rewrite rules. | The binary listens on a socket; a reverse proxy in front of it is optional but recommended for HTTPS. |
 

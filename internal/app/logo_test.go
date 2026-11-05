@@ -10,13 +10,16 @@ import (
 )
 
 // The logo is the one piece of branding a deployment is judged by before it is
-// configured, so its fallbacks are pinned here: a fresh install must show the
-// artwork embedded in the binary (never a URL on the project website, which
-// fails offline), a custom logo must be used in both themes when only one
-// picture was supplied, and the pair must survive a subpath deployment.
+// configured, so its fallbacks are pinned here: a fresh install's defaults point
+// at the artwork embedded in the binary (never a URL on the project website,
+// which fails offline), a custom logo must be used in both themes when only one
+// picture was supplied, an empty logo means the title is shown instead, and the
+// pair must survive a subpath deployment.
 
 func TestResolveLogoUsesTheEmbeddedArtworkByDefault(t *testing.T) {
-	got := resolveLogo(config.Frontend{})
+	// The shipped defaults are the embedded pair, so a fresh install is branded.
+	defaults := config.Default().Frontend
+	got := resolveLogo(defaults)
 	if got.Logo != config.DefaultLogo {
 		t.Errorf("logo = %q, want the embedded %q", got.Logo, config.DefaultLogo)
 	}
@@ -29,6 +32,21 @@ func TestResolveLogoUsesTheEmbeddedArtworkByDefault(t *testing.T) {
 		if !newStaticServer(frontendRoot()).exists(strings.TrimPrefix(name, "/")) {
 			t.Errorf("the default logo %s is not an embedded asset", name)
 		}
+	}
+}
+
+// Removing the logo is a real choice: an empty field must not be rewritten to
+// the built-in artwork, or the header could never fall back to the title.
+func TestResolveLogoLeavesAnEmptyLogoEmpty(t *testing.T) {
+	got := resolveLogo(config.Frontend{})
+	if got.Logo != "" || got.LogoDark != "" {
+		t.Errorf("logos = %q/%q, want no logo so the title is shown", got.Logo, got.LogoDark)
+	}
+	// The pair is one piece of branding; a dark value alone must not leave the
+	// light theme with nothing and no title to stand in.
+	got = resolveLogo(config.Frontend{LogoDark: "/img/mine-dark.svg"})
+	if got.Logo != "" || got.LogoDark != "" {
+		t.Errorf("logos = %q/%q; a dark-only value must not half-configure the pair", got.Logo, got.LogoDark)
 	}
 }
 
@@ -46,14 +64,11 @@ func TestResolveLogoKeepsWhatWasConfigured(t *testing.T) {
 }
 
 // One picture, no dark counterpart: the dark theme shows the same picture
-// rather than the built-in dark artwork reappearing beside a custom logo.
+// rather than no logo at all.
 func TestResolveLogoFallsBackToTheLightLogo(t *testing.T) {
 	got := resolveLogo(config.Frontend{Logo: "/img/mine.svg"})
 	if got.LogoDark != "/img/mine.svg" {
 		t.Errorf("dark logo = %q, want the light logo; a custom logo must not be blank in dark mode", got.LogoDark)
-	}
-	if got := resolveLogo(config.Frontend{LogoDark: "/img/mine-dark.svg"}); got.Logo != config.DefaultLogo {
-		t.Errorf("logo = %q; only the dark variant was set, so the light one is the built-in", got.Logo)
 	}
 }
 
@@ -76,7 +91,8 @@ func TestLogoUnderBasePath(t *testing.T) {
 }
 
 // The browser needs both variants and cannot tell an empty slot from a
-// configured one, so /api/config must never send an empty logo.
+// configured one, so /api/config must send the stored choice exactly: empty
+// when no logo was set, which tells the interface to show the title.
 func TestPublicConfigCarriesBothLogos(t *testing.T) {
 	app := newTestApp(t)
 	if err := app.config.Update(func(c *config.Config) error {
@@ -97,8 +113,11 @@ func TestPublicConfigCarriesBothLogos(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if envelope.Data.Logo != config.DefaultLogo || envelope.Data.LogoDark != config.DefaultLogoDark {
-		t.Errorf("logos = %q/%q, want the built-in pair", envelope.Data.Logo, envelope.Data.LogoDark)
+	if envelope.Data.Logo != "" || envelope.Data.LogoDark != "" {
+		t.Errorf("logos = %q/%q, want both empty so the title is shown", envelope.Data.Logo, envelope.Data.LogoDark)
+	}
+	if envelope.Data.AppName == "" {
+		t.Error("app_name is empty; the title cannot stand in for the removed logo")
 	}
 }
 

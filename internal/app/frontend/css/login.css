@@ -51,6 +51,14 @@
   margin: 0 auto 1rem;
 }
 
+/* The title stands in for the logo when none is configured, so it takes the
+   same centred place at the top of the card. */
+.login-name {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
 .field {
   display: block;
   margin-bottom: 1rem;
