@@ -2,6 +2,7 @@
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
+- Contributions are welcome under the same MIT License.
 - Before starting to write code, talk to a maintainer and discuss proposed changes
 - File an issue before submitting a pull request
 - Please make sure continuous integration passes
