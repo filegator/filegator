@@ -106,6 +106,13 @@ user (UID 65532). Things worth knowing while writing code:
   on a host without qemu. No emulation is needed: Go cross-compiles, and the
   runtime just unpacks files.
 
+A release is published by `.github/workflows/ci-dockerhub.yml` on every `v8*`
+tag: one buildx job builds all five platforms and pushes
+`filegator/filegator:<tag>` and `filegator/filegator:v8` to Docker Hub.
+The workflow has no QEMU setup step for the reason above; if
+the Dockerfile ever gains a foreign-architecture `RUN`, that absence turns into
+a real failure instead of being masked by emulation.
+
 `docs/content/docker.md` is the operator's page: volumes, ownership, a proxy in
 front, and upgrading. Change it in the same commit as the `Dockerfile`.
 

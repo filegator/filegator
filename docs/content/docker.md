@@ -305,6 +305,9 @@ docker buildx build \
   -t filegator/filegator:v8.x.x --push .
 ```
 
+`.github/workflows/ci-dockerhub.yml` runs this on every `v8*` tag and pushes
+`filegator/filegator:<tag>` and `filegator/filegator:v8` to Docker Hub.
+
 `arm/v7` and `arm64` are unrelated builds: the first is 32-bit ARM, the second
 64-bit. Both are published because neither runs on the other's hardware.
 
