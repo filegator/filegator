@@ -375,6 +375,34 @@
   display: none;
 }
 
+/* One compact sort control replaces the three column buttons on a phone. */
+.col-sort-mobile {
+  display: none;
+}
+
+.sort-mobile-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0 0.25rem;
+  overflow: hidden;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.sort-mobile-button:hover,
+.sort-mobile-button:focus-visible,
+.sort-mobile-button[aria-expanded="true"] {
+  color: var(--primary-dark);
+}
+
 .file-name {
   display: flex;
   align-items: center;
@@ -822,8 +850,68 @@ body.is-dragging::after {
     overflow: visible;
   }
 
+  /* The select-all checkbox and the sort controls stay at the top of the
+     listing on a phone: they are the only way to select everything or change
+     the order without a keyboard. */
   .file-table thead {
+    display: block;
+  }
+
+  .file-table thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 0.25rem;
+    padding: 0 0.6rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .file-table thead th {
+    position: static;
+    display: flex;
+    align-items: center;
+    width: auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.72rem;
+  }
+
+  .file-table thead th.col-select {
+    flex: 0 0 auto;
+    padding-right: 0.35rem;
+  }
+
+  /* One select replaces the three sort buttons on a phone. */
+  .file-table thead th.col-name,
+  .file-table thead th.col-size,
+  .file-table thead th.col-time {
     display: none;
+  }
+
+  .file-table thead th.col-sort-mobile {
+    display: flex;
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-left: auto;
+  }
+
+  .file-table thead .sort-mobile-button {
+    width: auto;
+  }
+
+  .file-table thead th.col-actions {
+    display: none;
+  }
+
+  .file-table thead .sort-button {
+    width: auto;
+    max-width: 100%;
+    min-height: 44px;
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   /* One compact row per entry: checkbox, icon, name, ⋯, with size and date as
@@ -902,13 +990,15 @@ body.is-dragging::after {
     justify-content: center;
   }
 
-  /* Desktop columns are hidden on phones: the card shows the name only.
-     Written as `.file-table .col-x` on purpose — `.file-table td` above sets
-     `display: block` and, being a class plus an element, outranks a bare
+  /* Desktop columns are hidden on phones; the small metadata line is the only
+     copy under the name. The header keeps its Size and Modified buttons as
+     sort controls.
+     Written as `.file-table tbody .col-x` on purpose — `.file-table td` above
+     sets `display: block` and, being a class plus an element, outranks a bare
      `.col-x { display: none }` no matter what order the rules come in. That
      is why the size and date columns stayed visible on a phone. */
-  .file-table .col-size,
-  .file-table .col-time {
+  .file-table tbody .col-size,
+  .file-table tbody .col-time {
     display: none;
   }
 

@@ -25,7 +25,7 @@ function parentOfPath(p) {
 import { askCollision, KEEP_BOTH, REPLACE } from "../modules/collision.js";
 import { CollisionSession } from "../modules/collisions.js";
 import { partition } from "../modules/filter.js";
-import { nextDirection, sortEntries } from "../modules/sort.js";
+import { SORT_KEYS, nextDirection, sortEntries } from "../modules/sort.js";
 import { createTreeView, openFolderTree } from "../modules/tree.js";
 import { backEntry, isBack, parentOf } from "../modules/back_entry.js";
 import { openPermissions } from "../modules/permissions_dialog.js";
@@ -79,6 +79,7 @@ export function createBrowser({ onLogout }) {
   const btnBatch = el("btn-batch-download");
   const btnBatchDelete = el("btn-batch-delete");
   const selectAll = el("select-all");
+  const sortMobile = el("sort-mobile");
   let uploadPanel = null;
 
   let currentPath = "/";
@@ -121,6 +122,7 @@ export function createBrowser({ onLogout }) {
   let sortKey = "name";
   let sortDesc = false;
   const DEFAULT_SORT = { key: "name", desc: false };
+  const SORT_LABELS = { name: "Name", size: "Size", time: "Modified" };
 
   function showToast(message, kind = "error") {
     toast.textContent = message;
@@ -829,6 +831,13 @@ export function createBrowser({ onLogout }) {
         arrow.textContent = active ? (sortDesc ? "▼" : "▲") : "";
       }
     }
+    if (sortMobile) {
+      sortMobile.textContent = `${SORT_LABELS[sortKey]} ${sortDesc ? "▼" : "▲"}`;
+      sortMobile.setAttribute(
+        "aria-label",
+        `Sort by ${SORT_LABELS[sortKey]}, ${sortDesc ? "descending" : "ascending"}`
+      );
+    }
   }
 
   /** Applies a column sort, redrawing from the listing already loaded. */
@@ -1080,6 +1089,18 @@ export function createBrowser({ onLogout }) {
       header.addEventListener("click", () => setSort(key));
     }
   }
+  // On a phone one small control opens the three sort choices. Picking the
+  // active one again flips the direction, exactly like a desktop header click.
+  if (sortMobile) {
+    sortMobile.addEventListener("click", () => {
+      openRowMenu({
+        anchor: sortMobile,
+        label: "Sort by",
+        actions: SORT_KEYS.map((key) => ({ id: key, label: SORT_LABELS[key] })),
+        onChoose: (id) => setSort(id),
+      });
+    });
+  }
 
   /**
    * Builds the left panel once, then reuses it.
@@ -1269,12 +1290,19 @@ export function createBrowser({ onLogout }) {
   // pointer moves into the menu: otherwise the menu looks detached from the
   // row it belongs to.
   onRowMenuChange((anchor) => {
+    if (sortMobile) {
+      sortMobile.setAttribute("aria-expanded", anchor === sortMobile ? "true" : "false");
+    }
     // Every row, not just the highlighted ones: a stale highlight from a
     // previous menu must be cleared even if the classes changed underneath.
     for (const row of list.querySelectorAll("tr")) {
       row.classList.remove("has-menu-open");
     }
     if (!anchor) {
+      return;
+    }
+    // The mobile sort button lives in the header, not in a file row.
+    if (anchor.closest && anchor.closest("thead")) {
       return;
     }
     // The anchor lives in the row's actions cell. Walking up by tag is what
