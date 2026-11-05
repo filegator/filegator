@@ -126,6 +126,11 @@ default branch. It runs the same lint, test and docs checks before building,
 and waits for the release to exist before uploading, so publishing the tag and
 the release in either order works.
 
+Both release workflows check the tag against `internal/version.Version` first,
+through `TestVersionMatchesReleaseTag` with `FILEGATOR_RELEASE_TAG` set to the
+tag. Bump `internal/version/version.go` before tagging; a forgotten bump fails
+the run with that instruction instead of publishing a mislabelled binary.
+
 `docs/content/docker.md` is the operator's page: volumes, ownership, a proxy in
 front, and upgrading. Change it in the same commit as the `Dockerfile`.
 

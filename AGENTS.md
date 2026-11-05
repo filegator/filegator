@@ -287,6 +287,10 @@ Follow the surrounding style. These are patterns already used throughout:
   `release: published`, because GitHub runs release-triggered workflows from
   the default branch (`master`), where a `v8`-only workflow would not exist
   yet.
+- **A release tag must match `internal/version.Version`.** Both release
+  workflows run `TestVersionMatchesReleaseTag` with
+  `FILEGATOR_RELEASE_TAG=${{ github.ref_name }}` before building anything, so
+  bump `internal/version/version.go` before tagging the release.
 
 ## Frontend conventions
 

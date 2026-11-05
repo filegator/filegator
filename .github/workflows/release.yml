@@ -44,6 +44,13 @@ jobs:
           go-version-file: go.mod
           cache: false
 
+      # The tag and version.go must agree before anything is built, or the
+      # image reports a different release than the one it is filed under.
+      - name: Release version
+        env:
+          FILEGATOR_RELEASE_TAG: ${{ github.ref_name }}
+        run: go test ./internal/version -run TestVersionMatchesReleaseTag -count=1
+
       # A tag push does not run the Tests workflow, so check first: a tag with a
       # broken test must not publish binaries.
       - name: Formatting
