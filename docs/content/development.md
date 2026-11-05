@@ -5,7 +5,7 @@ weight: 60
 
 ## Requirements
 
-- **Go 1.26.2 or newer** — the version in `go.mod`, which CI reads directly.
+- **Go** — the version in `go.mod`, which CI reads directly.
   Nothing else: no Node, no PHP, no build step for the frontend bundle.
 - Dependencies are **vendored** (about 9 MB), so the build works offline.
 

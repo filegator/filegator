@@ -5,7 +5,7 @@
 
 # Cross-compile on the host architecture, so a multi-platform build never needs
 # emulation. CGO_ENABLED=0 makes the binary static, so the libc does not matter.
-FROM --platform=$BUILDPLATFORM golang:1.26 AS build
+FROM --platform=$BUILDPLATFORM golang:1.27 AS build
 
 ARG TARGETOS
 ARG TARGETARCH

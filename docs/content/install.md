@@ -50,7 +50,7 @@ action has no useful effect on a local Windows drive.
 
 ## Build from source
 
-You need **Go 1.22 or newer** and nothing else — no Node, no PHP, no frontend
+You need **Go** and nothing else — no Node, no PHP, no frontend
 build step. Dependencies are vendored, so the build works offline.
 
 ```sh
