@@ -240,7 +240,8 @@ class FilesystemTest extends TestCase
         $this->assertEquals('test (2).txt', $this->invokeMethod($this->storage, 'upcountName', ['test (1).txt']));
         $this->assertEquals('test (100).txt', $this->invokeMethod($this->storage, 'upcountName', ['test (99).txt']));
         $this->assertEquals('test (1)', $this->invokeMethod($this->storage, 'upcountName', ['test']));
-        $this->assertEquals('test (9) (2) (1)', $this->invokeMethod($this->storage, 'upcountName', ['test (9) (2)']));
+        $this->assertEquals('test (2)', $this->invokeMethod($this->storage, 'upcountName', ['test (1)']));
+        $this->assertEquals('test (9) (3)', $this->invokeMethod($this->storage, 'upcountName', ['test (9) (2)']));
         $this->assertEquals('test (2) (3) (4).txt', $this->invokeMethod($this->storage, 'upcountName', ['test (2) (3) (3).txt']));
         $this->assertEquals('1 (1)', $this->invokeMethod($this->storage, 'upcountName', ['1']));
         $this->assertEquals('test (1).txt (1).zip', $this->invokeMethod($this->storage, 'upcountName', ['test (1).txt.zip']));
@@ -391,7 +392,7 @@ class FilesystemTest extends TestCase
 
         $this->assertDirectoryExists(TEST_REPOSITORY . '/test');
         $this->assertDirectoryExists(TEST_REPOSITORY . '/test (1)');
-        $this->assertDirectoryExists(TEST_REPOSITORY . '/test (1) (1)'); // goes here
+        $this->assertDirectoryExists(TEST_REPOSITORY . '/test (2)'); // goes here
     }
 
     public function testMovingFileWithTheSameNameUpcountsSecondFilename()
