@@ -455,6 +455,28 @@ func TestDownloadInlinePDF(t *testing.T) {
 	}
 }
 
+// TestDownloadIsNotCached pins the v7 behaviour v8 has to keep: a body served
+// by the download endpoint must not be reused from a browser cache after the
+// file at the same path was replaced. http.ServeContent adds Last-Modified, so
+// without an explicit directive a browser could treat the old body as fresh.
+func TestDownloadIsNotCached(t *testing.T) {
+	e := newEnv(t)
+	e.addUser("alice", "pw-alice", "/alice", auth.RoleUser, auth.PermRead, auth.PermDownload)
+	e.write("alice/doc.pdf", "%PDF-1.4")
+	session := e.login("alice", "pw-alice")
+
+	// One attachment and one inline response: the header belongs to both.
+	for _, name := range []string{"/docs/report.txt", "/doc.pdf"} {
+		rec := e.do(http.MethodGet, "/api/files/download?path="+name, "", session)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: status %d body %s", name, rec.Code, rec.Body)
+		}
+		if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+			t.Errorf("%s: Cache-Control = %q, want no-store", name, got)
+		}
+	}
+}
+
 // TestDownloadInlineListIsHonoured pins the meaning of the admin "Inline
 // download extensions" list: only a listed extension is rendered, and a listed
 // scriptable one is rendered with its real type rather than quietly refused

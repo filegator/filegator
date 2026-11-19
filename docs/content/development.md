@@ -219,6 +219,11 @@ stay available for recovery. A probe failure allows the write, because the
 operating system still refuses a genuinely full disk and a broken probe must not
 make the file manager read-only. The setting is on **Admin → Files**.
 
+**Downloads are never cached.** `/api/files/download` and `/api/files/batch`
+send `Cache-Control: no-store`; a file replaced at the same path must be fetched
+again rather than shown from the browser cache. This matches version 7. There is
+no cache lifetime to configure.
+
 **There is no `config.json.sample`**, though there is a `users.json.sample`.
 A sample would carry a session key identical on every install, or become a
 second description of the defaults that drifts. The reference is the

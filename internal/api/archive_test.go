@@ -206,6 +206,9 @@ func TestBatchStreamsZip(t *testing.T) {
 	if cd := rec.Header().Get("Content-Disposition"); !strings.Contains(cd, "attachment") {
 		t.Errorf("content disposition = %q", cd)
 	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", got)
+	}
 
 	data := rec.Body.Bytes()
 	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))

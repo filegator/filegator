@@ -243,6 +243,12 @@ Files are sent as `attachment` unless their extension is listed in
 `avif`), in which case they are rendered inline with their real content type.
 Responses always include `X-Content-Type-Options: nosniff`.
 
+Downloads are sent with `Cache-Control: no-store`, for single files and for
+batch zips alike. A file replaced at the same path is therefore fetched again
+instead of being shown from a browser cache: v7 streamed downloads without a
+cache lifetime, and v8 keeps that behaviour. There is no cache lifetime to
+configure.
+
 Everything else stays an attachment, which is what keeps an uploaded `.html`
 or `.svg` from executing on this origin. That protection is the **default**, not
 a ceiling: an administrator can list `svg` or `html` on **Admin → Files →

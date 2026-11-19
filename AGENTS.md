@@ -140,6 +140,11 @@ Follow the surrounding style. These are patterns already used throughout:
 - **API responses:** success is `{"data": ...}`, failure is
   `{"error": {"message", "code"}}`, 204 for no content. Use the helpers in
   `internal/api/httpx` / `internal/api/response.go`.
+- **Downloads are never cached.** `/api/files/download` and `/api/files/batch`
+  send `Cache-Control: no-store`. `http.ServeContent` adds `Last-Modified`, and
+  without an explicit directive a browser may reuse a download and show a file
+  that was replaced at the same path. v7 did not cache downloads and v8 does not
+  either; do not add a TTL without a separate decision.
 - **Routes:** registered with the router via a `XxxRoutes(rt *router.Router)`
   method on the package's server struct. `RegisterAPIRoutes` in
   `internal/app/routes.go` is the single list; the docs generator uses the same

@@ -233,6 +233,8 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request, u *auth.User) 
 	}
 	defer f.Close()
 
+	noStore(w)
+
 	disposition := "attachment"
 	if s.isInline(e.Name) {
 		// Serve with an inert content type unless the browser needs it.
@@ -250,6 +252,17 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request, u *auth.User) 
 	}
 	w.Header().Set("Content-Length", itoa(e.Size))
 	io.Copy(w, f)
+}
+
+// noStore keeps a file body out of every cache.
+//
+// http.ServeContent supplies Last-Modified, which is enough for a browser to
+// treat a download as heuristically fresh and keep showing it after the file
+// was replaced at the same path. v7 streamed files without a validator and so
+// refetched them; an explicit directive makes v8 do the same. Range requests
+// still work; only storage is forbidden.
+func noStore(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "no-store")
 }
 
 // isInline reports whether the extension of name should render in-browser.

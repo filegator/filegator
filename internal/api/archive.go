@@ -313,6 +313,7 @@ func (s *Server) Batch(w http.ResponseWriter, r *http.Request, u *auth.User) {
 	s.logEvent(r, u, logger.EventBatchDownload, "batch download", logger.Fields{"paths": paths})
 
 	// Headers must be set before the first byte of the body is written.
+	noStore(w)
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", contentDisposition("attachment", name))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
