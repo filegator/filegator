@@ -65,7 +65,10 @@ func NewVerifier() *Verifier {
 
 // Signature returns the signature a handoff URL must carry.
 //
-// The fields are joined with "|" and signed with the application's secret, so
+// The fields are joined with "|" and signed with the application's secret.
+// Nothing frames them, so on its own that does not tie a signature to one set
+// of fields: the same bytes can be cut in another place when an application
+// name or a nonce contains "|". Verify refuses both, and with that rule
 // any change to a field invalidates it. Exported so a test — and the
 // documentation — can show the exact algorithm the other application must
 // reproduce.
@@ -83,6 +86,18 @@ func (v *Verifier) Verify(cfg config.SSO, username, application string, expiry i
 	username = strings.TrimSpace(username)
 	nonce = strings.TrimSpace(nonce)
 	if username == "" || nonce == "" || len(nonce) > 128 {
+		return nil, ErrInvalid
+	}
+	// Nothing in the signed text marks where a field ends, so it has one
+	// reading only as long as the three fields after the username cannot
+	// contain the separator: the expiry is a number, and the application name
+	// and the nonce are refused here. Without this a handoff signed for the
+	// login "a|panel|9999999999" also verifies as user "a" with that expiry,
+	// the rest of the signed bytes travelling in the nonce. The name is
+	// checked here as well as in ValidateSSO because config.Load does not
+	// validate. A username may contain "|": it is whatever precedes the last
+	// three fields.
+	if strings.Contains(application, "|") || strings.Contains(nonce, "|") {
 		return nil, ErrInvalid
 	}
 	app := cfg.FindSSOApplication(application)

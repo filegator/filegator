@@ -58,7 +58,7 @@ characters.
 
 | Key | Meaning |
 |-----|---------|
-| `name` | Identifier the handoff must carry (`app=panel`). Unique, and required |
+| `name` | Identifier the handoff must carry (`app=panel`). Unique, required, and without a vertical bar |
 | `secret` | Shared with the application. At least 32 characters, required. **Never returned by any API** |
 | `mode` | `existing`, `policy` or `create` — see below. Required |
 | `home` | Home template; `%s` becomes the username. **Required** for `policy` and `create`; ignored by `existing`, which uses the account's own home |
@@ -103,6 +103,11 @@ sig = HMAC-SHA256(secret, "alice|panel|1792933275|cf9683ba…")
 
 The fields are joined with `|` in that order; nothing is URL-encoded before
 signing.
+
+Because `|` separates the fields, the application name and the nonce must not
+contain it: a handoff that names such an application or carries such a nonce
+is refused, and the configuration check refuses the name. That leaves the
+signed text only one way to be read. A username may contain it.
 
 ### PHP helper
 
@@ -179,6 +184,8 @@ url = f"https://files.example.com/auth/sso?user=alice&app=panel&exp={exp}&nonce=
   is refused.
 - **Short-lived.** Past `exp` the ticket is refused. Extending `exp` breaks the
   signature, so a link cannot be made to last longer.
+- **One reading.** `app` and `nonce` cannot contain `|`, so a signature made
+  for one set of fields does not verify for another.
 - **Constant-time comparison**, so a signature cannot be guessed byte by byte.
 - **Indistinguishable failures.** An unknown application, a bad signature and an
   expired ticket all return the same `403`; the reason is only in the event log.
@@ -220,7 +227,7 @@ Every refusal is logged as `auth.sso_failed` with the reason:
 | `expired` | The link was built more than `expiry` seconds ago — clock skew between servers is the usual culprit |
 | `replayed` | The link was already used. Build a new one per redirect |
 | `unknown user` | `mode: existing` and the account does not exist |
-| `invalid` | Wrong secret, wrong `app` name, or a field edited after signing |
+| `invalid` | Wrong secret, wrong `app` name, a field edited after signing, or a vertical bar in `app` or `nonce` |
 
 A successful handoff logs `auth.sso_login`, naming the application and whether
 an account was created.

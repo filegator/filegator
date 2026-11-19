@@ -825,6 +825,11 @@ func ValidateSSO(sso SSO) error {
 		if name == "" {
 			return fmt.Errorf("config: sso application %d has no name", i+1)
 		}
+		if strings.Contains(name, "|") {
+			// "|" separates the signed fields, so a handoff for this name could
+			// be read more than one way and is always refused.
+			return fmt.Errorf("config: sso application %q: the name must not contain \"|\"", name)
+		}
 		if seen[name] {
 			return fmt.Errorf("config: sso application %q is listed twice", name)
 		}
