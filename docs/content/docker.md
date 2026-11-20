@@ -291,9 +291,13 @@ See [Forgotten admin password]({{< ref "install.md" >}}#forgotten-admin-password
 ## Building it yourself
 
 ```sh
-docker buildx build --load -t filegator/filegator:v8.x.x .
+docker buildx build --load --build-arg VERSION=v8.x.x -t filegator/filegator:v8.x.x .
 docker run --rm -p 127.0.0.1:8080:8080 -v filegator-data:/data filegator/filegator:v8.x.x
 ```
+
+`VERSION` is written into `internal/version/version.go` in the build stage.
+Omit it and the image reports `dev`, the same as a local build; the release
+workflow passes the pushed tag.
 
 A release builds every platform. `--push` is required on a multi-platform build —
 the result is a manifest list, which cannot be loaded into the local Docker:
@@ -302,6 +306,7 @@ the result is a manifest list, which cannot be loaded into the local Docker:
 docker buildx create --use            # once, for a multi-platform builder
 docker buildx build \
   --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+  --build-arg VERSION=v8.x.x \
   -t filegator/filegator:v8.x.x --push .
 ```
 

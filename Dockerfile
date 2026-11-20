@@ -1,6 +1,7 @@
 # FileGator — one static binary, one small image.
 #
 #   docker buildx build --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+#     --build-arg VERSION=v8.x.x \
 #     -t filegator/filegator:v8 -t filegator/filegator:v8.x.x --push .
 
 # Cross-compile on the host architecture, so a multi-platform build never needs
@@ -10,6 +11,9 @@ FROM --platform=$BUILDPLATFORM golang:1.27 AS build
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
+# The release number is a build argument so a manual build can state it too.
+# Omitting it produces the same "dev" as a local go build.
+ARG VERSION=dev
 
 WORKDIR /src
 ENV CGO_ENABLED=0 GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local
@@ -20,6 +24,12 @@ COPY vendor/ ./vendor/
 COPY main.go ./
 COPY internal/ ./internal/
 COPY private/users.json.sample ./private/users.json.sample
+
+# The source carries the development default; the build argument is the release
+# number. Writing it here, in the builder stage, keeps the version a build
+# input instead of something the checkout has to remember.
+RUN sed -i "s|^const Version = .*|const Version = \"${VERSION}\"|" internal/version/version.go \
+  && grep -Fq "const Version = \"${VERSION}\"" internal/version/version.go
 
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} go build \
   -trimpath -buildvcs=false -ldflags "-s -w" -o /out/filegator .

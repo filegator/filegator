@@ -38,8 +38,20 @@ jobs:
           go-version-file: go.mod
           cache: false
 
-      # The tag and version.go must agree before anything is built, or the
-      # image reports a different release than the one it is filed under.
+      # The tag is the release number. Write it into version.go before any
+      # check or build, so the image reports the tag it is published under. A
+      # manual bump is not needed.
+      - name: Set release version
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          sed -i "s|^const Version = .*|const Version = \"${VERSION}\"|" internal/version/version.go
+          gofmt -w internal/version/version.go
+          grep -Fq "const Version = \"${VERSION}\"" internal/version/version.go
+
+      # The rewrite above is the guard; this catches a step that silently
+      # stopped matching version.go.
       - name: Release version
         env:
           FILEGATOR_RELEASE_TAG: ${{ github.ref_name }}
@@ -71,6 +83,9 @@ jobs:
           context: .
           platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
           push: true
+          # Must match the source rewrite above; the image reports this value.
+          build-args: |
+            VERSION=${{ github.ref_name }}
           tags: |
             filegator/filegator:${{ github.ref_name }}
             filegator/filegator:v8

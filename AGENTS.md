@@ -247,9 +247,11 @@ Follow the surrounding style. These are patterns already used throughout:
 - **Keep the `Dockerfile` small.** Two stages: `golang` with the vendored modules
   and `GOPROXY=off`, then a pinned `alpine` (`3.22`, bumped deliberately — never
   `latest`). `CGO_ENABLED=0` for a static binary, so Alpine's musl is never
-  loaded; `TARGETOS`/`TARGETARCH`/`TARGETVARIANT` for multi-platform builds. No
-  entrypoint script, no `.dockerignore`, no compose file, no image tests, no
-  version check in the build, and nothing in the `Makefile`.
+  loaded; `TARGETOS`/`TARGETARCH`/`TARGETVARIANT` for multi-platform builds, and
+  `VERSION` written into `internal/version/version.go` in the builder stage
+  (default `dev`; the release workflow passes the tag). No entrypoint script,
+  no `.dockerignore`, no compose file, no image tests, and nothing in the
+  `Makefile`.
 - **Alpine over distroless** for the shell (`docker exec`, password reset's
   `stty`) and the CA bundle the TLS backends (S3, LDAP, SSO, SFTP) need, and
   because it publishes `386` and `arm/v6`, which distroless does not.
@@ -316,10 +318,11 @@ Follow the surrounding style. These are patterns already used throughout:
   `release: published`, because GitHub runs release-triggered workflows from
   the default branch (`master`), where a `v8`-only workflow would not exist
   yet.
-- **A release tag must match `internal/version.Version`.** Both release
-  workflows run `TestVersionMatchesReleaseTag` with
-  `FILEGATOR_RELEASE_TAG=${{ github.ref_name }}` before building anything, so
-  bump `internal/version/version.go` before tagging the release.
+- **The release tag is written into `internal/version.Version` by the release
+  workflows.** Both workflows run a `Set release version` step before any
+  check or build, replacing the constant with `github.ref_name`, and
+  `TestVersionMatchesReleaseTag` verifies the replacement. `version.go` holds
+  the development default (`dev`) and is not bumped for a release.
 
 ## Frontend conventions
 

@@ -131,10 +131,12 @@ default branch. It runs the same lint, test and docs checks before building,
 and waits for the release to exist before uploading, so publishing the tag and
 the release in either order works.
 
-Both release workflows check the tag against `internal/version.Version` first,
-through `TestVersionMatchesReleaseTag` with `FILEGATOR_RELEASE_TAG` set to the
-tag. Bump `internal/version/version.go` before tagging; a forgotten bump fails
-the run with that instruction instead of publishing a mislabelled binary.
+Both release workflows write the pushed tag into `internal/version.Version`
+before any check or build, then confirm it with
+`TestVersionMatchesReleaseTag` and `FILEGATOR_RELEASE_TAG` set to the tag.
+`version.go` is the development default (`dev`); it is not bumped for a release,
+and a local build reports `dev`. The Docker build takes the same value as
+`--build-arg VERSION`; omit it and the image reports `dev`.
 
 `docs/content/docker.md` is the operator's page: volumes, ownership, a proxy in
 front, and upgrading. Change it in the same commit as the `Dockerfile`.
