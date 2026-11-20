@@ -157,6 +157,13 @@ func (e *env) login(username, password string) string {
 // do performs a request with an optional session cookie.
 func (e *env) do(method, path, body, session string) *httptest.ResponseRecorder {
 	e.t.Helper()
+	return e.doWithHeaders(method, path, body, session, nil)
+}
+
+// doWithHeaders performs a request with an optional session cookie and extra
+// request headers, for conditional downloads.
+func (e *env) doWithHeaders(method, path, body, session string, headers map[string]string) *httptest.ResponseRecorder {
+	e.t.Helper()
 	var r *http.Request
 	if body == "" {
 		r = httptest.NewRequest(method, path, nil)
@@ -166,6 +173,9 @@ func (e *env) do(method, path, body, session string) *httptest.ResponseRecorder 
 	r.RemoteAddr = "127.0.0.1:12345"
 	if session != "" {
 		r.AddCookie(&http.Cookie{Name: security.CookieName, Value: session})
+	}
+	for name, value := range headers {
+		r.Header.Set(name, value)
 	}
 	rec := httptest.NewRecorder()
 	e.router.ServeHTTP(rec, r)
@@ -455,25 +465,152 @@ func TestDownloadInlinePDF(t *testing.T) {
 	}
 }
 
-// TestDownloadIsNotCached pins the v7 behaviour v8 has to keep: a body served
-// by the download endpoint must not be reused from a browser cache after the
-// file at the same path was replaced. http.ServeContent adds Last-Modified, so
-// without an explicit directive a browser could treat the old body as fresh.
-func TestDownloadIsNotCached(t *testing.T) {
+// TestAttachmentDownloadIsNotCached pins the one-shot case: an attachment is
+// never stored, so replacing it at the same path cannot leave an old copy.
+func TestAttachmentDownloadIsNotCached(t *testing.T) {
 	e := newEnv(t)
 	e.addUser("alice", "pw-alice", "/alice", auth.RoleUser, auth.PermRead, auth.PermDownload)
-	e.write("alice/doc.pdf", "%PDF-1.4")
 	session := e.login("alice", "pw-alice")
 
-	// One attachment and one inline response: the header belongs to both.
-	for _, name := range []string{"/docs/report.txt", "/doc.pdf"} {
-		rec := e.do(http.MethodGet, "/api/files/download?path="+name, "", session)
-		if rec.Code != http.StatusOK {
-			t.Fatalf("%s: status %d body %s", name, rec.Code, rec.Body)
+	rec := e.do(http.MethodGet, "/api/files/download?path=/docs/report.txt", "", session)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rec.Code, rec.Body)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", got)
+	}
+	if got := rec.Header().Get("ETag"); got != "" {
+		t.Errorf("attachment ETag = %q, want none", got)
+	}
+}
+
+// TestInlineDownloadRevalidates covers the inline policy: the browser may keep
+// the body, but it must ask. An unchanged file is a 304; a replaced file is a
+// new 200, so the old bytes can never be shown.
+func TestInlineDownloadRevalidates(t *testing.T) {
+	e := newEnv(t)
+	e.addUser("alice", "pw-alice", "/alice", auth.RoleUser, auth.PermRead, auth.PermDownload)
+	e.write("alice/doc.pdf", "%PDF-1.4 first")
+	session := e.login("alice", "pw-alice")
+
+	rec := e.do(http.MethodGet, "/api/files/download?path=/doc.pdf", "", session)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rec.Code, rec.Body)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "private, no-cache" {
+		t.Errorf("Cache-Control = %q, want private, no-cache", got)
+	}
+	etag := rec.Header().Get("ETag")
+	if etag == "" {
+		t.Fatal("inline response has no ETag")
+	}
+	if last := rec.Header().Get("Last-Modified"); last == "" {
+		t.Error("inline response has no Last-Modified")
+	}
+	if got := rec.Header().Get("Vary"); got != "Cookie" {
+		t.Errorf("Vary = %q, want Cookie", got)
+	}
+	if got := rec.Body.String(); got != "%PDF-1.4 first" {
+		t.Errorf("body = %q", got)
+	}
+
+	rec = e.doWithHeaders(http.MethodGet, "/api/files/download?path=/doc.pdf", "", session,
+		map[string]string{"If-None-Match": etag})
+	if rec.Code != http.StatusNotModified {
+		t.Fatalf("unchanged: status = %d, want 304 (body %s)", rec.Code, rec.Body)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("304 body = %q, want empty", rec.Body)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "private, no-cache" {
+		t.Errorf("304 Cache-Control = %q, want private, no-cache", got)
+	}
+	if got := rec.Header().Get("Vary"); got != "Cookie" {
+		t.Errorf("304 Vary = %q, want Cookie", got)
+	}
+	if got := rec.Header().Get("ETag"); got != etag {
+		t.Errorf("304 ETag = %q, want %q", got, etag)
+	}
+
+	e.write("alice/doc.pdf", "%PDF-1.4 second version")
+	rec = e.doWithHeaders(http.MethodGet, "/api/files/download?path=/doc.pdf", "", session,
+		map[string]string{"If-None-Match": etag})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("replaced: status = %d, want 200 (body %s)", rec.Code, rec.Body)
+	}
+	if got := rec.Body.String(); got != "%PDF-1.4 second version" {
+		t.Errorf("replaced body = %q", got)
+	}
+	if got := rec.Header().Get("ETag"); got == etag {
+		t.Error("replaced file kept the old ETag")
+	}
+}
+
+// TestInlineDownloadHonoursIfModifiedSince covers clients that only send the
+// date, and the rule that If-None-Match wins when both are present.
+func TestInlineDownloadHonoursIfModifiedSince(t *testing.T) {
+	e := newEnv(t)
+	e.addUser("alice", "pw-alice", "/alice", auth.RoleUser, auth.PermRead, auth.PermDownload)
+	e.write("alice/photo.png", "not really a png")
+	session := e.login("alice", "pw-alice")
+
+	// Pin the mtime so the HTTP date comparison is not a race with the write.
+	mtime := time.Now().Add(-time.Hour).UTC().Truncate(time.Second)
+	full := filepath.Join(e.root.Dir(), "alice", "photo.png")
+	if err := os.Chtimes(full, mtime, mtime); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := e.doWithHeaders(http.MethodGet, "/api/files/download?path=/photo.png", "", session,
+		map[string]string{"If-Modified-Since": mtime.Format(http.TimeFormat)})
+	if rec.Code != http.StatusNotModified {
+		t.Fatalf("status = %d, want 304 (body %s)", rec.Code, rec.Body)
+	}
+
+	// An If-None-Match that does not match must beat a matching date.
+	rec = e.doWithHeaders(http.MethodGet, "/api/files/download?path=/photo.png", "", session,
+		map[string]string{
+			"If-Modified-Since": mtime.Format(http.TimeFormat),
+			"If-None-Match":     `"other"`,
+		})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 when If-None-Match does not match", rec.Code)
+	}
+}
+
+// TestInlineETagIsScopedToTheUser makes the cross-user cache case explicit:
+// the URL is the same, so a private browser cache can hand one user's
+// validator to the next request. The validator must not match another home.
+func TestInlineETagIsScopedToTheUser(t *testing.T) {
+	e := newEnv(t)
+	e.addUser("alice", "pw-alice", "/alice", auth.RoleUser, auth.PermRead, auth.PermDownload)
+	e.addUser("bob", "pw-bob", "/bob", auth.RoleUser, auth.PermRead, auth.PermDownload)
+	e.write("alice/doc.pdf", "%PDF-1.4 same")
+	e.write("bob/doc.pdf", "%PDF-1.4 same")
+
+	// Identical size and mtime would produce the same file metadata; only the
+	// user scope can tell the two representations apart.
+	mtime := time.Now().Add(-time.Hour).UTC().Truncate(time.Second)
+	for _, name := range []string{"alice/doc.pdf", "bob/doc.pdf"} {
+		full := filepath.Join(e.root.Dir(), filepath.FromSlash(name))
+		if err := os.Chtimes(full, mtime, mtime); err != nil {
+			t.Fatal(err)
 		}
-		if got := rec.Header().Get("Cache-Control"); got != "no-store" {
-			t.Errorf("%s: Cache-Control = %q, want no-store", name, got)
-		}
+	}
+
+	alice := e.login("alice", "pw-alice")
+	bob := e.login("bob", "pw-bob")
+
+	rec := e.do(http.MethodGet, "/api/files/download?path=/doc.pdf", "", alice)
+	aliceETag := rec.Header().Get("ETag")
+	if aliceETag == "" {
+		t.Fatal("alice: no ETag")
+	}
+
+	rec = e.doWithHeaders(http.MethodGet, "/api/files/download?path=/doc.pdf", "", bob,
+		map[string]string{"If-None-Match": aliceETag})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("bob: status = %d, want 200 for another user's validator", rec.Code)
 	}
 }
 

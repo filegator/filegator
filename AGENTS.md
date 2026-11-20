@@ -140,11 +140,22 @@ Follow the surrounding style. These are patterns already used throughout:
 - **API responses:** success is `{"data": ...}`, failure is
   `{"error": {"message", "code"}}`, 204 for no content. Use the helpers in
   `internal/api/httpx` / `internal/api/response.go`.
-- **Downloads are never cached.** `/api/files/download` and `/api/files/batch`
-  send `Cache-Control: no-store`. `http.ServeContent` adds `Last-Modified`, and
-  without an explicit directive a browser may reuse a download and show a file
-  that was replaced at the same path. v7 did not cache downloads and v8 does not
-  either; do not add a TTL without a separate decision.
+- **Inline downloads revalidate; attachments are never cached.**
+  `/api/files/batch` and non-inline `/api/files/download` responses send
+  `Cache-Control: no-store`, so a replaced attachment or zip is never shown
+  from a cache. An inline response — a PDF, image, video, or anything listed in
+  `download_inline` — sends `private, no-cache` with a weak `ETag` and
+  `Last-Modified`. The browser may keep the body, but it must ask before every
+  reuse: an unchanged file answers `304`, and a file replaced at the same path
+  answers `200` with the new bytes. `private` keeps an authenticated body out of
+  shared proxies, and `Vary: Cookie` keeps a private cache from reusing one
+  session's copy for another. Do not add a TTL: a `max-age` window would show
+  stale content for its duration, which is the bug this policy exists to
+  prevent. The validator is metadata-based (S3's object ETag, otherwise size
+  and modification time) and scoped to the authenticated user and storage
+  backend: the URL is the same for every user, and a browser's private cache is
+  not keyed by session. Keep it weak; reading the file to build a content hash
+  would defeat the saving.
 - **Routes:** registered with the router via a `XxxRoutes(rt *router.Router)`
   method on the package's server struct. `RegisterAPIRoutes` in
   `internal/app/routes.go` is the single list; the docs generator uses the same

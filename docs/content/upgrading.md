@@ -272,6 +272,7 @@ both, after a confirmation.
 | A **profile icon** with a separate theme button and logout button. | One **account menu** with the user's name: theme, language, change password, log out. |
 | Uploading onto an existing name **auto-renamed** the file (`name (1).ext`). | Version 8 asks. **Keep both** does the same renaming, as an explicit choice. |
 | Batch download created a temporary archive and handed out a link from an archive list. | The zip is **streamed** straight to the browser. Nothing is left behind, and there is nothing to expire. |
+| Inline files were re-fetched in full on every open. Version 7 sent `no-cache, private` without a validator, so no `304` was possible. | Inline files **revalidate**: an unchanged file answers `304`, a replaced file is fetched again. Attachments and batch zips stay `no-store`. There is no cache TTL to configure. |
 | Navigating with the **browser's Back button skipped folders**. | Back and Forward walk the folder history. |
 | The **timezone** setting. | The browser's own clock is used; a `timezone` key in `config.json` is ignored. Times are formatted with `date_format`, in the same moment.js token syntax as version 7, so an old pattern keeps working. |
 | **`config.php`** was the place to set the logo, title and language, and a hand edit was how it was done. | The same things are on **Setup → UI**, so they survive an upgrade. Do not patch files for them. Clearing both logo fields shows the title instead of falling back to the built-in artwork. |

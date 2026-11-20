@@ -45,6 +45,10 @@ type Entry struct {
 	Size int64
 	// Modified is the last modification time.
 	Modified time.Time
+	// ETag is an opaque validator supplied by a backend that has one, such as
+	// S3's object ETag. Local and SFTP leave it empty; the API then builds a
+	// weak validator from size and modification time.
+	ETag string
 	// IsDir reports whether the entry is a directory.
 	IsDir bool
 	// Mode is the permission bits.

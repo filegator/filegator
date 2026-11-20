@@ -220,6 +220,7 @@ func (s *Scope) Stat(p string) (*storage.Entry, error) {
 		Path:     clean,
 		Size:     meta.size,
 		Modified: meta.modified,
+		ETag:     meta.etag,
 		Mode:     0o644,
 	}, nil
 }

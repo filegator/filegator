@@ -219,10 +219,21 @@ stay available for recovery. A probe failure allows the write, because the
 operating system still refuses a genuinely full disk and a broken probe must not
 make the file manager read-only. The setting is on **Admin → Files**.
 
-**Downloads are never cached.** `/api/files/download` and `/api/files/batch`
-send `Cache-Control: no-store`; a file replaced at the same path must be fetched
-again rather than shown from the browser cache. This matches version 7. There is
-no cache lifetime to configure.
+**Inline downloads revalidate; attachments are never cached.**
+`/api/files/batch` and non-inline `/api/files/download` responses send
+`Cache-Control: no-store`; a file replaced at the same path must be fetched
+again rather than shown from a cache. An inline response — a PDF, image, video,
+or anything listed in `download_inline` — sends `private, no-cache` with a weak
+`ETag` and `Last-Modified`. The browser may keep the body, but it must ask
+before every reuse: an unchanged file answers `304`, and a replaced file answers
+`200` with the new bytes. `private` keeps an authenticated body out of shared
+proxies, and `Vary: Cookie` keeps a private cache from reusing one session's
+copy for another. There is no cache lifetime to configure: a `max-age` window
+would show stale content for its duration. The validator is metadata-based
+(S3's object ETag, otherwise size and modification time) and scoped to the
+authenticated user and storage backend, because the URL is the same for every
+user and a browser's private cache is not keyed by session. It is deliberately
+not a content hash: that would read the whole file on every request.
 
 **There is no `config.json.sample`**, though there is a `users.json.sample`.
 A sample would carry a session key identical on every install, or become a

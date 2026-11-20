@@ -204,7 +204,10 @@ func (s *Server) Stat(w http.ResponseWriter, r *http.Request, u *auth.User) {
 //
 // Files are sent with a Content-Disposition header. Extensions listed in the
 // download_inline config are shown in the browser instead, because inline
-// rendering of untrusted types can enable cross-site scripting.
+// rendering of untrusted types can enable cross-site scripting. Attachments
+// and batch zips are never cached; an inline response is cached but must
+// revalidate before every use, so a replaced file is fetched again while an
+// unchanged one costs a 304.
 func (s *Server) Download(w http.ResponseWriter, r *http.Request, u *auth.User) {
 	fsys, err := s.requirePermission(u, auth.PermDownload)
 	if err != nil {
@@ -226,6 +229,31 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request, u *auth.User) 
 		return
 	}
 
+	inline := s.isInline(e.Name)
+	contentType := "application/octet-stream"
+	if inline {
+		// Serve with a real type when the administrator listed the extension;
+		// everything else stays an inert download.
+		contentType = contentTypeFor(e.Name)
+	}
+
+	// The conditional check runs before Open so an unchanged S3 object does
+	// not start a GET only to be thrown away by the 304.
+	var etag string
+	if inline {
+		// The storage description is part of the scope so a validator from a
+		// backend the administrator has since replaced cannot answer for the
+		// new one.
+		scope := u.Username + "|" + u.HomeDir + "|" + s.StorageDescription()
+		etag = inlineETag(e, contentType, scope)
+		if notModified(r, etag, e.Modified) {
+			setInlineCache(w, e, etag)
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+	}
+
 	f, err := fsys.Open(p)
 	if err != nil {
 		WriteError(w, mapStorageError(err))
@@ -233,17 +261,14 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request, u *auth.User) 
 	}
 	defer f.Close()
 
-	noStore(w)
-
-	disposition := "attachment"
-	if s.isInline(e.Name) {
-		// Serve with an inert content type unless the browser needs it.
-		disposition = "inline"
-		w.Header().Set("Content-Type", contentTypeFor(e.Name))
+	if inline {
+		setInlineCache(w, e, etag)
+		w.Header().Set("Content-Disposition", contentDisposition("inline", e.Name))
 	} else {
-		w.Header().Set("Content-Type", "application/octet-stream")
+		noStore(w)
+		w.Header().Set("Content-Disposition", contentDisposition("attachment", e.Name))
 	}
-	w.Header().Set("Content-Disposition", contentDisposition(disposition, e.Name))
+	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	if seeker, ok := f.(io.ReadSeeker); ok {
@@ -252,17 +277,6 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request, u *auth.User) 
 	}
 	w.Header().Set("Content-Length", itoa(e.Size))
 	io.Copy(w, f)
-}
-
-// noStore keeps a file body out of every cache.
-//
-// http.ServeContent supplies Last-Modified, which is enough for a browser to
-// treat a download as heuristically fresh and keep showing it after the file
-// was replaced at the same path. v7 streamed files without a validator and so
-// refetched them; an explicit directive makes v8 do the same. Range requests
-// still work; only storage is forbidden.
-func noStore(w http.ResponseWriter) {
-	w.Header().Set("Cache-Control", "no-store")
 }
 
 // isInline reports whether the extension of name should render in-browser.

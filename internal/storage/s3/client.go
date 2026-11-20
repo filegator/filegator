@@ -218,6 +218,7 @@ func (c *client) headObject(key string) (*objectMeta, error) {
 		key:      key,
 		size:     size,
 		modified: modified,
+		etag:     resp.Header.Get("ETag"),
 	}, nil
 }
 
@@ -339,4 +340,7 @@ type objectMeta struct {
 	key      string
 	size     int64
 	modified time.Time
+	// etag is the value S3 returned in the ETag header, quoted as sent. It is
+	// opaque to the client and is forwarded to the API as a validator.
+	etag string
 }

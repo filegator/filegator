@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"crypto/md5"
 	"fmt"
 	"io"
 	"net/http"
@@ -87,6 +88,7 @@ func (f *fakeS3) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Length", fmt.Sprint(len(data)))
 		w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+		w.Header().Set("ETag", fmt.Sprintf("\"%x\"", md5.Sum(data)))
 
 	case http.MethodPut:
 		body, _ := io.ReadAll(r.Body)
@@ -380,8 +382,11 @@ func TestS3ScopeHomePaths(t *testing.T) {
 		t.Fatalf("home listing = %+v, want one entry at /greeting.txt", entries)
 	}
 
-	if _, err := alice.Stat("/greeting.txt"); err != nil {
+	entry, err := alice.Stat("/greeting.txt")
+	if err != nil {
 		t.Errorf("Stat home file: %v", err)
+	} else if entry.ETag == "" {
+		t.Error("Stat should carry the object ETag")
 	}
 	f, err := alice.Open("/greeting.txt")
 	if err != nil {

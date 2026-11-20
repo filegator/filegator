@@ -243,11 +243,23 @@ Files are sent as `attachment` unless their extension is listed in
 `avif`), in which case they are rendered inline with their real content type.
 Responses always include `X-Content-Type-Options: nosniff`.
 
-Downloads are sent with `Cache-Control: no-store`, for single files and for
-batch zips alike. A file replaced at the same path is therefore fetched again
-instead of being shown from a browser cache: v7 streamed downloads without a
-cache lifetime, and v8 keeps that behaviour. There is no cache lifetime to
-configure.
+Attachments and batch zips are sent with `Cache-Control: no-store`. An inline
+response is different because the browser opens it repeatedly (a PDF preview, a
+gallery image): it carries `Cache-Control: private, no-cache` and a weak `ETag`
+plus `Last-Modified`. The browser may keep the body, but it must revalidate
+before every reuse. An unchanged file answers `304 Not Modified`; a file
+replaced at the same path answers `200` with the new bytes. `private` keeps an
+authenticated body out of shared proxies, and `Vary: Cookie` keeps a private
+cache from reusing one session's copy for another. There is no cache lifetime to
+configure, and no setting that can make a replaced file look fresh for a while.
+
+The validator is metadata-based: S3's object ETag, otherwise size plus
+modification time, scoped to the authenticated user and storage backend. It is
+deliberately not a content hash, which would read the whole file on every
+request. A replacement
+that keeps the same size and the same timestamp within the backend's resolution
+can therefore still look unchanged; a normal write on local storage or S3
+changes the validator.
 
 Everything else stays an attachment, which is what keeps an uploaded `.html`
 or `.svg` from executing on this origin. That protection is the **default**, not
