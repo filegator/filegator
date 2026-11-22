@@ -67,6 +67,7 @@ export default {
             type: 'is-success',
           })
           this.$parent.close()
+          this.$parent.$parent.loadFiles()
         })
         .catch(error => this.handleError(error))
     }
