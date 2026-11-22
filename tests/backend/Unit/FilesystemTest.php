@@ -26,11 +26,18 @@ class FilesystemTest extends TestCase
 
     protected $separator = '/';
 
+    protected $defaultFilePerms;
+
+    protected $defaultDirPerms;
+
     protected function setUp(): void
     {
         $this->resetTempDir();
 
         $this->timestamp = time();
+
+        $this->defaultFilePerms = DIRECTORY_SEPARATOR === '\\' ? 666 : 644;
+        $this->defaultDirPerms = DIRECTORY_SEPARATOR === '\\' ? 777 : 755;
 
         $this->storage = new Filesystem();
         $this->storage->init([
@@ -132,7 +139,7 @@ class FilesystemTest extends TestCase
                     'type' => 'file',
                     'path' => '/john/johnsub/john2.txt',
                     'name' => 'john2.txt',
-                    'permissions' => 644,
+                    'permissions' => $this->defaultFilePerms,
                     'size' => 0,
                     'time' => 0,
                 ],
@@ -156,7 +163,7 @@ class FilesystemTest extends TestCase
                     'type' => 'dir',
                     'path' => '/johnsub',
                     'name' => 'johnsub',
-                    'permissions' => 755,
+                    'permissions' => $this->defaultDirPerms,
                     'size' => 0,
                     'time' => -1,
                 ],
@@ -164,7 +171,7 @@ class FilesystemTest extends TestCase
                     'type' => 'file',
                     'path' => '/john.txt',
                     'name' => 'john.txt',
-                    'permissions' => 644,
+                    'permissions' => $this->defaultFilePerms,
                     'size' => 0,
                     'time' => -1,
                 ],
@@ -197,7 +204,7 @@ class FilesystemTest extends TestCase
                     'type' => 'file',
                     'path' => '/johnsub/john2.txt',
                     'name' => 'john2.txt',
-                    'permissions' => 644,
+                    'permissions' => $this->defaultFilePerms,
                     'size' => 0,
                     'time' => 0,
                 ],
@@ -266,10 +273,12 @@ class FilesystemTest extends TestCase
         // first file is not overwritten
         $ret = $this->storage->readStream('singletone.txt');
         $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
 
         // second file is also here but with upcounted name
         $ret = $this->storage->readStream('singletone (1).txt');
         $this->assertEquals('croissant', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
     }
 
     public function testStoringFileWithTheSameNameOverwritesOriginalFile()
@@ -285,6 +294,7 @@ class FilesystemTest extends TestCase
         // first file contains lorem ipsum
         $ret = $this->storage->readStream('singletone.txt');
         $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
 
         // create another dummy file
         $string = 'croissant';
@@ -297,6 +307,7 @@ class FilesystemTest extends TestCase
         // first file is overwritten
         $ret = $this->storage->readStream('singletone.txt');
         $this->assertEquals('croissant', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
     }
 
     public function testStoringFileWithTheSameNameUpcountsSecondFilenameUsingPathPrefix()
@@ -320,10 +331,12 @@ class FilesystemTest extends TestCase
         // first file is not overwritten
         $ret = $this->storage->readStream('singletone.txt');
         $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
 
         // second file is also here but with upcounted name
         $ret = $this->storage->readStream('singletone (1).txt');
         $this->assertEquals('croissant', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
     }
 
     public function testStoringFileWithTheSameNameOverwritesOriginalFileUsingPathPrefix()
@@ -341,6 +354,7 @@ class FilesystemTest extends TestCase
         // first file contains lorem ipsum
         $ret = $this->storage->readStream('singletone.txt');
         $this->assertEquals('lorem ipsum', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
 
         // create another dummy file
         $string = 'croissant';
@@ -353,6 +367,7 @@ class FilesystemTest extends TestCase
         // first file is overwritten
         $ret = $this->storage->readStream('singletone.txt');
         $this->assertEquals('croissant', stream_get_contents($ret['stream']));
+        fclose($ret['stream']);
     }
     public function testCreatingFileWithTheSameNameUpcountsFilenameRecursively()
     {
@@ -582,6 +597,7 @@ class FilesystemTest extends TestCase
 
         $this->assertEquals($ret['filename'], 'a.txt');
         $this->assertIsResource($ret['stream']);
+        fclose($ret['stream']);
     }
 
     public function testReadFileStreamMissingFileThrowsException()
@@ -868,7 +884,7 @@ class FilesystemTest extends TestCase
                     'type' => 'file',
                     'path' => '/john.txt',
                     'name' => 'john.txt',
-                    'permissions' => 644,
+                    'permissions' => $this->defaultFilePerms,
                     'size' => 0,
                     'time' => -1,
                 ],
@@ -892,7 +908,7 @@ class FilesystemTest extends TestCase
                     'type' => 'file',
                     'path' => '/john.txt',
                     'name' => 'john.txt',
-                    'permissions' => 644,
+                    'permissions' => $this->defaultFilePerms,
                     'size' => 0,
                     'time' => -1,
                 ],
