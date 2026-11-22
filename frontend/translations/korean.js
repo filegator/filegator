@@ -4,6 +4,7 @@ const data = {
   'File size error': '{1} 이하의 파일만 업로드가 가능합니다.',
   'Upload failed': '{0} 업로드 실패',
   'Upload summary': '성공 {0}, 실패 {1}, 총 {2}',
+  'You have unsaved changes. Are you sure you want to close without saving?': '저장되지 않은 변경 사항이 있습니다. 저장하지 않고 닫으시겠습니까?',
   'Per page': '{0}개씩 보기',
   'Folder': '폴더',
   'Login failed, please try again': '로그인 실패, 다시 시도하십시오.',

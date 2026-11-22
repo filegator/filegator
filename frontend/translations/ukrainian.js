@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} завеликий, будь ласка, завантажте файл менший за {1}',
   'Upload failed': '{0} не вдалося завантажити',
   'Upload summary': '{0} успішно, {1} з помилкою, {2} всього',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'У вас є незбережені зміни. Ви впевнені, що хочете закрити без збереження?',
   'Per page': '{0} На сторінку',
   'Folder': 'Папка',
   'Login failed, please try again': 'Вхід не виконано. Будь ласка, спробуйте ще раз',

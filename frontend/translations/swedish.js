@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} är för stor, max filstorlek är {1}',
   'Upload failed': '{0} uppladdning misslyckades',
   'Upload summary': '{0} lyckades, {1} misslyckades, {2} totalt',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Du har osparade ändringar. Vill du stänga utan att spara?',
   'Per page': '{0} Per sida',
   'Folder': 'Mapp',
   'Login failed, please try again': 'Inloggning misslyckades, försök igen.',

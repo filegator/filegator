@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} est trop volumineux, merci d\'uploader des fichiers inférieurs à {1}',
   'Upload failed': '{0} échec(s) d\'envoi',
   'Upload summary': '{0} réussi(s), {1} échoué(s), {2} au total',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir fermer sans enregistrer ?',
   'Per page': '{0} par page',
   'Folder': 'Dossier',
   'Login failed, please try again': 'Identification échoué, veuillez réessayer...',

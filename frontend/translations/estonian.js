@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} on liiga suur, palun laadige faile üles vähem kui {1}',
   'Upload failed': '{0} üleslaadimine nurjus',
   'Upload summary': '{0} õnnestus, {1} nurjus, {2} kokku',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Sul on salvestamata muudatusi. Kas oled kindel, et soovid sulgeda salvestamata?',
   'Per page': '{0} Lehekülje kohta',
   'Folder': 'Kaust',
   'Login failed, please try again': 'Sisselogimine ebaõnnestus, proovige uuesti',

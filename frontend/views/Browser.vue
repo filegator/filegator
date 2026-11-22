@@ -461,6 +461,7 @@ export default {
         props: { item: item },
         hasModalCard: true,
         component: modal,
+        canCancel: modal !== Editor,
       })
     },
     isArchive(item) {

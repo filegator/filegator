@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0}が大きすぎます。{1}未満のファイルのみアップロードできます。',
   'Upload failed': '{0}のアップロードに失敗しました。',
   'Upload summary': '成功 {0}、失敗 {1}、合計 {2}',
+  'You have unsaved changes. Are you sure you want to close without saving?': '保存されていない変更があります。保存せずに閉じてよろしいですか？',
   'Per page': '{0}個表示',
   'Folder': 'フォルダ',
   'Login failed, please try again': 'ログインに失敗しました。もう1度お試しください。',

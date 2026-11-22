@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} is te groot, maximale grootte is {1}',
   'Upload failed': '{0} upload mislukt',
   'Upload summary': '{0} geslaagd, {1} mislukt, {2} totaal',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'U heeft niet-opgeslagen wijzigingen. Weet u zeker dat u wilt sluiten zonder op te slaan?',
   'Per page': '{0} per pagina',
   'Folder': 'Map',
   'Login failed, please try again': 'Login mislukt, probeer het nog eens...',

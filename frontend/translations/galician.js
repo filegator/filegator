@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} O arquivo é demasiado grande. Por favor, cargue arquivos de menos de {1}',
   'Upload failed': '{0} Erro ao subir',
   'Upload summary': '{0} correctos, {1} fallidos, {2} en total',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Tes cambios sen gardar. Estás seguro de que queres pechar sen gardar?',
   'Per page': '{0} Por páxina',
   'Folder': 'Cartafol',
   'Login failed, please try again': 'Houbo un erro no acceso, proba de novo.',

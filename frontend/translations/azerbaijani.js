@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} çox böyükdür, zəhmət olmasa, ölçüsü {1} həddindən kiçik olan faylları yükləyin',
   'Upload failed': '{0} yüklənə bilmədi',
   'Upload summary': '{0} uğurlu, {1} uğursuz, {2} cəmi',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Yadda saxlanılmamış dəyişiklikləriniz var. Yadda saxlamadan bağlamaq istədiyinizə əminsiniz?',
   'Per page': '{0} hər səhifədə',
   'Folder': 'Qovluq',
   'Login failed, please try again': 'Daxil olmaq mümkün olmadı, zəhmət olmasa, yenidən cəhd edin',

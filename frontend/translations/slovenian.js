@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} datoteka je prevelika, prosimo, naložite datoteko, manjšo od {1}',
   'Upload failed': '{0} napaka med nalaganjem',
   'Upload summary': '{0} uspešnih, {1} neuspešnih, {2} skupaj',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Imate neshranjene spremembe. Ste prepričani, da želite zapreti brez shranjevanja?',
   'Per page': '{0} Na stran',
   'Folder': 'Mapa',
   'Login failed, please try again': 'Neuspešna prijava, prosimo, poskusite ponovno',

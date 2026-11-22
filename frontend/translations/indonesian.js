@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} file terlalu besar, harap unggah file lebih kecil dari {1}',
   'Upload failed': '{0} gagal diunggah',
   'Upload summary': '{0} berhasil, {1} gagal, {2} total',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'Anda memiliki perubahan yang belum disimpan. Apakah anda yakin ingin menutup tanpa menyimpan?',
   'Per page': '{0} Per halaman',
   'Folder': 'Berkas',
   'Login failed, please try again': 'Gagal masuk, silakan coba lagi',

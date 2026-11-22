@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} 尺寸过大, 您最大只可上传 {1}',
   'Upload failed': '{0} 上传失败',
   'Upload summary': '{0} 个成功，{1} 个失败，共 {2} 个',
+  'You have unsaved changes. Are you sure you want to close without saving?': '您有未保存的更改。是否确认不保存并关闭？',
   'Per page': '每页 {0} 个',
   'Folder': '文件夹',
   'Login failed, please try again': '登录失败, 请重试',

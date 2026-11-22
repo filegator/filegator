@@ -4,6 +4,7 @@ const data = {
   'File size error': '{0} كبير جدًا ، يرجى تحميل ملفات أقل من {1}',
   'Upload failed': '{0} فشل التحميل',
   'Upload summary': '{0} ناجح، {1} فاشل، {2} الإجمالي',
+  'You have unsaved changes. Are you sure you want to close without saving?': 'لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد الإغلاق دون حفظ؟',
   'Per page': '{0} لكل صفحة',
   'Folder': 'مجلد',
   'Login failed, please try again': 'فشل تسجيل الدخول, يرجى المحاولة مرة أخرى',
