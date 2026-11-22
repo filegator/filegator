@@ -136,7 +136,9 @@ const funcs = {
         })
     },
     handleError(error) {
-      this.checkUser()
+      if (error && error.sessionExpired) {
+        return
+      }
 
       if (typeof error == 'string') {
         this.$toast.open({
