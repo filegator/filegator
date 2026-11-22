@@ -85,20 +85,47 @@ class FileController
         return $response->json($success ? 'Done' : 'Failed');
     }
 
+    public function checkConflicts(Request $request, Response $response)
+    {
+        $destination = $request->input('destination', $this->separator);
+        $items = $request->input('items', []);
+
+        $conflicts = [];
+        foreach ($items as $item) {
+            $name = is_array($item) ? ($item['name'] ?? '') : ($item->name ?? '');
+            $type = is_array($item) ? ($item['type'] ?? 'file') : ($item->type ?? 'file');
+
+            $target = trim($destination, $this->separator)
+                    . $this->separator
+                    . ltrim($name, $this->separator);
+
+            if ($this->storage->fileExists($target)) {
+                $conflicts[] = [
+                    'name' => $name,
+                    'type' => $type,
+                ];
+            }
+        }
+
+        return $response->json(['conflicts' => $conflicts]);
+    }
+
     public function copyItems(Request $request, Response $response)
     {
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
+        $action = $request->input('action', 'rename');
+        $overwrite = in_array($action, ['replace', 'overwrite'], true);
 
         $success = true;
         foreach ($items as $item) {
             if ($item->type == 'dir') {
-                if (!$this->storage->copyDir($item->path, $destination)) {
+                if (!$this->storage->copyDir($item->path, $destination, $overwrite)) {
                     $success = false;
                 }
             }
             if ($item->type == 'file') {
-                if (!$this->storage->copyFile($item->path, $destination)) {
+                if (!$this->storage->copyFile($item->path, $destination, $overwrite)) {
                     $success = false;
                 }
             }
@@ -111,13 +138,15 @@ class FileController
     {
         $items = $request->input('items', []);
         $destination = $request->input('destination', $this->separator);
+        $action = $request->input('action', 'rename');
+        $overwrite = in_array($action, ['replace', 'overwrite'], true);
 
         $success = true;
         foreach ($items as $item) {
             $full_destination = trim($destination, $this->separator)
                     . $this->separator
                     . ltrim($item->name, $this->separator);
-            if (!$this->storage->move($item->path, $full_destination)) {
+            if (!$this->storage->move($item->path, $full_destination, $overwrite)) {
                 $success = false;
             }
         }

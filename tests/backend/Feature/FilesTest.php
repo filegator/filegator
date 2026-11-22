@@ -514,6 +514,200 @@ class FilesTest extends TestCase
         $this->assertFileExists(TEST_REPOSITORY . '/john/jane/cookie.txt');
     }
 
+    public function testCheckConflicts()
+    {
+        $username = 'admin@example.com';
+        $this->signIn($username, 'admin123');
+
+        mkdir(TEST_REPOSITORY . '/dest_dir');
+        touch(TEST_REPOSITORY . '/dest_dir/exists.txt');
+        mkdir(TEST_REPOSITORY . '/dest_dir/exists_folder');
+
+        $items = [
+            [
+                'name' => 'exists.txt',
+                'type' => 'file',
+                'path' => '/exists.txt',
+            ],
+            [
+                'name' => 'exists_folder',
+                'type' => 'dir',
+                'path' => '/exists_folder',
+            ],
+            [
+                'name' => 'unique.txt',
+                'type' => 'file',
+                'path' => '/unique.txt',
+            ],
+        ];
+
+        $this->sendRequest('POST', '/checkconflicts', [
+            'destination' => '/dest_dir',
+            'items' => $items,
+        ]);
+
+        $this->assertOk();
+        $data = $this->decodeResponseJson()['data'];
+        $this->assertCount(2, $data['conflicts']);
+        $this->assertEquals('exists.txt', $data['conflicts'][0]['name']);
+        $this->assertEquals('exists_folder', $data['conflicts'][1]['name']);
+    }
+
+    public function testMoveItemsWithReplaceAction()
+    {
+        $username = 'admin@example.com';
+        $this->signIn($username, 'admin123');
+
+        // Setup source and dest
+        mkdir(TEST_REPOSITORY . '/src_plugin');
+        file_put_contents(TEST_REPOSITORY . '/src_plugin/setup.php', 'new setup');
+        mkdir(TEST_REPOSITORY . '/src_plugin/inc');
+        file_put_contents(TEST_REPOSITORY . '/src_plugin/inc/helper.php', 'new helper');
+
+        mkdir(TEST_REPOSITORY . '/dest_plugin');
+        file_put_contents(TEST_REPOSITORY . '/dest_plugin/setup.php', 'old setup');
+        mkdir(TEST_REPOSITORY . '/dest_plugin/inc');
+        file_put_contents(TEST_REPOSITORY . '/dest_plugin/inc/helper.php', 'old helper');
+        file_put_contents(TEST_REPOSITORY . '/dest_plugin/inc/preserved.php', 'keep this');
+
+        $items = [
+            [
+                'name' => 'setup.php',
+                'type' => 'file',
+                'path' => '/src_plugin/setup.php',
+            ],
+            [
+                'name' => 'inc',
+                'type' => 'dir',
+                'path' => '/src_plugin/inc',
+            ],
+        ];
+
+        $this->sendRequest('POST', '/moveitems', [
+            'destination' => '/dest_plugin',
+            'items' => $items,
+            'action' => 'replace',
+        ]);
+
+        $this->assertOk();
+
+        // Check destination
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_plugin/setup.php');
+        $this->assertEquals('new setup', file_get_contents(TEST_REPOSITORY . '/dest_plugin/setup.php'));
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_plugin/inc/helper.php');
+        $this->assertEquals('new helper', file_get_contents(TEST_REPOSITORY . '/dest_plugin/inc/helper.php'));
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_plugin/inc/preserved.php');
+        $this->assertEquals('keep this', file_get_contents(TEST_REPOSITORY . '/dest_plugin/inc/preserved.php'));
+
+        // Check source cleaned up
+        $this->assertFileNotExists(TEST_REPOSITORY . '/src_plugin/setup.php');
+        $this->assertDirectoryNotExists(TEST_REPOSITORY . '/src_plugin/inc');
+    }
+
+    public function testMoveItemsWithRenameAction()
+    {
+        $username = 'admin@example.com';
+        $this->signIn($username, 'admin123');
+
+        mkdir(TEST_REPOSITORY . '/src_ren');
+        file_put_contents(TEST_REPOSITORY . '/src_ren/file.txt', 'source content');
+
+        mkdir(TEST_REPOSITORY . '/dest_ren');
+        file_put_contents(TEST_REPOSITORY . '/dest_ren/file.txt', 'dest content');
+
+        $items = [
+            [
+                'name' => 'file.txt',
+                'type' => 'file',
+                'path' => '/src_ren/file.txt',
+            ],
+        ];
+
+        $this->sendRequest('POST', '/moveitems', [
+            'destination' => '/dest_ren',
+            'items' => $items,
+            'action' => 'rename',
+        ]);
+
+        $this->assertOk();
+
+        // Dest should have original and upcounted
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_ren/file.txt');
+        $this->assertEquals('dest content', file_get_contents(TEST_REPOSITORY . '/dest_ren/file.txt'));
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_ren/file (1).txt');
+        $this->assertEquals('source content', file_get_contents(TEST_REPOSITORY . '/dest_ren/file (1).txt'));
+    }
+
+    public function testCopyItemsWithReplaceAction()
+    {
+        $username = 'admin@example.com';
+        $this->signIn($username, 'admin123');
+
+        mkdir(TEST_REPOSITORY . '/src_cp');
+        file_put_contents(TEST_REPOSITORY . '/src_cp/copy.txt', 'new copy content');
+
+        mkdir(TEST_REPOSITORY . '/dest_cp');
+        file_put_contents(TEST_REPOSITORY . '/dest_cp/copy.txt', 'old copy content');
+
+        $items = [
+            [
+                'name' => 'copy.txt',
+                'type' => 'file',
+                'path' => '/src_cp/copy.txt',
+            ],
+        ];
+
+        $this->sendRequest('POST', '/copyitems', [
+            'destination' => '/dest_cp',
+            'items' => $items,
+            'action' => 'replace',
+        ]);
+
+        $this->assertOk();
+
+        // Source is preserved
+        $this->assertFileExists(TEST_REPOSITORY . '/src_cp/copy.txt');
+        // Destination is replaced
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_cp/copy.txt');
+        $this->assertEquals('new copy content', file_get_contents(TEST_REPOSITORY . '/dest_cp/copy.txt'));
+    }
+
+    public function testCopyItemsWithRenameAction()
+    {
+        $username = 'admin@example.com';
+        $this->signIn($username, 'admin123');
+
+        mkdir(TEST_REPOSITORY . '/src_cp_ren');
+        file_put_contents(TEST_REPOSITORY . '/src_cp_ren/item.txt', 'source copy');
+
+        mkdir(TEST_REPOSITORY . '/dest_cp_ren');
+        file_put_contents(TEST_REPOSITORY . '/dest_cp_ren/item.txt', 'dest copy');
+
+        $items = [
+            [
+                'name' => 'item.txt',
+                'type' => 'file',
+                'path' => '/src_cp_ren/item.txt',
+            ],
+        ];
+
+        $this->sendRequest('POST', '/copyitems', [
+            'destination' => '/dest_cp_ren',
+            'items' => $items,
+            'action' => 'rename',
+        ]);
+
+        $this->assertOk();
+
+        // Source is preserved
+        $this->assertFileExists(TEST_REPOSITORY . '/src_cp_ren/item.txt');
+        // Destination has original and upcounted
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_cp_ren/item.txt');
+        $this->assertEquals('dest copy', file_get_contents(TEST_REPOSITORY . '/dest_cp_ren/item.txt'));
+        $this->assertFileExists(TEST_REPOSITORY . '/dest_cp_ren/item (1).txt');
+        $this->assertEquals('source copy', file_get_contents(TEST_REPOSITORY . '/dest_cp_ren/item (1).txt'));
+    }
+
     public function testZipFilesOnly()
     {
         $username = 'admin@example.com';

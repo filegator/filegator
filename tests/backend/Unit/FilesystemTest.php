@@ -852,6 +852,89 @@ class FilesystemTest extends TestCase
         $this->assertDirectoryExists(TEST_REPOSITORY . '/test2/test1/');
     }
 
+    public function testMoveFileWithOverwriteTrueReplacesFile()
+    {
+        $this->storage->createFile('/', 'test.txt');
+        $this->storage->createDir('/', 'sub');
+        $this->storage->createFile('/sub', 'test.txt');
+
+        // overwrite existing /test.txt
+        $this->storage->move('/sub/test.txt', '/test.txt', true);
+
+        $this->assertTrue($this->storage->fileExists('/test.txt'));
+        $this->assertFalse($this->storage->fileExists('/test (1).txt'));
+        $this->assertFalse($this->storage->fileExists('/sub/test.txt'));
+    }
+
+    public function testMoveDirectoryWithOverwriteTrueMergesContents()
+    {
+        // source dir /src with /src/common.txt and /src/new.txt
+        $this->storage->createDir('/', 'src');
+        $this->storage->createFile('/src', 'common.txt');
+        $this->storage->createFile('/src', 'new.txt');
+
+        // dest dir /dest with /dest/common.txt and /dest/keep.txt
+        $this->storage->createDir('/', 'dest');
+        $this->storage->createFile('/dest', 'common.txt');
+        $this->storage->createFile('/dest', 'keep.txt');
+
+        // merge /src into /dest
+        $this->storage->move('/src', '/dest', true);
+
+        // source should be deleted
+        $this->assertFalse($this->storage->fileExists('/src'));
+
+        // dest should contain all merged files
+        $this->assertTrue($this->storage->fileExists('/dest/common.txt'));
+        $this->assertTrue($this->storage->fileExists('/dest/new.txt'));
+        $this->assertTrue($this->storage->fileExists('/dest/keep.txt'));
+    }
+
+    public function testCopyFileWithOverwriteTrueReplacesFile()
+    {
+        $this->storage->createFile('/', 'test.txt');
+        $this->storage->createDir('/', 'sub');
+        $this->storage->createFile('/sub', 'test.txt');
+
+        $this->storage->copyFile('/sub/test.txt', '/', true);
+
+        $this->assertTrue($this->storage->fileExists('/test.txt'));
+        $this->assertFalse($this->storage->fileExists('/test (1).txt'));
+        $this->assertTrue($this->storage->fileExists('/sub/test.txt'));
+    }
+
+    public function testCopyDirectoryWithOverwriteTrueMergesContents()
+    {
+        $this->storage->createDir('/', 'src_copy');
+        $this->storage->createFile('/src_copy', 'file1.txt');
+        $this->storage->createFile('/src_copy', 'file2.txt');
+
+        $this->storage->createDir('/', 'dest_copy');
+        $this->storage->createDir('/dest_copy', 'src_copy');
+        $this->storage->createFile('/dest_copy/src_copy', 'file1.txt');
+        $this->storage->createFile('/dest_copy/src_copy', 'file3.txt');
+
+        $this->storage->copyDir('/src_copy', '/dest_copy', true);
+
+        // source should be preserved
+        $this->assertTrue($this->storage->fileExists('/src_copy/file1.txt'));
+        $this->assertTrue($this->storage->fileExists('/src_copy/file2.txt'));
+
+        // dest should contain all merged files
+        $this->assertTrue($this->storage->fileExists('/dest_copy/src_copy/file1.txt'));
+        $this->assertTrue($this->storage->fileExists('/dest_copy/src_copy/file2.txt'));
+        $this->assertTrue($this->storage->fileExists('/dest_copy/src_copy/file3.txt'));
+    }
+
+    public function testCannotMoveDirectoryIntoItself()
+    {
+        $this->expectException(\Exception::class);
+        $this->storage->createDir('/', 'parent_dir');
+        $this->storage->createDir('/parent_dir', 'child_dir');
+
+        $this->storage->move('/parent_dir', '/parent_dir/child_dir');
+    }
+
     public function testCannotGoUpTheHomeDirUsingPathFiddle()
     {
         $this->storage->createFile('/', 'hidden.txt');

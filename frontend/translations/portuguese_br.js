@@ -78,6 +78,10 @@ const data = {
   'Show hidden': 'Mostrar ocultos',
   'Show symbolic format': 'Mostrar formato simbólico',
   'Hide symbolic format': 'Ocultar formato simbólico',
+  'Items already exist': 'Itens já existem',
+  'The following items already exist in the destination:': 'Os seguintes itens já existem no destino:',
+  'Replace': 'Substituir',
+  'Choose "Replace" to overwrite files and combine folders, or "Rename" to keep both.': 'Escolha "Substituir" para substituir arquivos e combinar pastas, ou "Renomear" para manter ambos.',
 }
 
 export default data
