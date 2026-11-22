@@ -148,6 +148,31 @@ class FilesTest extends TestCase
         $this->assertOk();
     }
 
+    public function testDeleteItemsRequiresDeletePermission()
+    {
+        $username = 'jane@example.com';
+        $this->signIn($username, 'jane123');
+
+        mkdir(TEST_REPOSITORY.'/jane');
+        touch(TEST_REPOSITORY.'/jane/jane.txt', $this->timestamp);
+
+        $items = [
+            0 => [
+                'type' => 'file',
+                'path' => '/jane.txt',
+                'name' => 'jane.txt',
+                'time' => $this->timestamp,
+            ],
+        ];
+
+        $this->sendRequest('POST', '/deleteitems', [
+            'items' => $items,
+        ]);
+
+        $this->assertStatus(404);
+        $this->assertFileExists(TEST_REPOSITORY.'/jane/jane.txt');
+    }
+
     public function testDownloadFileHeaders()
     {
         $username = 'john@example.com';
