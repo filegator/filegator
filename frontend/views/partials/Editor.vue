@@ -7,7 +7,7 @@
         </p>
       </header>
       <section class="modal-card-body preview">
-        <template>
+        <template v-if="loaded">
           <prism-editor v-model="content" language="md" :readonly="!can('write')" :line-numbers="lineNumbers" />
         </template>
       </section>
@@ -39,6 +39,7 @@ export default {
       content: '',
       currentItem: '',
       lineNumbers: true,
+      loaded: false,
     }
   },
   mounted() {
@@ -48,8 +49,12 @@ export default {
     })
       .then((res) => {
         this.content = res
+        this.loaded = true
       })
-      .catch(error => this.handleError(error))
+      .catch(error => {
+        this.handleError(error)
+        this.$parent.close()
+      })
   },
   methods: {
     saveFile() {
