@@ -195,7 +195,7 @@ class Filesystem implements Service
         }
 
         // ensure every digit is 0-7
-        if (!preg_match('/^[0-7]{1,3}$/', (string) $permissions)) {
+        if (!preg_match('#^[0-7]{1,3}$#', (string) $permissions)) {
             throw new \Exception('Invalid permission value. Must be between 0 and 777.');
         }
 
@@ -256,6 +256,13 @@ class Filesystem implements Service
 
     public function setPathPrefix(string $path_prefix)
     {
+        // a homedir from a username like '.' or '..' would resolve to the storage root, exposing every user's folder
+        foreach (preg_split('#[\\\\/]#', $path_prefix) as $segment) {
+            if ($segment !== '' && trim($segment, '.') === '') {
+                throw new \InvalidArgumentException('Invalid path prefix');
+            }
+        }
+
         $this->path_prefix = $this->addSeparators($path_prefix);
     }
 
@@ -326,7 +333,7 @@ class Filesystem implements Service
     protected function upcountName($name)
     {
         return preg_replace_callback(
-            '/(?:(?: \(([\d]+)\))?(\.[^.]+))?$/',
+            '#(?:(?: \(([\d]+)\))?(\.[^.]+))?$#',
             [$this, 'upcountCallback'],
             $name,
             1
@@ -402,11 +409,10 @@ class Filesystem implements Service
 
     private function escapeDots(string $path): string
     {
-        $path = preg_replace('/\\\+\.{2,}/', '', $path);
-        $path = preg_replace('/\.{2,}\\\+/', '', $path);
-        $path = preg_replace('/\/+\.{2,}/', '', $path);
-        $path = preg_replace('/\.{2,}\/+/', '', $path);
-        $path = preg_replace('#(^|[\\\\/])\.\.($|[\\\\/])#', '$1$2', $path);
+        // only strip dot-only path segments, never dots that are part of a name like 'alice..'
+        $path = preg_replace('#[\\\\/]+\.{2,}(?=$|[\\\\/])#', '', $path);     // separator(s) + dots, dots must END the segment:   'a/..' -> 'a', 'a/..b' kept
+        $path = preg_replace('#(?<=^|[\\\\/])\.{2,}[\\\\/]+#', '', $path);    // dots + separator(s), dots must START the segment: '../b' -> 'b', 'a../b' kept
+        $path = preg_replace('#(^|[\\\\/])\.\.($|[\\\\/])#', '$1$2', $path);  // '..' must be the WHOLE segment:                   '..'   -> '',  'a..b' kept
 
         return $path;
     }

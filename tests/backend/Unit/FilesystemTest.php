@@ -484,6 +484,31 @@ class FilesystemTest extends TestCase
         $this->assertEquals('/john/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['..\..\..\..']));
     }
 
+    public function testApplyPathPrefixKeepsDotsInsideNames()
+    {
+        $this->storage->setPathPrefix('/alice../');
+        $this->assertEquals('/alice../', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/']));
+        $this->assertEquals('/alice../sub/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/sub/']));
+
+        $this->storage->setPathPrefix('/..alice/');
+        $this->assertEquals('/..alice/', $this->invokeMethod($this->storage, 'applyPathPrefix', ['/']));
+
+        $this->storage->setPathPrefix('/john/');
+        $this->assertEquals('/john/x..\\y', $this->invokeMethod($this->storage, 'applyPathPrefix', ['x..\\y']));
+    }
+
+    public function testSetPathPrefixRejectsDotSegments()
+    {
+        foreach (['/..', '..', '/.', '/john/../', '/...', '\\..\\'] as $prefix) {
+            try {
+                $this->storage->setPathPrefix($prefix);
+                $this->fail("Path prefix '{$prefix}' should be rejected");
+            } catch (\InvalidArgumentException $e) {
+                $this->assertEquals('/', $this->storage->getPathPrefix());
+            }
+        }
+    }
+
     public function testStripPathPrefix()
     {
         $this->storage->setPathPrefix('/john/');

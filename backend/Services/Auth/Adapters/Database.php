@@ -199,7 +199,7 @@ class Database implements Service, AuthInterface
         $new = new User();
 
         $new->setRole($user->role ?? 'guest');
-        $new->setHomedir($user->homedir ?? '/');
+        $new->setHomeDir($user->homedir ?? '/');
         $new->setPermissions($user->permissions ?? '', true);
         $new->setUsername($user->username ?? '');
         $new->setName($user->name ?? 'Guest');

@@ -69,6 +69,8 @@ Replace your current Auth handler in `configuration.php` file like this:
                 'wp_dir' => '/var/www/my_wordpress_site/',
                 'permissions' => ['read', 'write', 'upload', 'download', 'batchdownload', 'zip'],
                 'private_repos' => false,
+                // base32-encode usernames for private_repos folder names, so every username gets its own, safe folder
+                'private_repos_secured' => true,
             ],
         ],
 ```
@@ -76,6 +78,7 @@ Adjust in the config above:
 - `wp_dir` should be the directory path of your wordpress installation
 - `permissions` is the array of permissions given to each user
 - `private_repos` each user will have its own sub folder, admin will see everything (false/true)
+- `private_repos_secured` names each user's folder after the base32-encoded username, so any username gets its own, safe folder (false/true)
 
 Note: With more recent versions of FileGator you can set `guest_redirection` in your `configuration.php` to redirect logged-out users back to your WP site:
 ```
@@ -95,6 +98,8 @@ Replace your current Auth handler in `configuration.php` file like this:
             'handler' => '\Filegator\Services\Auth\Adapters\LDAP',
             'config' => [
                     'private_repos' => false,
+                    // base32-encode usernames for private_repos folder names, so every username gets its own, safe folder
+                    'private_repos_secured' => true,
                     'ldap_server'=>'ldap://192.168.1.1',
                     'ldap_bindDN'=>'uid=ldapbinduser,cn=users,dc=ldap,dc=example,dc=com',
                     'ldap_bindPass'=>'ldapbinduser-password',

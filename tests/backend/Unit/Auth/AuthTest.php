@@ -43,7 +43,7 @@ abstract class AuthTest extends TestCase
     {
         $admin = new User();
         $admin->setRole('admin');
-        $admin->setHomedir('/');
+        $admin->setHomeDir('/');
         $admin->setUsername('admin@example.com');
         $admin->setName('Admin');
 
@@ -54,7 +54,7 @@ abstract class AuthTest extends TestCase
     {
         $mike = new User();
         $mike->setRole('user');
-        $mike->setHomedir('/');
+        $mike->setHomeDir('/');
         $mike->setUsername('mike@example.com');
         $mike->setName('Mike');
 
@@ -65,7 +65,7 @@ abstract class AuthTest extends TestCase
     {
         $guest = new User();
         $guest->setRole('guest');
-        $guest->setHomedir('/');
+        $guest->setHomeDir('/');
         $guest->setUsername('guest');
         $guest->setName('Guest');
 
@@ -164,7 +164,7 @@ abstract class AuthTest extends TestCase
 
         $user = new User();
         $user->setRole('user');
-        $user->setHomedir('/');
+        $user->setHomeDir('/');
         $user->setUsername('tim@example.com');
         $user->setName('Tim');
 
@@ -175,7 +175,7 @@ abstract class AuthTest extends TestCase
     {
         $user = new User();
         $user->setRole('user');
-        $user->setHomedir('/');
+        $user->setHomeDir('/');
         $user->setUsername('tim@example.com');
         $user->setName('Tim');
 
@@ -190,7 +190,7 @@ abstract class AuthTest extends TestCase
 
         $second_admin = new User();
         $second_admin->setRole('user');
-        $second_admin->setHomedir('/');
+        $second_admin->setHomeDir('/');
         $second_admin->setUsername('admin@example.com');
         $second_admin->setName('Admin2');
 

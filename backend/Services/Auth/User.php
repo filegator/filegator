@@ -90,7 +90,7 @@ class User implements \JsonSerializable
         return $this->username;
     }
 
-    public function setHomedir(string $homedir)
+    public function setHomeDir(string $homedir)
     {
         $this->homedir = $homedir;
     }
@@ -98,6 +98,43 @@ class User implements \JsonSerializable
     public function getHomeDir(): string
     {
         return $this->homedir;
+    }
+
+    /**
+     * Per-user home folder for the 'private_repos' option.
+     * Returns null if the username can't be used as a folder name.
+     */
+    public static function usernameToHomeDir(string $username, bool $secured): ?string
+    {
+        $result = null;
+
+        if ($username !== '') {
+            $result = $username;
+
+            // secured: encode the username as lowercase base32 (a-z, 2-7), so any username yields a unique,
+            // safe folder name, even on case-insensitive file systems.
+            if ($secured) {
+                $bits = '';
+                foreach (str_split($username) as $char) {
+                    $bits .= sprintf('%08b', ord($char));
+                }
+
+                $result = '';
+                foreach (str_split($bits, 5) as $chunk) {
+                    $result .= 'abcdefghijklmnopqrstuvwxyz234567'[bindec(str_pad($chunk, 5, '0'))];
+                }
+            }
+
+            // not secured: reject dot-only names (they resolve to the storage root) and path-specific special characters
+            if ((!$secured) && (trim($username, '.') === '' || preg_match('#[<>:"/\\\\|?*\x00-\x1F\x7F\xA0\xAD;{}^~`]#u', $username) !== 0)) {
+                $result = null;
+            } else {
+                // the leading '/' is only added after the safety checks
+                $result = '/' . $result;
+            }
+        }
+
+        return $result;
     }
 
     public function setRole(string $role)

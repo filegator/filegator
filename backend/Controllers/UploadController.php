@@ -42,9 +42,9 @@ class UploadController
     public function chunkCheck(Request $request, Response $response)
     {
         $file_name = $request->input('resumableFilename', 'file');
-        $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
+        $identifier = (string) preg_replace('#[^0-9a-zA-Z_]#', '', (string) $request->input('resumableIdentifier'));
         $username = $this->auth->user() ? $this->auth->user()->getUsername() : 'guest';
-        $clean_username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', $username);
+        $clean_username = (string) preg_replace('#[^0-9a-zA-Z_]#', '', $username);
         $chunk_number = (int) $request->input('resumableChunkNumber');
 
         $chunk_file = 'multipart_' . $clean_username . '_' . $identifier . '_' . $file_name . '.part' . $chunk_number;
@@ -63,9 +63,9 @@ class UploadController
         $chunk_number = (int) $request->input('resumableChunkNumber');
         $total_chunks = (int) $request->input('resumableTotalChunks');
         $total_size = (int) $request->input('resumableTotalSize');
-        $identifier = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('resumableIdentifier'));
+        $identifier = (string) preg_replace('#[^0-9a-zA-Z_]#', '', (string) $request->input('resumableIdentifier'));
         $username = $this->auth->user() ? $this->auth->user()->getUsername() : 'guest';
-        $clean_username = (string) preg_replace('/[^0-9a-zA-Z_]/', '', $username);
+        $clean_username = (string) preg_replace('#[^0-9a-zA-Z_]#', '', $username);
 
         $filebag = $request->files;
         $file = $filebag->get('file');

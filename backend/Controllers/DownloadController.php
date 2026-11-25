@@ -159,7 +159,7 @@ class DownloadController
 
     public function batchDownloadStart(Request $request, Response $response, StreamedResponse $streamedResponse, TmpfsInterface $tmpfs)
     {
-        $uniqid = (string) preg_replace('/[^0-9a-zA-Z_]/', '', (string) $request->input('uniqid'));
+        $uniqid = (string) preg_replace('#[^0-9a-zA-Z_]#', '', (string) $request->input('uniqid'));
 
         // Authorization: only the session that created this archive may download
         // it. Without this check any user who learns another user's archive id
