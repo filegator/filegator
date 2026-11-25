@@ -51,5 +51,5 @@ npm run lint
 
 Set the website document root to `filegator/dist` directory. This is also known as 'public' folder.
 
-NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
+NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. If `filegator/repository/` is reachable, anyone can download all uploaded files without logging in and uploaded `.php` files can be executed. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
 
