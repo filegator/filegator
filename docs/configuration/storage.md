@@ -13,7 +13,7 @@ Notes: Some adapters do not support folder operations or their support is limite
 Requiring additional libraries with [composer](https://getcomposer.org/download/) requires root access.
 
 ## Default Local Disk Adapter
-With default adapter you just need to configure where your `repository` folder is. This folder will serve as a root for everything else.
+With default adapter you just need to configure where your `repository` folder is. This folder will serve as a root for everything else. It must not be reachable through the web.
 
 ```
         'Filegator\Services\Storage\Filesystem' => [

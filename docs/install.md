@@ -24,7 +24,7 @@ Precompiled build is created for non-developers. In this version, the frontend (
 - Login with default credentials `admin/admin123`
 - Change default admin's password
 
-NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. Everything else should be outside of your web root, this way people can’t access any of your important files through the browser. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
+NOTE: For security reasons `filegator/dist` is the ONLY folder you want to be exposed through the web. If `filegator/repository/` is reachable, anyone can download all uploaded files without logging in and uploaded `.php` files can be executed. The included `.htaccess` files only protect `repository/` and `private/` on Apache. If you run the script from the root folder, you will see the message **'Development mode'** as a security warning.
 
 ## Install on fresh Ubuntu 18.04 or Debian 10.3
 On a new server login as root and enter this into the shell:
