@@ -199,7 +199,7 @@ class JsonFile implements Service, AuthInterface
         $new->setUsername($user['username']);
         $new->setName($user['name']);
         $new->setRole($user['role']);
-        $new->setHomedir($user['homedir']);
+        $new->setHomeDir($user['homedir']);
         $new->setPermissions($user['permissions'], true);
 
         return $new;

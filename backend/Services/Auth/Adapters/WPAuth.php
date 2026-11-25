@@ -23,6 +23,7 @@ class WPAuth implements Service, AuthInterface
     protected $permissions = [];
 
     protected $private_repos = false;
+    protected $private_repos_secured = false;
 
     public function init(array $config = [])
     {
@@ -30,7 +31,8 @@ class WPAuth implements Service, AuthInterface
         require_once(rtrim($config['wp_dir'], '/') . '/wp-blog-header.php');
 
         $this->permissions = isset($config['permissions']) ? (array) $config['permissions'] : [];
-        $this->private_repos = isset($config['private_repos']) ? (bool) $config['private_repos'] : false;
+        $this->private_repos = (bool) ($config['private_repos'] ?? false);
+        $this->private_repos_secured = (bool) ($config['private_repos_secured'] ?? false);
     }
 
     public function user(): ?User
@@ -38,29 +40,32 @@ class WPAuth implements Service, AuthInterface
         $wpuser = wp_get_current_user();
 
         if ($wpuser->exists()) {
-            return $this->transformUser($wpuser);
+            return $this->transformUser($wpuser) ?? $this->getGuest();
         }
 
         return $this->getGuest();
     }
 
-    public function transformUser($wpuser): User
+    /**
+     * Returns null if the user's private repository can't be created from the username.
+     */
+    public function transformUser($wpuser): ?User
     {
         $user = new User();
         $user->setUsername($wpuser->data->user_login);
         $user->setName($wpuser->data->display_name);
         $user->setRole('user');
         $user->setPermissions($this->permissions);
-        $user->setHomedir('/');
+        $user->setHomeDir('/');
 
-        // private repositories for each user?
-        if ($this->private_repos) {
-            $user->setHomedir('/' . $wpuser->data->user_login);
-        }
-
-        // ...but not for wp admins
-        if (in_array('administrator', (array) $wpuser->roles)) {
-            $user->setHomedir('/');
+        // private repositories for each user, but not for wp admins
+        if ($this->private_repos && ! in_array('administrator', (array) $wpuser->roles)) {
+            $homedir = User::usernameToHomeDir($wpuser->data->user_login, $this->private_repos_secured);
+            if ($homedir === null) {
+                // unsafe username: refuse the Filegator login (authenticate() fails, user() returns the guest)
+                return null;
+            }
+            $user->setHomeDir($homedir);
         }
 
         return $user;
@@ -74,11 +79,17 @@ class WPAuth implements Service, AuthInterface
             'remember'      => true,
         ];
 
+        // check credentials and username before wp_signon() sets any login cookies
+        $wpuser = wp_authenticate($username, $password);
+
+        if (is_wp_error($wpuser) || $this->transformUser($wpuser) === null) {
+            return false;
+        }
+
         $wpuser = wp_signon($creds, false);
 
         if (!is_wp_error($wpuser)) {
             wp_set_current_user($wpuser->data->ID);
-            $this->transformUser($wpuser);
             return true;
         }
 
@@ -130,7 +141,7 @@ class WPAuth implements Service, AuthInterface
         $guest->setUsername('guest');
         $guest->setName('Guest');
         $guest->setRole('guest');
-        $guest->setHomedir('/');
+        $guest->setHomeDir('/');
         $guest->setPermissions([]);
 
         return $guest;

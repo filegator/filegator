@@ -30,7 +30,10 @@ class LDAP implements Service, AuthInterface
     protected $session;
 
     protected $resolved_user;
+
     protected $private_repos = false;
+    protected $private_repos_secured = false;
+
     protected $ldap_server;
     protected $ldap_bindDN;
     protected $ldap_bindPass;
@@ -38,6 +41,7 @@ class LDAP implements Service, AuthInterface
     protected $ldap_filter;
     protected $ldap_attributes;
     protected $ldap_userFieldMapping;
+
     protected $logger;
 
     public function __construct(Session $session, LoggerInterface $logger)
@@ -60,7 +64,8 @@ class LDAP implements Service, AuthInterface
             @ldap_set_option($connect, LDAP_OPT_PROTOCOL_VERSION, 3);
             @ldap_set_option($connect, LDAP_OPT_REFERRALS, 0);
 
-            $this->private_repos = $config['private_repos'];
+            $this->private_repos = (bool) ($config['private_repos'] ?? false);
+            $this->private_repos_secured = (bool) ($config['private_repos_secured'] ?? false);
             $this->ldap_server = $config['ldap_server'];
             $this->ldap_bindDN = $config['ldap_bindDN'];
             $this->ldap_bindPass = $config['ldap_bindPass'];
@@ -210,7 +215,7 @@ class LDAP implements Service, AuthInterface
             $guest->setUsername('guest');
             $guest->setName('Guest');
             $guest->setRole('guest');
-            $guest->setHomedir('/');
+            $guest->setHomeDir('/');
             $guest->setPermissions([]);
             return $guest;
         }
@@ -235,7 +240,7 @@ class LDAP implements Service, AuthInterface
         $new->setUsername($user['username']);
         $new->setName($user['name']);
         $new->setRole($user['role']);
-        $new->setHomedir($user['homedir']);
+        $new->setHomeDir($user['homedir']);
         $new->setPermissions($user['permissions'], true);
         return $new;
     }
@@ -307,9 +312,14 @@ class LDAP implements Service, AuthInterface
                     }
                 }
 
-                // private repositories for each user?
-                if ($this->private_repos) {
-                    $user['homedir'] = '/' . $user['username'];
+                // private repositories for each user, but not for admins
+                if ($this->private_repos && $user['role'] != 'admin') {
+                    $homedir = User::usernameToHomeDir($user['username'], $this->private_repos_secured);
+                    if ($homedir === null) {
+                        // unsafe username: leave the user out, so they can't log in and existing sessions end
+                        continue;
+                    }
+                    $user['homedir'] = $homedir;
                 }
 
                 // ...but not for admins

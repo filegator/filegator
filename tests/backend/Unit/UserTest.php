@@ -29,7 +29,7 @@ class UserTest extends TestCase
 
         $user = new User($role, $homedir, $username, $name);
         $user->setRole($role);
-        $user->setHomedir($homedir);
+        $user->setHomeDir($homedir);
         $user->setUsername($username);
         $user->setName($name);
         $user->setPermissions($permissions);
@@ -172,5 +172,41 @@ class UserTest extends TestCase
         $user->setPermissions(['zip']);
 
         $this->assertTrue($user->hasPermissions('zip'));
+    }
+
+    public function testUsernameToHomeDirUsesSafeUsernames()
+    {
+        foreach (['alice', 'alice..', '..alice', 'john@example.com', 'jürgen'] as $username) {
+            $this->assertEquals('/' . $username, User::usernameToHomeDir($username, false));
+        }
+    }
+
+    public function testUsernameToHomeDirRejectsUnsafeUsernames()
+    {
+        foreach (['', '.', '..', '...', 'a/b', 'a\\b', "a\x00b", 'a:b', 'a|b', "\xff"] as $username) {
+            $this->assertNull(User::usernameToHomeDir($username, false), "'{$username}' should be rejected");
+        }
+    }
+
+    public function testUsernameToHomeDirSecuredIsBase32()
+    {
+        // RFC 4648 test vectors, lowercase and unpadded
+        foreach (['f' => 'my', 'fo' => 'mzxq', 'foo' => 'mzxw6', 'foob' => 'mzxw6yq', 'fooba' => 'mzxw6ytb', 'foobar' => 'mzxw6ytboi'] as $username => $result) {
+            $this->assertEquals('/' . $result, User::usernameToHomeDir($username, true));
+        }
+        $this->assertNull(User::usernameToHomeDir('', true));
+    }
+
+    public function testUsernameToHomeDirSecuredAcceptsAnyUsernameWithoutCollisions()
+    {
+        $usernames = ['alice', 'alice..', 'Alice', '.', '..', 'a/b', 'a\\b', "\xff"];
+        $homedirs = array_map(function ($username) {
+            return User::usernameToHomeDir($username, true);
+        }, $usernames);
+
+        foreach ($homedirs as $homedir) {
+            $this->assertRegExp('#^/[a-z2-7]+$#', $homedir);
+        }
+        $this->assertCount(count($usernames), array_unique($homedirs));
     }
 }
